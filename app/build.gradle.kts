@@ -9,7 +9,10 @@
 
 plugins {
     // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
-    id("org.jetbrains.kotlin.jvm") version "1.5.31"
+    id("org.jetbrains.kotlin.jvm") version "1.7.0"
+    id("com.github.ben-manes.versions") version "0.42.0"
+    id ("org.springframework.boot") version "2.7.1"
+
 
     // Apply the application plugin to add support for building a CLI application in Java.
     application
@@ -21,27 +24,14 @@ repositories {
 }
 
 dependencies {
-    // Align versions of all Kotlin components
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.7.0"))
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:2.7.1"))
 
-    // Use the Kotlin JDK 8 standard library.
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-
-    // This dependency is used by the application.
-    implementation("com.google.guava:guava:30.1.1-jre")
-}
-
-testing {
-    suites {
-        // Configure the built-in test suite
-        val test by getting(JvmTestSuite::class) {
-            // Use Kotlin Test test framework
-            useKotlinTest()
-        }
-    }
+    implementation("org.springframework.boot:spring-boot-starter")
 }
 
 application {
     // Define the main class for the application.
-    mainClass.set("dev.capybaralabs.shipa.AppKt")
+    mainClass.set("dev.capybaralabs.shipa.LauncherKt")
 }
