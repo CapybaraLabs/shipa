@@ -1,3 +1,9 @@
+buildscript {
+	configurations.classpath {
+		resolutionStrategy.activateDependencyLocking()
+	}
+}
+
 plugins {
 	// Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
 	alias(libs.plugins.kotlin.jvm)
@@ -39,6 +45,27 @@ dependencies {
 	implementation "org.springframework.boot:spring-boot-starter"
 }
 
+dependencyLocking {
+	lockAllConfigurations()
+}
+
+// ./gradlew resolveAndLockAll --write-locks
+task resolveAndLockAll {
+	doFirst {
+		assert gradle.startParameter.writeDependencyLocks
+	}
+	doLast {
+		configurations.all {
+			resolutionStrategy {
+				componentSelection properReleasesOnly()
+			}
+		}
+		configurations
+				.findAll { it.canBeResolved }
+				.each { it.resolve() }
+	}
+}
+
 springBoot {
 	mainClass = "dev.capybaralabs.shipa.LauncherKt"
 }
@@ -47,20 +74,28 @@ jar {
 	onlyIf { false }
 }
 
-def isNonStable = { String version ->
-	def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { it -> version.toUpperCase().contains(it) }
-	def regex = /^[0-9,.v-]+(-r)?$/
-	return !stableKeyword && !(version ==~ regex)
-}
-
 tasks.named("dependencyUpdates").configure {
-	rejectVersionIf {
-		isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)
+	resolutionStrategy {
+		componentSelection properReleasesOnly()
 	}
-}
-tasks.named("dependencyUpdates").configure {
 	checkConstraints = true
 	checkBuildEnvironmentConstraints = true
 	gradleReleaseChannel = "current"
 }
 
+
+static def properReleasesOnly() {
+	return { rules ->
+		rules.all { ComponentSelection selection ->
+			if (isNonStable(selection.candidate.version) && !isNonStable(selection.currentVersion)) {
+				reject('Release candidate')
+			}
+		}
+	}
+}
+
+static def isNonStable(String version) {
+	def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { it -> version.toUpperCase().contains(it) }
+	def regex = /^[0-9,.v-]+(-r)?$/
+	return !stableKeyword && !(version ==~ regex)
+}

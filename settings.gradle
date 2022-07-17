@@ -14,9 +14,9 @@ ext {
 	//@formatter:off
 
 	//plugin versions
-	kotlinVersion       	= '1.7.0'
-	versionsVersion         = '0.42.0'
-	springBootVersion       = '2.7.1'
+	kotlinVersion       	= '[1.7.0, 1.8['
+	versionsVersion         = '0.+'
+	springBootVersion       = '[2.7.0, 2.8['
 
 	//@formatter:on
 }
