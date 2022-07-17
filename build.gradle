@@ -48,6 +48,7 @@ dependencies {
 	implementation platform(libs.kotlin.bom)
 	implementation platform(libs.spring.boot.bom)
 	kapt platform(libs.spring.boot.bom)
+	developmentOnly platform(libs.spring.boot.bom)
 
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 	implementation "org.jetbrains.kotlin:kotlin-reflect"
@@ -57,6 +58,7 @@ dependencies {
 	implementation libs.saltycoffee
 
 	kapt "org.springframework.boot:spring-boot-configuration-processor"
+	developmentOnly "org.springframework.boot:spring-boot-devtools"
 }
 
 dependencyLocking {
