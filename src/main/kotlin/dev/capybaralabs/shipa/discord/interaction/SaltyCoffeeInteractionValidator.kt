@@ -18,7 +18,7 @@ class SaltyCoffeeInteractionValidator(publicKeyString: String) : InteractionVali
 		val len = s.length
 		val data = ByteArray(len / 2)
 		var i = 0
-		while (i < len) {
+		while (i < len - 1) {
 			data[i / 2] = ((digit(s[i]) shl 4) + (digit(s[i + 1]))).toByte()
 			i += 2
 		}
