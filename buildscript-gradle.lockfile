@@ -1,6 +1,8 @@
 # This is a Gradle generated file for dependency locking.
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
+com.adarshr.test-logger:com.adarshr.test-logger.gradle.plugin:3.2.0=classpath
+com.adarshr:gradle-test-logger-plugin:3.2.0=classpath
 com.fasterxml.jackson.core:jackson-annotations:2.13.3=classpath
 com.fasterxml.jackson.core:jackson-core:2.13.3=classpath
 com.fasterxml.jackson.core:jackson-databind:2.13.3=classpath
@@ -28,6 +30,7 @@ org.apache.commons:commons-compress:1.21=classpath
 org.apache.httpcomponents:httpclient:4.5.13=classpath
 org.apache.httpcomponents:httpcore:4.4.13=classpath
 org.checkerframework:checker-qual:2.11.1=classpath
+org.fusesource.jansi:jansi:2.4.0=classpath
 org.jetbrains.intellij.deps:trove4j:1.0.20200330=classpath
 org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:1.7.10=classpath
 org.jetbrains.kotlin.kapt:org.jetbrains.kotlin.kapt.gradle.plugin:1.7.10=classpath

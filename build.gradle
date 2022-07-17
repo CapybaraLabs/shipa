@@ -10,6 +10,7 @@ plugins {
 	alias(libs.plugins.spring.boot)
 	alias(libs.plugins.kotlin.spring) // opens certain classes
 	alias(libs.plugins.kapt)
+	alias(libs.plugins.testlogger)
 }
 
 java {
@@ -49,6 +50,8 @@ dependencies {
 	implementation platform(libs.spring.boot.bom)
 	kapt platform(libs.spring.boot.bom)
 	developmentOnly platform(libs.spring.boot.bom)
+	testImplementation platform(libs.spring.boot.bom)
+	testRuntimeOnly platform(libs.spring.boot.bom)
 
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 	implementation "org.jetbrains.kotlin:kotlin-reflect"
@@ -59,6 +62,13 @@ dependencies {
 
 	kapt "org.springframework.boot:spring-boot-configuration-processor"
 	developmentOnly "org.springframework.boot:spring-boot-devtools"
+
+	testImplementation "org.junit.jupiter:junit-jupiter-api"
+	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		//don't drag in weird JSON impl with conflicting JSONObject and missing gradle metadata
+		exclude group: "com.vaadin.external.google", module: "android-json"
+	}
 }
 
 dependencyLocking {
@@ -80,6 +90,15 @@ task resolveAndLockAll {
 				.findAll { it.canBeResolved }
 				.each { it.resolve() }
 	}
+}
+
+test {
+	useJUnitPlatform()
+	jvmArgs("-XX:TieredStopAtLevel=1")
+}
+
+testlogger {
+	theme "mocha"
 }
 
 springBoot {
