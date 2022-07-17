@@ -3,10 +3,6 @@ plugins {
 	id "org.jetbrains.kotlin.jvm" version "1.7.0"
 	id "com.github.ben-manes.versions" version "0.42.0"
 	id "org.springframework.boot" version "2.7.1"
-
-
-	// Apply the application plugin to add support for building a CLI application in Java.
-	id "application"
 }
 
 repositories {
@@ -22,8 +18,7 @@ dependencies {
 	implementation "org.springframework.boot:spring-boot-starter"
 }
 
-application {
-	// Define the main class for the application.
+springBoot {
 	mainClass = "dev.capybaralabs.shipa.LauncherKt"
 }
 
