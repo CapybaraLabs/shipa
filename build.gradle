@@ -5,6 +5,13 @@ plugins {
 	id "org.springframework.boot" version "2.7.1"
 }
 
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+		vendor = JvmVendorSpec.ADOPTIUM
+	}
+}
+
 repositories {
 	// Use Maven Central for resolving dependencies.
 	mavenCentral()
