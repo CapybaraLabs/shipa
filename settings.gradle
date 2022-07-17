@@ -9,6 +9,7 @@ pluginManagement {
 rootProject.name = "shipa"
 
 
+gradle.ext.theJavaVersion = "17"
 ext {
 	//@formatter:off
 

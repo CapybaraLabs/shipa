@@ -7,9 +7,23 @@ plugins {
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(gradle.ext.theJavaVersion)
 		vendor = JvmVendorSpec.ADOPTIUM
 	}
+	consistentResolution {
+		useCompileClasspathVersions()
+	}
+}
+
+tasks.withType(JavaCompile) {
+	dependsOn(processResources)
+	options.encoding = "UTF-8"
+	options.release.set(gradle.ext.theJavaVersion.toInteger())
+	options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-Xmaxerrs" << "10000" << "-Xdiags:verbose"
+	options.incremental = true
+}
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+	kotlinOptions.jvmTarget = gradle.ext.theJavaVersion
 }
 
 repositories {
@@ -27,6 +41,10 @@ dependencies {
 
 springBoot {
 	mainClass = "dev.capybaralabs.shipa.LauncherKt"
+}
+
+jar {
+	onlyIf { false }
 }
 
 def isNonStable = { String version ->
