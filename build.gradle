@@ -5,10 +5,11 @@ buildscript {
 }
 
 plugins {
-	// Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
 	alias(libs.plugins.kotlin.jvm)
 	alias(libs.plugins.versions)
 	alias(libs.plugins.spring.boot)
+	alias(libs.plugins.kotlin.spring) // opens certain classes
+	alias(libs.plugins.kapt)
 }
 
 java {
@@ -37,12 +38,25 @@ repositories {
 	mavenCentral()
 }
 
+configurations {
+	//undertow master race
+	implementation.exclude module: "spring-boot-starter-reactor-netty"
+	implementation.exclude module: "spring-boot-starter-tomcat"
+}
+
 dependencies {
 	implementation platform(libs.kotlin.bom)
 	implementation platform(libs.spring.boot.bom)
+	kapt platform(libs.spring.boot.bom)
 
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+	implementation "org.jetbrains.kotlin:kotlin-reflect"
 	implementation "org.springframework.boot:spring-boot-starter"
+	implementation "org.springframework.boot:spring-boot-starter-web"
+	implementation "org.springframework.boot:spring-boot-starter-undertow"
+	implementation libs.saltycoffee
+
+	kapt "org.springframework.boot:spring-boot-configuration-processor"
 }
 
 dependencyLocking {

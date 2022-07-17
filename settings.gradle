@@ -18,6 +18,8 @@ ext {
 	versionsVersion         = '0.+'
 	springBootVersion       = '[2.7.0, 2.8['
 
+	saltyCoffeeVersion		= '[1.0.5, 2.0['
+
 	//@formatter:on
 }
 
@@ -31,10 +33,12 @@ dependencyResolutionManagement {
 			plugin("kotlin-jvm", "org.jetbrains.kotlin.jvm").versionRef("kotlin")
 			plugin("versions", "com.github.ben-manes.versions").version("$versionsVersion")
 			plugin("spring-boot", "org.springframework.boot").versionRef("spring-boot")
+			plugin("kotlin-spring", "org.jetbrains.kotlin.plugin.spring").versionRef("kotlin")
+			plugin("kapt", "org.jetbrains.kotlin.kapt").versionRef("kotlin")
 
 			library("kotlin-bom", "org.jetbrains.kotlin", "kotlin-bom").versionRef("kotlin")
 			library("spring-boot-bom", "org.springframework.boot", "spring-boot-dependencies").versionRef("spring-boot")
-			library("spring-boot-starter", "org.springframework.boot", "spring-boot-starter").withoutVersion()
+			library("saltycoffee", "software.pando.crypto", "salty-coffee").version("$saltyCoffeeVersion")
 		}
 	}
 }
