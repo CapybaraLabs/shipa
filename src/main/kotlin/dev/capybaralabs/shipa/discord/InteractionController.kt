@@ -3,6 +3,8 @@ package dev.capybaralabs.shipa.discord
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.capybaralabs.shipa.discord.interaction.InteractionValidator
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.PONG
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.PING
 import dev.capybaralabs.shipa.logger
@@ -21,21 +23,19 @@ class InteractionController(private val interactionValidator: InteractionValidat
 	private val mapper = ObjectMapper()
 
 	@PostMapping
-	fun post(req: HttpServletRequest, @RequestBody rawBody: String): ResponseEntity<String> {
+	fun post(req: HttpServletRequest, @RequestBody rawBody: String): ResponseEntity<InteractionResponse> {
 		val signature = req.getHeader("X-Signature-Ed25519")
 		val timestamp = req.getHeader("X-Signature-Timestamp")
 
 		if (!interactionValidator.validateSignature(signature, timestamp, rawBody)) {
-			logger().info("Nope")
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
 		}
-		logger().info("Yep")
 
 		val node = mapper.readValue(rawBody, JsonNode::class.java)
 		val type = InteractionType.fromValue(node.get("type").asInt())
 
 		return when (type) {
-			PING -> ResponseEntity.ok().body("{\"type\":1}")
+			PING -> ResponseEntity.ok().body(InteractionResponse(PONG))
 			else -> {
 				logger().warn("Interaction Type $type not implemented!")
 				ResponseEntity.internalServerError().build()
