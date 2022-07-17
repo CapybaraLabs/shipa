@@ -1,1 +1,39 @@
+pluginManagement {
+	repositories {
+		gradlePluginPortal()
+		mavenCentral()
+	}
+}
+
+
 rootProject.name = "shipa"
+
+
+ext {
+	//@formatter:off
+
+	//plugin versions
+	kotlinVersion       	= '1.7.0'
+	versionsVersion         = '0.42.0'
+	springBootVersion       = '2.7.1'
+
+	//@formatter:on
+}
+
+dependencyResolutionManagement {
+
+	versionCatalogs {
+		libs {
+			version("spring-boot", "$springBootVersion")
+			version("kotlin", "$kotlinVersion")
+
+			plugin("kotlin-jvm", "org.jetbrains.kotlin.jvm").versionRef("kotlin")
+			plugin("versions", "com.github.ben-manes.versions").version("$versionsVersion")
+			plugin("spring-boot", "org.springframework.boot").versionRef("spring-boot")
+
+			library("kotlin-bom", "org.jetbrains.kotlin", "kotlin-bom").versionRef("kotlin")
+			library("spring-boot-bom", "org.springframework.boot", "spring-boot-dependencies").versionRef("spring-boot")
+			library("spring-boot-starter", "org.springframework.boot", "spring-boot-starter").withoutVersion()
+		}
+	}
+}

@@ -1,8 +1,8 @@
 plugins {
 	// Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
-	id "org.jetbrains.kotlin.jvm" version "1.7.0"
-	id "com.github.ben-manes.versions" version "0.42.0"
-	id "org.springframework.boot" version "2.7.1"
+	alias(libs.plugins.kotlin.jvm)
+	alias(libs.plugins.versions)
+	alias(libs.plugins.spring.boot)
 }
 
 java {
@@ -18,8 +18,8 @@ repositories {
 }
 
 dependencies {
-	implementation platform("org.jetbrains.kotlin:kotlin-bom:1.7.0")
-	implementation platform("org.springframework.boot:spring-boot-dependencies:2.7.1")
+	implementation platform(libs.kotlin.bom)
+	implementation platform(libs.spring.boot.bom)
 
 	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 	implementation "org.springframework.boot:spring-boot-starter"
