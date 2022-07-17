@@ -1,9 +1,11 @@
 package dev.capybaralabs.shipa.discord.interaction.model
 
+import com.fasterxml.jackson.annotation.JsonValue
+
 /**
  * [Discord Interaction Types](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-type)
  */
-enum class InteractionType(private val value: Int) {
+enum class InteractionType(@JsonValue val value: Int) {
 	PING(1),
 	APPLICATION_COMMAND(2),
 	MESSAGE_COMPONENT(3),

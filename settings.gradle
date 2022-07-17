@@ -20,6 +20,7 @@ ext {
 	testloggerVersion		= '[3.2.0, 4.0['
 
 	saltyCoffeeVersion		= '[1.0.5, 2.0['
+	mockitoKotlinVersion	= '[4.0.0, 5.0['
 
 	//@formatter:on
 }
@@ -41,6 +42,7 @@ dependencyResolutionManagement {
 			library("kotlin-bom", "org.jetbrains.kotlin", "kotlin-bom").versionRef("kotlin")
 			library("spring-boot-bom", "org.springframework.boot", "spring-boot-dependencies").versionRef("spring-boot")
 			library("saltycoffee", "software.pando.crypto", "salty-coffee").version("$saltyCoffeeVersion")
+			library("mockitokotlin", "org.mockito.kotlin", "mockito-kotlin").version("$mockitoKotlinVersion")
 		}
 	}
 }

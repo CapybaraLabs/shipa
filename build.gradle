@@ -69,6 +69,8 @@ dependencies {
 		//don't drag in weird JSON impl with conflicting JSONObject and missing gradle metadata
 		exclude group: "com.vaadin.external.google", module: "android-json"
 	}
+	testImplementation "org.mockito:mockito-inline"
+	implementation libs.mockitokotlin
 }
 
 dependencyLocking {
