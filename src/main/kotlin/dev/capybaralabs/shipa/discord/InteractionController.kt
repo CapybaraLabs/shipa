@@ -1,10 +1,12 @@
 package dev.capybaralabs.shipa.discord
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import dev.capybaralabs.shipa.discord.interaction.ApplicationCommandService
 import dev.capybaralabs.shipa.discord.interaction.InteractionValidator
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.PONG
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.APPLICATION_COMMAND
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.PING
 import dev.capybaralabs.shipa.logger
 import javax.servlet.http.HttpServletRequest
@@ -23,6 +25,7 @@ const val HEADER_TIMESTAMP = "X-Signature-Timestamp"
 class InteractionController(
 	private val interactionValidator: InteractionValidator,
 	private val mapper: ObjectMapper,
+	private val applicationCommandService: ApplicationCommandService,
 ) {
 
 	@PostMapping
@@ -40,6 +43,7 @@ class InteractionController(
 		val interaction = mapper.readValue(rawBody, InteractionObject::class.java)
 		return when (interaction.type) {
 			PING -> ResponseEntity.ok().body(InteractionResponse(PONG))
+			APPLICATION_COMMAND -> ResponseEntity.ok().body(applicationCommandService.onApplicationCommand(interaction))
 			else -> {
 				logger().warn("Interaction Type ${interaction.type} not implemented!")
 				ResponseEntity.internalServerError().build()

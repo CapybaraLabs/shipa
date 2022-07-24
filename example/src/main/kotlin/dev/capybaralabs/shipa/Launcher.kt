@@ -21,7 +21,7 @@ class Launcher(private val registerService: CommandRegisterService) {
 	fun setup() {
 		val command = CreateUserCommand("henlo")
 
-//		registerService.register(command, debugGuildId)
+		registerService.register(command, debugGuildId)
 	}
 }
 
