@@ -40,6 +40,7 @@ class InteractionController(
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
 		}
 
+		logger().debug("Received {}", rawBody)
 		val interaction = mapper.readValue(rawBody, InteractionObject::class.java)
 		return when (interaction.type) {
 			PING -> ResponseEntity.ok().body(InteractionResponse(PONG))

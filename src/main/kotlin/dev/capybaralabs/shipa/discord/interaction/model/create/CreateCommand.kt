@@ -8,5 +8,6 @@ import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandType
  * [Discord Making a Guild Command](https://discord.com/developers/docs/interactions/application-commands#making-a-guild-command)
  */
 abstract class CreateCommand(
-	val type: ApplicationCommandType
+	val type: ApplicationCommandType,
+	open val name: String,
 )
