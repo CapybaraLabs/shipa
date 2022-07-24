@@ -1,6 +1,7 @@
 package dev.capybaralabs.shipa.discord.interaction
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
+import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.client.ClientHttpRequestInterceptor
@@ -16,15 +17,14 @@ class InteractionsConfiguration(private val discord: DiscordProperties) {
 
 	@Bean
 	fun restTemplate(properties: DiscordProperties): RestTemplate {
-		val restTemplate = RestTemplate()
-
-		restTemplate.interceptors.add(
-			ClientHttpRequestInterceptor { req, body, exec ->
-				req.headers.add("Authorization", "Bot " + properties.botToken)
-				exec.execute(req, body)
-			}
-		)
-
-		return restTemplate
+		return RestTemplateBuilder()
+			.rootUri("https://discord.com/api/v10/")
+			.additionalInterceptors(
+				ClientHttpRequestInterceptor { req, body, exec ->
+					req.headers.add("Authorization", "Bot " + properties.botToken)
+					exec.execute(req, body)
+				}
+			)
+			.build()
 	}
 }

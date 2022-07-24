@@ -23,7 +23,7 @@ class CommandRegisterService(
 	fun registerGlobally(command: CreateCommand) {
 		// TODO how to handle / log errors?
 		restTemplate.postForEntity<Void>(
-			"https://discord.com/api/v10/applications/{applicationId}/commands",
+			"/applications/{applicationId}/commands",
 			command,
 			properties.applicationId,
 		)
@@ -33,7 +33,7 @@ class CommandRegisterService(
 	fun registerInGuild(command: CreateCommand, guildId: Long) {
 		// TODO how to handle / log errors?
 		restTemplate.postForEntity<Void>(
-			"https://discord.com/api/v10/applications/{applicationId}/guilds/{guildId}/commands",
+			"/applications/{applicationId}/guilds/{guildId}/commands",
 			command,
 			properties.applicationId,
 			guildId,
