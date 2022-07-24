@@ -3,27 +3,20 @@ pluginManagement {
 		gradlePluginPortal()
 		mavenCentral()
 	}
+
+	plugins {
+		id "org.jetbrains.kotlin.jvm" version "$kotlinVersion"
+		id "org.jetbrains.kotlin.kapt" version "$kotlinVersion"
+		id "com.github.ben-manes.versions" version "$versionsVersion"
+		id "org.springframework.boot" version "$springBootVersion"
+		id "org.jetbrains.kotlin.plugin.spring" version "$kotlinVersion"
+		id "com.adarshr.test-logger" version "$testloggerVersion"
+	}
 }
 
 
 rootProject.name = "shipa"
-
-
-gradle.ext.theJavaVersion = "17"
-ext {
-	//@formatter:off
-
-	//plugin versions
-	kotlinVersion       	= '[1.7.0, 1.8['
-	versionsVersion         = '0.+'
-	springBootVersion       = '[2.7.0, 2.8['
-	testloggerVersion		= '[3.2.0, 4.0['
-
-	saltyCoffeeVersion		= '[1.0.5, 2.0['
-	mockitoKotlinVersion	= '[4.0.0, 5.0['
-
-	//@formatter:on
-}
+include "example"
 
 dependencyResolutionManagement {
 
@@ -31,13 +24,6 @@ dependencyResolutionManagement {
 		libs {
 			version("spring-boot", "$springBootVersion")
 			version("kotlin", "$kotlinVersion")
-
-			plugin("kotlin-jvm", "org.jetbrains.kotlin.jvm").versionRef("kotlin")
-			plugin("versions", "com.github.ben-manes.versions").version("$versionsVersion")
-			plugin("spring-boot", "org.springframework.boot").versionRef("spring-boot")
-			plugin("kotlin-spring", "org.jetbrains.kotlin.plugin.spring").versionRef("kotlin")
-			plugin("kapt", "org.jetbrains.kotlin.kapt").versionRef("kotlin")
-			plugin("testlogger", "com.adarshr.test-logger").version("$testloggerVersion")
 
 			library("kotlin-bom", "org.jetbrains.kotlin", "kotlin-bom").versionRef("kotlin")
 			library("spring-boot-bom", "org.springframework.boot", "spring-boot-dependencies").versionRef("spring-boot")
