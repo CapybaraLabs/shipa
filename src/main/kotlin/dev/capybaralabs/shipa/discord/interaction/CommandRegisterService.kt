@@ -40,4 +40,21 @@ class CommandRegisterService(
 		)
 	}
 
+	fun deleteCommand(commandId: Long, guildId: Long?) {
+		if (guildId != null) {
+			deleteGuildCommand(commandId, guildId)
+		} else {
+			deleteGlobalCommand(commandId)
+		}
+	}
+
+	fun deleteGlobalCommand(commandId: Long) {
+		restTemplate.delete("/applications/{applicationId}/commands/{commandId}", properties.applicationId, commandId)
+	}
+
+	fun deleteGuildCommand(commandId: Long, guildId: Long) {
+		restTemplate.delete("/applications/{applicationId}/guilds/{guildId}/commands/{commandId}", properties.applicationId, guildId, commandId)
+	}
+
+
 }
