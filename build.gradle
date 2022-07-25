@@ -5,52 +5,92 @@ buildscript {
 }
 
 plugins {
-	id "java-library"
 	id "org.jetbrains.kotlin.jvm"
 	id "com.github.ben-manes.versions"
+	id "org.springframework.boot"
+	id "org.jetbrains.kotlin.kapt"
 	id "org.jetbrains.kotlin.plugin.spring" // opens certain classes
+	id "com.adarshr.test-logger"
 }
 
-allprojects {
-	java {
-		toolchain {
-			languageVersion = JavaLanguageVersion.of(theJavaVersion)
-			vendor = JvmVendorSpec.ADOPTIUM
-		}
-		consistentResolution {
-			useCompileClasspathVersions()
-		}
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(theJavaVersion)
+		vendor = JvmVendorSpec.ADOPTIUM
 	}
+	consistentResolution {
+		useCompileClasspathVersions()
+	}
+}
 
-	tasks.withType(JavaCompile) {
-		dependsOn(processResources)
-		options.encoding = "UTF-8"
-		options.release.set(theJavaVersion.toInteger())
-		options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-Xmaxerrs" << "10000" << "-Xdiags:verbose"
-		options.incremental = true
-	}
-	tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-		kotlinOptions.jvmTarget = theJavaVersion
-	}
+tasks.withType(JavaCompile) {
+	dependsOn(processResources)
+	options.encoding = "UTF-8"
+	options.release.set(theJavaVersion.toInteger())
+	options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation" << "-Xmaxerrs" << "10000" << "-Xdiags:verbose"
+	options.incremental = true
+}
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+	kotlinOptions.jvmTarget = theJavaVersion
+}
 
-	repositories {
-		// Use Maven Central for resolving dependencies.
-		mavenCentral()
-	}
+repositories {
+	// Use Maven Central for resolving dependencies.
+	mavenCentral()
+}
+
+configurations {
+	//undertow master race
+	implementation.exclude module: "spring-boot-starter-reactor-netty"
+	implementation.exclude module: "spring-boot-starter-tomcat"
 }
 
 dependencies {
-	api platform(libs.kotlin.bom)
-	api platform(libs.spring.boot.bom)
+	implementation platform(libs.kotlin.bom)
+	implementation platform(libs.spring.boot.bom)
+	kapt platform(libs.spring.boot.bom)
+	developmentOnly platform(libs.spring.boot.bom)
 	testImplementation platform(libs.spring.boot.bom)
 	testRuntimeOnly platform(libs.spring.boot.bom)
 
-	api "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-	api "org.jetbrains.kotlin:kotlin-reflect"
-	api "org.springframework.boot:spring-boot-starter"
-	api "org.springframework.boot:spring-boot-starter-web"
+
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+	implementation "org.jetbrains.kotlin:kotlin-reflect"
+	implementation "org.springframework.boot:spring-boot-starter"
+	implementation "org.springframework.boot:spring-boot-starter-web"
 	implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
 	implementation libs.saltycoffee
+
+	implementation "org.springframework.boot:spring-boot-starter-undertow"
+	kapt "org.springframework.boot:spring-boot-configuration-processor"
+	developmentOnly "org.springframework.boot:spring-boot-devtools"
+
+	testImplementation "org.junit.jupiter:junit-jupiter-api"
+	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		//don't drag in weird JSON impl with conflicting JSONObject and missing gradle metadata
+		exclude group: "com.vaadin.external.google", module: "android-json"
+	}
+	testImplementation "org.mockito:mockito-inline"
+	implementation libs.mockitokotlin
+}
+
+test {
+	useJUnitPlatform()
+	jvmArgs("-XX:TieredStopAtLevel=1")
+}
+
+testlogger {
+	theme "mocha"
+}
+
+
+springBoot {
+	mainClass = "dev.capybaralabs.shipa.LauncherKt"
+}
+
+jar {
+	onlyIf { false }
 }
 
 dependencyLocking {
