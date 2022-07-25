@@ -17,6 +17,7 @@ class Launcher(
 	private val debugGuildId: Long = 214539058028740609L
 
 	init {
+		Thread.setDefaultUncaughtExceptionHandler { t, e -> logger().warn("Uncaught exception in thread {}", t.name, e) }
 		println("Henlo")
 	}
 
