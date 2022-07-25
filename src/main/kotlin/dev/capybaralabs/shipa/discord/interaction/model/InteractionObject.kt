@@ -7,5 +7,5 @@ data class InteractionObject(
 	val id: Long,
 	val applicationId: Long,
 	val type: InteractionType,
-	val interactionData: InteractionData?, // present for all except ping, consider subclassing with concrete implementations
+	val data: InteractionData?, // present for all except ping, consider subclassing with concrete implementations
 )

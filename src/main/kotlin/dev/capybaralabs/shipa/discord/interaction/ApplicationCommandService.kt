@@ -14,7 +14,7 @@ class ApplicationCommandService(
 ) {
 
 	fun onApplicationCommand(interactionObject: InteractionObject): InteractionResponse {
-		val interactionName = interactionObject.interactionData!!
+		val interactionName = interactionObject.data!!
 			.let { it as ApplicationCommandData }
 			.name
 
