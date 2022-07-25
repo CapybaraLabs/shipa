@@ -12,7 +12,6 @@ import dev.capybaralabs.shipa.logger
 import javax.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -29,12 +28,6 @@ class InteractionController(
 	private val applicationCommandService: ApplicationCommandService,
 ) {
 
-	@ExceptionHandler
-	fun onExceptions(exception: Exception) {
-		logger().warn("Request processing exception", exception)
-		throw exception
-	}
-
 	@PostMapping
 	fun post(req: HttpServletRequest, @RequestBody rawBody: String): ResponseEntity<InteractionResponse> {
 		val signature: String? = req.getHeader(HEADER_SIGNATURE)
@@ -47,7 +40,6 @@ class InteractionController(
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
 		}
 
-		logger().debug("Received {}", rawBody)
 		val interaction = mapper.readValue(rawBody, InteractionObject::class.java)
 		return when (interaction.type) {
 			PING -> ResponseEntity.ok().body(InteractionResponse(PONG))
