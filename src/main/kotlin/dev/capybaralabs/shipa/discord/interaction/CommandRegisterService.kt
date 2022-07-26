@@ -2,6 +2,8 @@ package dev.capybaralabs.shipa.discord.interaction
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
+import org.springframework.core.env.Environment
+import org.springframework.core.env.Profiles
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.postForEntity
@@ -10,7 +12,12 @@ import org.springframework.web.client.postForEntity
 class CommandRegisterService(
 	private val properties: DiscordProperties,
 	private val restTemplate: RestTemplate,
+	private val environment: Environment,
 ) {
+
+	private fun isTestEnvironment(): Boolean {
+		return environment.acceptsProfiles(Profiles.of("test"))
+	}
 
 	fun register(command: CreateCommand, guildId: Long? = null) {
 		if (guildId != null) {
@@ -21,7 +28,8 @@ class CommandRegisterService(
 	}
 
 	fun registerGlobally(command: CreateCommand) {
-		// TODO how to handle / log errors?
+		if (isTestEnvironment()) return
+
 		restTemplate.postForEntity<Void>(
 			"/applications/{applicationId}/commands",
 			command,
@@ -31,7 +39,8 @@ class CommandRegisterService(
 
 
 	fun registerInGuild(command: CreateCommand, guildId: Long) {
-		// TODO how to handle / log errors?
+		if (isTestEnvironment()) return
+
 		restTemplate.postForEntity<Void>(
 			"/applications/{applicationId}/guilds/{guildId}/commands",
 			command,
@@ -49,12 +58,14 @@ class CommandRegisterService(
 	}
 
 	fun deleteGlobalCommand(commandId: Long) {
+		if (isTestEnvironment()) return
+
 		restTemplate.delete("/applications/{applicationId}/commands/{commandId}", properties.applicationId, commandId)
 	}
 
 	fun deleteGuildCommand(commandId: Long, guildId: Long) {
+		if (isTestEnvironment()) return
+
 		restTemplate.delete("/applications/{applicationId}/guilds/{guildId}/commands/{commandId}", properties.applicationId, guildId, commandId)
 	}
-
-
 }
