@@ -1,5 +1,6 @@
 package dev.capybaralabs.shipa
 
+import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackDataMessage
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
@@ -15,6 +16,6 @@ class CommandConfiguration {
 	fun henloCommand(): Command {
 		return Command(
 			CreateUserCommand("henlo")
-		) { InteractionResponse(CHANNEL_MESSAGE_WITH_SOURCE, InteractionCallbackDataMessage(content = "Henlo!")) }
+		) { InteractionResponse(CHANNEL_MESSAGE_WITH_SOURCE, InteractionCallbackDataMessage(content = "Henlo, ${(it.data as ApplicationCommandData).resolved?.users?.values?.first()?.username}!")) }
 	}
 }
