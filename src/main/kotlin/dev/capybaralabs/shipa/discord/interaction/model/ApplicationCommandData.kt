@@ -8,7 +8,7 @@ data class ApplicationCommandData(
 	val name: String,
 	val type: ApplicationCommandType,
 	val resolved: ResolvedData?,
-//	val options: List<ApplicationCommandInteractionDataOption>?,
+	val options: List<ApplicationCommandInteractionDataOption>?,
 	val guildId: Long?,
 	val targetId: Long?,
 ) : InteractionData
