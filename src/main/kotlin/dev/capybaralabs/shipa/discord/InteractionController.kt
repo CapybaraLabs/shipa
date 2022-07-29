@@ -6,6 +6,9 @@ import dev.capybaralabs.shipa.discord.interaction.InteractionValidator
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.APPLICATION_COMMAND
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.MESSAGE_COMPONENT
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.MODAL_SUBMIT
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.PING
 import dev.capybaralabs.shipa.logger
 import javax.servlet.http.HttpServletRequest
@@ -43,6 +46,9 @@ class InteractionController(
 		return when (interaction.type) {
 			PING -> ResponseEntity.ok().body(InteractionResponse.Pong)
 			APPLICATION_COMMAND -> ResponseEntity.ok().body(applicationCommandService.onApplicationCommand(interaction))
+			MESSAGE_COMPONENT -> ResponseEntity.ok().body(applicationCommandService.onMessageComponent(interaction))
+			APPLICATION_COMMAND_AUTOCOMPLETE -> ResponseEntity.ok().body(applicationCommandService.onAutocomplete(interaction))
+			MODAL_SUBMIT -> ResponseEntity.ok().body(applicationCommandService.onModalSubmit(interaction))
 			else -> {
 				logger().warn("Interaction Type ${interaction.type} not implemented!")
 				ResponseEntity.internalServerError().build()

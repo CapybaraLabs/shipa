@@ -13,8 +13,9 @@ class CommandConfiguration {
 
 	@Bean
 	fun henloCommand(): Command {
-		return Command(
-			CreateUserCommand("henlo")
-		) { SendMessage(Message(content = "Henlo, ${(it.data as ApplicationCommandData).resolved?.users?.values?.first()?.username}!")) }
+		return Command.Stub(
+			CreateUserCommand("henlo"),
+			onApplicationCommand = { SendMessage(Message(content = "Henlo, ${(it.data as ApplicationCommandData).resolved?.users?.values?.first()?.username}!")) }
+		)
 	}
 }

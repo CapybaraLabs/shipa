@@ -18,7 +18,34 @@ class ApplicationCommandService(
 			.let { it as ApplicationCommandData }
 			.name
 
-		return commands.find { it.name() == interactionName }?.handle?.invoke(interactionObject)
+		return commands.find { it.name() == interactionName }?.onApplicationCommand(interactionObject)
+			?: SendMessage(Message(content = "Unknown Command"))
+	}
+
+	fun onMessageComponent(interactionObject: InteractionObject): InteractionResponse {
+		val interactionName = interactionObject.data!!
+			.let { it as ApplicationCommandData }
+			.name
+
+		return commands.find { it.name() == interactionName }?.onMessageComponent(interactionObject)
+			?: SendMessage(Message(content = "Unknown Command"))
+	}
+
+	fun onAutocomplete(interactionObject: InteractionObject): InteractionResponse {
+		val interactionName = interactionObject.data!!
+			.let { it as ApplicationCommandData }
+			.name
+
+		return commands.find { it.name() == interactionName }?.onAutocomplete(interactionObject)
+			?: SendMessage(Message(content = "Unknown Command"))
+	}
+
+	fun onModalSubmit(interactionObject: InteractionObject): InteractionResponse {
+		val interactionName = interactionObject.data!!
+			.let { it as ApplicationCommandData }
+			.name
+
+		return commands.find { it.name() == interactionName }?.onModalSubmit(interactionObject)
 			?: SendMessage(Message(content = "Unknown Command"))
 	}
 
