@@ -1,9 +1,8 @@
 package dev.capybaralabs.shipa
 
 import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandData
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackDataMessage
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData.Message
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse.SendMessage
 import dev.capybaralabs.shipa.discord.interaction.model.create.Command
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateUserCommand
 import org.springframework.context.annotation.Bean
@@ -16,6 +15,6 @@ class CommandConfiguration {
 	fun henloCommand(): Command {
 		return Command(
 			CreateUserCommand("henlo")
-		) { InteractionResponse(CHANNEL_MESSAGE_WITH_SOURCE, InteractionCallbackDataMessage(content = "Henlo, ${(it.data as ApplicationCommandData).resolved?.users?.values?.first()?.username}!")) }
+		) { SendMessage(Message(content = "Henlo, ${(it.data as ApplicationCommandData).resolved?.users?.values?.first()?.username}!")) }
 	}
 }

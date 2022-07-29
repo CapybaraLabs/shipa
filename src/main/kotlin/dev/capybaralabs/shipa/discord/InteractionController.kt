@@ -3,7 +3,6 @@ package dev.capybaralabs.shipa.discord
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.capybaralabs.shipa.discord.interaction.ApplicationCommandService
 import dev.capybaralabs.shipa.discord.interaction.InteractionValidator
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.PONG
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.APPLICATION_COMMAND
@@ -42,7 +41,7 @@ class InteractionController(
 
 		val interaction = mapper.readValue(rawBody, InteractionObject::class.java)
 		return when (interaction.type) {
-			PING -> ResponseEntity.ok().body(InteractionResponse(PONG))
+			PING -> ResponseEntity.ok().body(InteractionResponse.Pong)
 			APPLICATION_COMMAND -> ResponseEntity.ok().body(applicationCommandService.onApplicationCommand(interaction))
 			else -> {
 				logger().warn("Interaction Type ${interaction.type} not implemented!")

@@ -76,7 +76,7 @@ internal class InteractionControllerTest : ApplicationTest() {
 
 		doReturn(true).`when`(interactionValidator).validateSignature(eq("signature"), eq("timestamp"), any())
 
-		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), InteractionResponse::class.java)
+		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), InteractionResponse.Pong::class.java)
 
 		assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
 		assertThat(response.body).isNotNull
