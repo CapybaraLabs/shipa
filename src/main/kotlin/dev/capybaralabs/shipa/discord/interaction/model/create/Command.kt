@@ -16,6 +16,10 @@ interface Command {
 		return create.name
 	}
 
+	fun staticCustomIds(): List<String> {
+		return listOf()
+	}
+
 	fun onApplicationCommand(interaction: InteractionObject): InteractionResponse {
 		return onApplicationCommand?.invoke(interaction) ?: SendMessage(Message(content = "Cannot handle input")) // TODO log error
 	}
