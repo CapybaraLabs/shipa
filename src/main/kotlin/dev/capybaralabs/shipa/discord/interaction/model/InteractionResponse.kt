@@ -2,6 +2,8 @@ package dev.capybaralabs.shipa.discord.interaction.model
 
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.DEFERRED_UPDATE_MESSAGE
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.MODAL
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.PONG
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.UPDATE_MESSAGE
@@ -29,12 +31,12 @@ sealed interface InteractionResponse {
 	}
 
 	object Ack : InteractionResponse {
-		override val type = CHANNEL_MESSAGE_WITH_SOURCE
+		override val type = DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
 		override val data: Nothing? = null
 	}
 
 	object AckUpdate : InteractionResponse {
-		override val type = UPDATE_MESSAGE
+		override val type = DEFERRED_UPDATE_MESSAGE
 		override val data: Nothing? = null
 	}
 
