@@ -16,6 +16,7 @@ pluginManagement {
 
 
 rootProject.name = "shipa"
+include "example"
 
 dependencyResolutionManagement {
 

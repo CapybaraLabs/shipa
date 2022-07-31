@@ -4,3 +4,7 @@ server:
 logging:
   level:
     dev.capybaralabs: DEBUG
+spring:
+  devtools:
+    restart:
+      additional-paths: "../"
