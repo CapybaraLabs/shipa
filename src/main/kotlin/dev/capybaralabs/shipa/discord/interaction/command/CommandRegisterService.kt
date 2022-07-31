@@ -19,7 +19,8 @@ class CommandRegisterService(
 		return environment.acceptsProfiles(Profiles.of("test"))
 	}
 
-	fun register(command: CreateCommand, guildId: Long? = null) {
+	fun register(command: CreateCommand) {
+		val guildId = command.guildId
 		if (guildId != null) {
 			registerInGuild(command, guildId)
 		} else {

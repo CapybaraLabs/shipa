@@ -8,26 +8,38 @@ import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 import dev.capybaralabs.shipa.logger
 
 interface InteractionCommand {
-	val create: CreateCommand
-	val onApplicationCommand: ((InteractionWithData.ApplicationCommand) -> InteractionResponse)?
-	val onMessageComponent: ((InteractionWithData.MessageComponent) -> InteractionResponse)?
-	val onAutocomplete: ((InteractionWithData.Autocomplete) -> InteractionResponse)?
-	val onModalSubmit: ((InteractionWithData.ModalSubmit) -> InteractionResponse)?
+	fun creation(): CreateCommand
 
 	fun name(): String {
-		return create.name
+		return creation().name
 	}
 
 	fun staticCustomIds(): List<String> {
 		return listOf()
 	}
 
+	fun onApplicationCommand(interaction: InteractionWithData.ApplicationCommand): InteractionResponse? {
+		return null
+	}
+
+	fun onMessageComponent(interaction: InteractionWithData.MessageComponent): InteractionResponse? {
+		return null
+	}
+
+	fun onAutocomplete(interaction: InteractionWithData.Autocomplete): InteractionResponse? {
+		return null
+	}
+
+	fun onModalSubmit(interaction: InteractionWithData.ModalSubmit): InteractionResponse? {
+		return null
+	}
+
 	fun onInteraction(interaction: InteractionWithData): InteractionResponse {
 		val possibleResponse = when (interaction) {
-			is InteractionWithData.ApplicationCommand -> onApplicationCommand?.invoke(interaction)
-			is InteractionWithData.MessageComponent -> onMessageComponent?.invoke(interaction)
-			is InteractionWithData.Autocomplete -> onAutocomplete?.invoke(interaction)
-			is InteractionWithData.ModalSubmit -> onModalSubmit?.invoke(interaction)
+			is InteractionWithData.ApplicationCommand -> onApplicationCommand(interaction)
+			is InteractionWithData.MessageComponent -> onMessageComponent(interaction)
+			is InteractionWithData.Autocomplete -> onAutocomplete(interaction)
+			is InteractionWithData.ModalSubmit -> onModalSubmit(interaction)
 		}
 
 		if (possibleResponse == null) {
@@ -36,12 +48,4 @@ interface InteractionCommand {
 		}
 		return possibleResponse
 	}
-
-	class Stub(
-		override val create: CreateCommand,
-		override val onApplicationCommand: ((InteractionWithData.ApplicationCommand) -> InteractionResponse)? = null,
-		override val onMessageComponent: ((InteractionWithData.MessageComponent) -> InteractionResponse)? = null,
-		override val onAutocomplete: ((InteractionWithData.Autocomplete) -> InteractionResponse)? = null,
-		override val onModalSubmit: ((InteractionWithData.ModalSubmit) -> InteractionResponse)? = null,
-	) : InteractionCommand
 }

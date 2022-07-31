@@ -14,8 +14,6 @@ class Launcher(
 	private val commands: List<InteractionCommand>,
 ) {
 
-	private val debugGuildId: Long = 214539058028740609L
-
 	init {
 		Thread.setDefaultUncaughtExceptionHandler { t, e -> logger().warn("Uncaught exception in thread {}", t.name, e) }
 		println("Henlo")
@@ -24,7 +22,7 @@ class Launcher(
 	@PostConstruct // TODO consider putting this into some kind of autoconfig
 	fun setup() {
 		for (command in commands) {
-			registerService.register(command.create, debugGuildId)
+			registerService.register(command.creation())
 		}
 	}
 }
