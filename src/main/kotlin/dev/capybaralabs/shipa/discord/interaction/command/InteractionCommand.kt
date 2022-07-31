@@ -18,23 +18,23 @@ interface InteractionCommand {
 		return listOf()
 	}
 
-	fun onApplicationCommand(interaction: InteractionWithData.ApplicationCommand): InteractionResponse? {
+	fun onApplicationCommand(interaction: InteractionWithData.ApplicationCommand): Sequence<InteractionResponse>? {
 		return null
 	}
 
-	fun onMessageComponent(interaction: InteractionWithData.MessageComponent): InteractionResponse? {
+	fun onMessageComponent(interaction: InteractionWithData.MessageComponent): Sequence<InteractionResponse>? {
 		return null
 	}
 
-	fun onAutocomplete(interaction: InteractionWithData.Autocomplete): InteractionResponse? {
+	fun onAutocomplete(interaction: InteractionWithData.Autocomplete): Sequence<InteractionResponse>? {
 		return null
 	}
 
-	fun onModalSubmit(interaction: InteractionWithData.ModalSubmit): InteractionResponse? {
+	fun onModalSubmit(interaction: InteractionWithData.ModalSubmit): Sequence<InteractionResponse>? {
 		return null
 	}
 
-	fun onInteraction(interaction: InteractionWithData): InteractionResponse {
+	fun onInteraction(interaction: InteractionWithData): Sequence<InteractionResponse> {
 		val possibleResponse = when (interaction) {
 			is InteractionWithData.ApplicationCommand -> onApplicationCommand(interaction)
 			is InteractionWithData.MessageComponent -> onMessageComponent(interaction)
@@ -44,7 +44,7 @@ interface InteractionCommand {
 
 		if (possibleResponse == null) {
 			logger().warn("Unhandled interaction $interaction")
-			return SendMessage(Message(content = "The dog ate my interaction handler."))
+			return sequenceOf(SendMessage(Message(content = "The dog ate my interaction handler.")))
 		}
 		return possibleResponse
 	}

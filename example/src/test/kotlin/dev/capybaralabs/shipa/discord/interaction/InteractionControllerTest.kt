@@ -24,7 +24,7 @@ internal class InteractionControllerTest : ApplicationTest() {
 	@Test
 	internal fun whenMissingHeaders_badRequest() {
 		val headers = HttpHeaders()
-		val body = InteractionObject.Ping(42, 42)
+		val body = InteractionObject.Ping(42, 42, "foo")
 
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), Void::class.java)
 
@@ -35,7 +35,7 @@ internal class InteractionControllerTest : ApplicationTest() {
 	internal fun whenMissingSignatureHeader_badRequest() {
 		val headers = HttpHeaders()
 		headers.add(HEADER_TIMESTAMP, "bar")
-		val body = InteractionObject.Ping(42, 42)
+		val body = InteractionObject.Ping(42, 42, "foo")
 
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), Void::class.java)
 
@@ -47,7 +47,7 @@ internal class InteractionControllerTest : ApplicationTest() {
 	internal fun whenMissingTimestampHeader_badRequest() {
 		val headers = HttpHeaders()
 		headers.add(HEADER_SIGNATURE, "foo")
-		val body = InteractionObject.Ping(42, 42)
+		val body = InteractionObject.Ping(42, 42, "foo")
 
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), Void::class.java)
 
@@ -59,7 +59,7 @@ internal class InteractionControllerTest : ApplicationTest() {
 		val headers = HttpHeaders()
 		headers.add(HEADER_SIGNATURE, "foo")
 		headers.add(HEADER_TIMESTAMP, "bar")
-		val body = InteractionObject.Ping(42, 42)
+		val body = InteractionObject.Ping(42, 42, "foo")
 
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), Void::class.java)
 
@@ -71,7 +71,7 @@ internal class InteractionControllerTest : ApplicationTest() {
 		val headers = HttpHeaders()
 		headers.add(HEADER_SIGNATURE, "signature")
 		headers.add(HEADER_TIMESTAMP, "timestamp")
-		val body = InteractionObject.Ping(42, 42)
+		val body = InteractionObject.Ping(42, 42, "foo")
 
 		doReturn(true).`when`(interactionValidator).validateSignature(eq("signature"), eq("timestamp"), any())
 

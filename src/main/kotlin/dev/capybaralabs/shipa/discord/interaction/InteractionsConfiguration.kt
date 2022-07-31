@@ -8,6 +8,9 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import java.util.stream.Collectors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -27,6 +30,12 @@ class InteractionsConfiguration(private val discord: DiscordProperties) {
 	@Bean
 	fun interactionValidator(): InteractionValidator {
 		return SaltyCoffeeInteractionValidator(discord.publicKey)
+	}
+
+	@Bean
+	@OptIn(ExperimentalCoroutinesApi::class)
+	fun interactionCoroutineScope(): CoroutineScope {
+		return CoroutineScope(Dispatchers.IO.limitedParallelism(100))
 	}
 
 	@Bean

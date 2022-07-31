@@ -35,11 +35,13 @@ sealed interface InteractionResponse {
 		override val data: Nothing? = null
 	}
 
+	//Only valid for message-component interactions
 	object AckUpdate : InteractionResponse {
 		override val type = DEFERRED_UPDATE_MESSAGE
 		override val data: Nothing? = null
 	}
 
+	//Only valid for message-component interactions
 	data class UpdateMessage(
 		override val data: InteractionCallbackData.Message
 	) : InteractionResponse {

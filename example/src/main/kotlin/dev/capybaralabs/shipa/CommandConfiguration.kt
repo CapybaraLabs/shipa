@@ -21,8 +21,8 @@ class CommandConfiguration {
 				return CreateCommand.User("henlo", debugGuildId)
 			}
 
-			override fun onApplicationCommand(interaction: ApplicationCommand): InteractionResponse? {
-				return SendMessage(Message(content = "Henlo, ${interaction.data.resolved?.users?.values?.first()?.username}!"))
+			override fun onApplicationCommand(interaction: ApplicationCommand): Sequence<InteractionResponse> {
+				return sequenceOf(SendMessage(Message(content = "Henlo, ${interaction.data.resolved?.users?.values?.first()?.username}!")))
 			}
 		}
 	}

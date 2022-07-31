@@ -17,12 +17,14 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.PING
 sealed interface InteractionObject {
 	val id: Long
 	val applicationId: Long
+	val token: String
 	val type: InteractionType
 	val data: InteractionData?
 
 	data class Ping(
 		override val id: Long,
 		override val applicationId: Long,
+		override val token: String
 	) : InteractionObject {
 		override val data: Nothing? = null
 		override val type = PING
@@ -34,6 +36,7 @@ sealed interface InteractionObject {
 		data class ApplicationCommand(
 			override val id: Long,
 			override val applicationId: Long,
+			override val token: String,
 			override val data: ApplicationCommandData,
 		) : InteractionWithData {
 			override val type = APPLICATION_COMMAND
@@ -42,6 +45,7 @@ sealed interface InteractionObject {
 		data class MessageComponent(
 			override val id: Long,
 			override val applicationId: Long,
+			override val token: String,
 			override val data: MessageComponentData,
 		) : InteractionWithData {
 			override val type = MESSAGE_COMPONENT
@@ -50,6 +54,7 @@ sealed interface InteractionObject {
 		data class Autocomplete(
 			override val id: Long,
 			override val applicationId: Long,
+			override val token: String,
 			override val data: ApplicationCommandData,
 		) : InteractionWithData {
 			override val type = APPLICATION_COMMAND_AUTOCOMPLETE
@@ -58,6 +63,7 @@ sealed interface InteractionObject {
 		data class ModalSubmit(
 			override val id: Long,
 			override val applicationId: Long,
+			override val token: String,
 			override val data: ModalSubmitData,
 		) : InteractionWithData {
 			override val type = MODAL_SUBMIT
@@ -69,17 +75,18 @@ sealed interface InteractionObject {
 data class UntypedInteractionObject(
 	val id: Long,
 	val applicationId: Long,
+	val token: String,
 	val type: InteractionType,
 	val data: InteractionData?,
 ) {
 
 	fun typed(): InteractionObject {
 		return when (type) {
-			PING -> Ping(id, applicationId)
-			APPLICATION_COMMAND -> InteractionWithData.ApplicationCommand(id, applicationId, data!! as ApplicationCommandData)
-			MESSAGE_COMPONENT -> InteractionWithData.MessageComponent(id, applicationId, data!! as MessageComponentData)
-			APPLICATION_COMMAND_AUTOCOMPLETE -> InteractionWithData.Autocomplete(id, applicationId, data!! as ApplicationCommandData)
-			MODAL_SUBMIT -> InteractionWithData.ModalSubmit(id, applicationId, data!! as ModalSubmitData)
+			PING -> Ping(id, applicationId, token)
+			APPLICATION_COMMAND -> InteractionWithData.ApplicationCommand(id, applicationId, token, data!! as ApplicationCommandData)
+			MESSAGE_COMPONENT -> InteractionWithData.MessageComponent(id, applicationId, token, data!! as MessageComponentData)
+			APPLICATION_COMMAND_AUTOCOMPLETE -> InteractionWithData.Autocomplete(id, applicationId, token, data!! as ApplicationCommandData)
+			MODAL_SUBMIT -> InteractionWithData.ModalSubmit(id, applicationId, token, data!! as ModalSubmitData)
 		}
 	}
 }

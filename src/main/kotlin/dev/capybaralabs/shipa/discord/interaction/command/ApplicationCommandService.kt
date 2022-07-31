@@ -11,7 +11,7 @@ class ApplicationCommandService(
 	private val commandLookupService: CommandLookupService,
 ) {
 
-	fun onInteraction(interaction: InteractionWithData): InteractionResponse {
+	fun onInteraction(interaction: InteractionWithData): Sequence<InteractionResponse> {
 		val command = when (interaction) {
 			is InteractionWithData.ApplicationCommand -> commandLookupService.findByName(interaction.data.name)
 			is InteractionWithData.MessageComponent -> commandLookupService.findByCustomId(interaction.data.customId)
@@ -19,7 +19,7 @@ class ApplicationCommandService(
 			is InteractionWithData.ModalSubmit -> commandLookupService.findByCustomId(interaction.data.customId)
 		}
 		return command?.onInteraction(interaction)
-			?: SendMessage(Message(content = "Unknown Command"))
+			?: sequenceOf(SendMessage(Message(content = "Unknown Command")))
 	}
 
 }
