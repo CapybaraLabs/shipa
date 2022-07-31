@@ -19,7 +19,7 @@ const val HEADER_SIGNATURE = "X-Signature-Ed25519"
 const val HEADER_TIMESTAMP = "X-Signature-Timestamp"
 
 @RestController
-@RequestMapping("/api/interaction")
+@RequestMapping("\${shipa.controller-path:/api}/interaction")
 class InteractionController(
 	private val interactionValidator: InteractionValidator,
 	private val mapper: ObjectMapper,
