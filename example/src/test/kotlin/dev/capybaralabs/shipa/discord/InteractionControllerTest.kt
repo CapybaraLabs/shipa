@@ -5,7 +5,6 @@ import dev.capybaralabs.shipa.discord.interaction.InteractionValidator
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.PONG
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.PING
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doReturn
@@ -25,7 +24,7 @@ internal class InteractionControllerTest : ApplicationTest() {
 	@Test
 	internal fun whenMissingHeaders_badRequest() {
 		val headers = HttpHeaders()
-		val body = InteractionObject(42, 42, PING)
+		val body = InteractionObject.Ping(42, 42)
 
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), Void::class.java)
 
@@ -36,7 +35,7 @@ internal class InteractionControllerTest : ApplicationTest() {
 	internal fun whenMissingSignatureHeader_badRequest() {
 		val headers = HttpHeaders()
 		headers.add(HEADER_TIMESTAMP, "bar")
-		val body = InteractionObject(42, 42, PING)
+		val body = InteractionObject.Ping(42, 42)
 
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), Void::class.java)
 
@@ -48,7 +47,7 @@ internal class InteractionControllerTest : ApplicationTest() {
 	internal fun whenMissingTimestampHeader_badRequest() {
 		val headers = HttpHeaders()
 		headers.add(HEADER_SIGNATURE, "foo")
-		val body = InteractionObject(42, 42, PING)
+		val body = InteractionObject.Ping(42, 42)
 
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), Void::class.java)
 
@@ -60,7 +59,7 @@ internal class InteractionControllerTest : ApplicationTest() {
 		val headers = HttpHeaders()
 		headers.add(HEADER_SIGNATURE, "foo")
 		headers.add(HEADER_TIMESTAMP, "bar")
-		val body = InteractionObject(42, 42, PING)
+		val body = InteractionObject.Ping(42, 42)
 
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), Void::class.java)
 
@@ -72,7 +71,7 @@ internal class InteractionControllerTest : ApplicationTest() {
 		val headers = HttpHeaders()
 		headers.add(HEADER_SIGNATURE, "signature")
 		headers.add(HEADER_TIMESTAMP, "timestamp")
-		val body = InteractionObject(42, 42, PING)
+		val body = InteractionObject.Ping(42, 42)
 
 		doReturn(true).`when`(interactionValidator).validateSignature(eq("signature"), eq("timestamp"), any())
 

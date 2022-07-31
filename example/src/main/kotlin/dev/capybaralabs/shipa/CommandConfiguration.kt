@@ -1,7 +1,6 @@
 package dev.capybaralabs.shipa
 
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData.Message
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse.SendMessage
 import dev.capybaralabs.shipa.discord.interaction.model.create.Command
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateUserCommand
@@ -15,7 +14,7 @@ class CommandConfiguration {
 	fun henloCommand(): Command {
 		return Command.Stub(
 			CreateUserCommand("henlo"),
-			onApplicationCommand = { SendMessage(Message(content = "Henlo, ${(it.data as InteractionData.ApplicationCommandData).resolved?.users?.values?.first()?.username}!")) }
+			onApplicationCommand = { SendMessage(Message(content = "Henlo, ${it.data.resolved?.users?.values?.first()?.username}!")) }
 		)
 	}
 }
