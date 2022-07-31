@@ -1,6 +1,7 @@
 package dev.capybaralabs.shipa.discord.interaction
 
-import dev.capybaralabs.shipa.discord.interaction.model.create.Command
+import dev.capybaralabs.shipa.discord.interaction.command.CommandLookupService
+import dev.capybaralabs.shipa.discord.interaction.command.InteractionCommand
 import java.util.concurrent.ConcurrentHashMap
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
@@ -10,12 +11,12 @@ import org.springframework.stereotype.Service
  */
 @Service
 class InMemoryCommandLookupService(
-	commands: List<Command>,
+	commands: List<InteractionCommand>,
 ) : CommandLookupService {
 
-	private val byName: MutableMap<String, Command> = HashMap()
-	private val byStaticCustomId: MutableMap<String, Command> = HashMap()
-	private val byDynamicCustomId: MutableMap<String, Command> = ConcurrentHashMap() // TODO implement expiration
+	private val byName: MutableMap<String, InteractionCommand> = HashMap()
+	private val byStaticCustomId: MutableMap<String, InteractionCommand> = HashMap()
+	private val byDynamicCustomId: MutableMap<String, InteractionCommand> = ConcurrentHashMap() // TODO implement expiration
 
 	init {
 		commands.forEach { command ->
@@ -31,16 +32,16 @@ class InMemoryCommandLookupService(
 		byDynamicCustomId[event.customId] = event.command // TODO check for overwrites?
 	}
 
-	override fun findByName(name: String): Command? {
+	override fun findByName(name: String): InteractionCommand? {
 		return byName[name]
 	}
 
-	override fun findByCustomId(customId: String): Command? {
+	override fun findByCustomId(customId: String): InteractionCommand? {
 		return byStaticCustomId[customId]
 	}
 }
 
 class RegisterDynamicCustomId(
 	val customId: String,
-	val command: Command,
+	val command: InteractionCommand,
 )

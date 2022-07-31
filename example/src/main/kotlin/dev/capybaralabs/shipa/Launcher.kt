@@ -1,7 +1,7 @@
 package dev.capybaralabs.shipa
 
-import dev.capybaralabs.shipa.discord.interaction.CommandRegisterService
-import dev.capybaralabs.shipa.discord.interaction.model.create.Command
+import dev.capybaralabs.shipa.discord.interaction.command.CommandRegisterService
+import dev.capybaralabs.shipa.discord.interaction.command.InteractionCommand
 import javax.annotation.PostConstruct
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 @ConfigurationPropertiesScan
 class Launcher(
 	private val registerService: CommandRegisterService,
-	private val commands: List<Command>,
+	private val commands: List<InteractionCommand>,
 ) {
 
 	private val debugGuildId: Long = 214539058028740609L

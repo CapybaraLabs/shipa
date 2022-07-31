@@ -1,4 +1,4 @@
-package dev.capybaralabs.shipa.discord.interaction
+package dev.capybaralabs.shipa.discord.interaction.command
 
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData.Message
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData

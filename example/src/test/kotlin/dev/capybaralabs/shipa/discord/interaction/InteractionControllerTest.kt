@@ -1,10 +1,10 @@
-package dev.capybaralabs.shipa.discord
+package dev.capybaralabs.shipa.discord.interaction
 
 import dev.capybaralabs.shipa.ApplicationTest
-import dev.capybaralabs.shipa.discord.interaction.InteractionValidator
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.PONG
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
+import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doReturn

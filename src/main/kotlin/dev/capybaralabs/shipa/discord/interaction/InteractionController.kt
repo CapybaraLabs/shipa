@@ -1,12 +1,12 @@
-package dev.capybaralabs.shipa.discord
+package dev.capybaralabs.shipa.discord.interaction
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.capybaralabs.shipa.discord.interaction.ApplicationCommandService
-import dev.capybaralabs.shipa.discord.interaction.InteractionValidator
+import dev.capybaralabs.shipa.discord.interaction.command.ApplicationCommandService
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
+import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
 import javax.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

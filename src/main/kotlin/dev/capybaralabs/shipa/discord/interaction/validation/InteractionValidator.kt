@@ -1,4 +1,4 @@
-package dev.capybaralabs.shipa.discord.interaction
+package dev.capybaralabs.shipa.discord.interaction.validation
 
 interface InteractionValidator {
 	/**

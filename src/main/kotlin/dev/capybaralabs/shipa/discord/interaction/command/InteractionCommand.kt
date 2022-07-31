@@ -1,12 +1,13 @@
-package dev.capybaralabs.shipa.discord.interaction.model.create
+package dev.capybaralabs.shipa.discord.interaction.command
 
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData.Message
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse.SendMessage
+import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 import dev.capybaralabs.shipa.logger
 
-interface Command {
+interface InteractionCommand {
 	val create: CreateCommand
 	val onApplicationCommand: ((InteractionWithData.ApplicationCommand) -> InteractionResponse)?
 	val onMessageComponent: ((InteractionWithData.MessageComponent) -> InteractionResponse)?
@@ -42,5 +43,5 @@ interface Command {
 		override val onMessageComponent: ((InteractionWithData.MessageComponent) -> InteractionResponse)? = null,
 		override val onAutocomplete: ((InteractionWithData.Autocomplete) -> InteractionResponse)? = null,
 		override val onModalSubmit: ((InteractionWithData.ModalSubmit) -> InteractionResponse)? = null,
-	) : Command
+	) : InteractionCommand
 }

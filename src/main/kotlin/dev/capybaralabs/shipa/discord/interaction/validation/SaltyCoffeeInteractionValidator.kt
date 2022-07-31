@@ -1,4 +1,4 @@
-package dev.capybaralabs.shipa.discord.interaction
+package dev.capybaralabs.shipa.discord.interaction.validation
 
 import java.security.PublicKey
 import software.pando.crypto.nacl.Crypto

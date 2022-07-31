@@ -1,6 +1,8 @@
 package dev.capybaralabs.shipa.discord.interaction
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
+import dev.capybaralabs.shipa.discord.interaction.validation.SaltyCoffeeInteractionValidator
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
