@@ -31,7 +31,7 @@ sealed interface MessageComponent {
 	data class PartialEmoji(
 		val id: Optional<Long>,
 		val name: Optional<String>,
-		val animated: Boolean?,
+		val animated: Boolean? = null,
 	)
 
 	/**
@@ -62,19 +62,19 @@ sealed interface MessageComponent {
 
 		data class Regular(
 			override val style: ButtonStyle,
-			override val label: String?,
-			override val emoji: PartialEmoji?,
 			override val customId: String,
-			override val disabled: Boolean?,
+			override val label: String? = null,
+			override val emoji: PartialEmoji? = null,
+			override val disabled: Boolean? = null,
 		) : Button(style, label, emoji, customId, null, disabled)
 
 
 		data class Link(
 			override val style: ButtonStyle,
-			override val label: String?,
-			override val emoji: PartialEmoji?,
 			override val url: String,
-			override val disabled: Boolean?,
+			override val label: String? = null,
+			override val emoji: PartialEmoji? = null,
+			override val disabled: Boolean? = null,
 		) : Button(style, label, emoji, null, url, disabled)
 
 	}
@@ -86,10 +86,10 @@ sealed interface MessageComponent {
 	data class SelectMenu(
 		val customId: String,
 		val options: List<SelectOption>,
-		val placeholder: String?,
-		val minValues: Int?,
-		val maxValues: Int?,
-		val disabled: Boolean?,
+		val placeholder: String? = null,
+		val minValues: Int? = null,
+		val maxValues: Int? = null,
+		val disabled: Boolean? = null,
 	) : MessageComponent {
 
 		override val type = SELECT_MENU
@@ -97,9 +97,9 @@ sealed interface MessageComponent {
 		data class SelectOption(
 			val label: String,
 			val value: String,
-			val description: String?,
-			val emojis: PartialEmoji?,
-			val default: Boolean?,
+			val description: String? = null,
+			val emojis: PartialEmoji? = null,
+			val default: Boolean? = null,
 		)
 	}
 
@@ -110,11 +110,11 @@ sealed interface MessageComponent {
 		val customId: String,
 		val style: TextInputStyle,
 		val label: String,
-		val minLength: Int?,
-		val maxLength: Int?,
-		val required: Boolean?,
-		val value: String?,
-		val placeholder: String?,
+		val minLength: Int? = null,
+		val maxLength: Int? = null,
+		val required: Boolean? = null,
+		val value: String? = null,
+		val placeholder: String? = null,
 	) : MessageComponent {
 
 		override val type = TEXT_INPUT
