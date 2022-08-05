@@ -58,9 +58,14 @@ internal class InteractionController(
 		launch(CoroutineExceptionHandler { _, t -> logger().error("Unhandled exception in coroutine", t) }) {
 			logger().debug("Launching interaction processing coroutine!")
 
-			when (interaction) {
-				is InteractionObject.Ping -> result.complete(InteractionResponse.Pong)
-				is InteractionWithData -> applicationCommandService.onInteraction(interaction, result)
+			try {
+				when (interaction) {
+					is InteractionObject.Ping -> result.complete(InteractionResponse.Pong)
+					is InteractionWithData -> applicationCommandService.onInteraction(interaction, result)
+				}
+			} catch (t: Throwable) {
+				logger().error("Oh no", t)
+				result.completeExceptionally(t)
 			}
 		}
 }
