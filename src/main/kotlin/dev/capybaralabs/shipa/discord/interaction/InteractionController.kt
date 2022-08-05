@@ -9,8 +9,6 @@ import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
 import dev.capybaralabs.shipa.logger
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletableFuture.completedStage
-import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.servlet.http.HttpServletRequest
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -32,27 +30,30 @@ internal class InteractionController(
 	private val interactionValidator: InteractionValidator,
 	@Suppress("SpringJavaInjectionPointsAutowiringInspection") private val mapper: ObjectMapper,
 	private val applicationCommandService: ApplicationCommandService,
-	private val restService: InteractionRestService,
 	private val interactionScope: CoroutineScope,
 ) {
 
 	@PostMapping
-	fun post(req: HttpServletRequest, @RequestBody rawBody: String): CompletionStage<ResponseEntity<InteractionResponse>> {
+	fun post(req: HttpServletRequest, @RequestBody rawBody: String): ResponseEntity<InteractionResponse> {
 		val signature: String? = req.getHeader(HEADER_SIGNATURE)
 		val timestamp: String? = req.getHeader(HEADER_TIMESTAMP)
 		if (signature == null || timestamp == null) {
-			return completedStage(ResponseEntity.badRequest().build())
+			return ResponseEntity.badRequest().build()
 		}
 
 		if (!interactionValidator.validateSignature(signature, timestamp, rawBody)) {
-			return completedStage(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build())
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
 		}
 
 		val interaction = mapper.readValue(rawBody, UntypedInteractionObject::class.java).typed()
 		val result = CompletableFuture<InteractionResponse>()
 
 		interactionScope.launchInteractionProcessing(interaction, result)
-		return result.thenApply { ResponseEntity.ok().body(it) }.orTimeout(3, SECONDS)
+		return result
+			.thenApply { ResponseEntity.ok().body(it) }
+			.orTimeout(3, SECONDS)
+			.join()
+
 	}
 
 	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, result: CompletableFuture<InteractionResponse>) =
