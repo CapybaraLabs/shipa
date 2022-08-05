@@ -1,10 +1,8 @@
 package dev.capybaralabs.shipa
 
+import dev.capybaralabs.shipa.discord.interaction.InteractionState.ApplicationCommandState
 import dev.capybaralabs.shipa.discord.interaction.command.InteractionCommand
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData.Message
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.ApplicationCommand
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse.SendMessage
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -21,8 +19,8 @@ class CommandConfiguration {
 				return CreateCommand.User("henlo", debugGuildId)
 			}
 
-			override fun onApplicationCommand(interaction: ApplicationCommand): Sequence<InteractionResponse> {
-				return sequenceOf(SendMessage(Message(content = "Henlo, ${interaction.data.resolved?.users?.values?.first()?.username}!")))
+			override fun onApplicationCommand(received: ApplicationCommandState.Received) {
+				received.reply(Message(content = "Henlo, ${received.interaction().data.resolved?.users?.values?.first()?.username}!"))
 			}
 		}
 	}

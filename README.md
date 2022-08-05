@@ -28,3 +28,79 @@ require [Jackson adjustments](src/main/kotlin/dev/capybaralabs/shipa/JacksonConf
 
 The main reason do to it this way is that there are fewer nullable types than optional fields in the Discord API, so we
 get to type less awkward Java Optional code.
+
+## Interaction State Machine
+
+TODO none of these are really verified to be correct / the only choices
+
+### SlashCommand
+
+```plantuml
+hide empty description
+
+[*] --> Received : Webhook APPLICATION_COMMAND
+
+Received --> MessageSent : Http.SendMessage
+Received --> Thinking : Http.Ack
+
+Thinking --> MessageSent : Rest.editOriginalResponse
+
+MessageSent --> MessageSent : Rest.editOriginalResponse
+MessageSent --> MessageSent : Rest.createFollowupMessage
+MessageSent --> MessageSent : Rest.editFollowupMessage
+
+Received --> TimedOut : 3 Seconds
+Thinking --> TimedOut : 15 Minutes
+MessageSent --> Done : 15 Minutes
+TimedOut --> [*]
+Done --> [*]
+```
+
+### MessageComponent invocation
+
+```plantuml
+hide empty description
+
+[*] --> Received : Webhook MESSAGE_COMPONENT
+
+Received --> MessageUpdated : Http.SendMessage
+Received --> Thinking : Http.AckUpdate
+
+Thinking --> MessageUpdated : Rest.editOriginalResponse
+
+' Not sure about these.
+' MessageUpdated --> MessageUpdated : Rest.createFollowupMessage
+' MessageUpdated --> MessageUpdated : Rest.editFollowupMessage
+
+' Also actually not sure about this one
+' MessageUpdated --> MessageUpdated : Rest.editOriginalResponse
+
+Received --> TimedOut : 3 Seconds
+Thinking --> TimedOut : 15 Minutes
+MessageUpdated --> Done : 15 Minutes
+TimedOut --> [*]
+Done --> [*]
+```
+
+### Autocomplete
+
+```plantuml
+hide empty description
+
+[*] --> Received : Webhook APPLICATION_COMMAND_AUTOCOMPLETE
+Received --> Done : Http APPLICATION_COMMAND_AUTOCOMPLETE_RESULT
+Received --> TimedOut : 3 Seconds
+TimedOut --> [*]
+Done --> [*]
+
+```
+
+### Modal
+
+TODO
+
+```plantuml
+hide empty description
+```
+
+TODO diagram with multiple interactions going back and forth.

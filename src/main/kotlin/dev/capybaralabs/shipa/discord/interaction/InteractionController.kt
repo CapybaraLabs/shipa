@@ -5,8 +5,6 @@ import dev.capybaralabs.shipa.discord.interaction.command.ApplicationCommandServ
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse.SendMessage
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse.UpdateMessage
 import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
 import dev.capybaralabs.shipa.logger
@@ -50,37 +48,19 @@ internal class InteractionController(
 		}
 
 		val interaction = mapper.readValue(rawBody, UntypedInteractionObject::class.java).typed()
-		val result = CompletableFuture<ResponseEntity<InteractionResponse>>()
+		val result = CompletableFuture<InteractionResponse>()
 
 		interactionScope.launchInteractionProcessing(interaction, result)
-		return result
+		return result.thenApply { ResponseEntity.ok().body(it) }
 	}
 
-	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, result: CompletableFuture<ResponseEntity<InteractionResponse>>) =
+	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, result: CompletableFuture<InteractionResponse>) =
 		launch(CoroutineExceptionHandler { _, t -> logger().error("Unhandled exception in coroutine", t) }) {
 			logger().debug("Launching interaction processing coroutine!")
 
-			val response = when (interaction) {
-				is InteractionObject.Ping -> sequenceOf(InteractionResponse.Pong)
-				is InteractionWithData -> applicationCommandService.onInteraction(interaction)
+			when (interaction) {
+				is InteractionObject.Ping -> result.complete(InteractionResponse.Pong)
+				is InteractionWithData -> applicationCommandService.onInteraction(interaction, result)
 			}
-
-			val iterator = response.iterator()
-			val initialResponse = iterator.next()
-
-			logger().debug("Returning initial response $initialResponse")
-			result.complete(ResponseEntity.ok().body(initialResponse))
-
-			while (iterator.hasNext()) {
-				val nextResponse = iterator.next()
-				logger().debug("Dispatching additional response $nextResponse")
-				if (nextResponse is UpdateMessage) {
-					restService.editOriginalResponse(interaction.token, nextResponse.data)
-				}
-				if (nextResponse is SendMessage) {
-					restService.createFollowupMessage(interaction.token, nextResponse.data)
-				}
-			}
-			logger().debug("Done processing additional responses")
 		}
 }
