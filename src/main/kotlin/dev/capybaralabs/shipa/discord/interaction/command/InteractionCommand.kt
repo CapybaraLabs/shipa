@@ -20,19 +20,19 @@ interface InteractionCommand {
 	}
 
 	fun onApplicationCommand(stateHolder: ApplicationCommandStateHolder) {
-		stateHolder.reply(Message(content = "The dog ate my interaction handler."))
+		stateHolder.reply(Message(content = "The capybara ate my interaction handler."))
 	}
 
 	fun onMessageComponent(stateHolder: MessageComponentStateHolder) {
-		stateHolder.reply(Message(content = "The dog ate my interaction handler."))
+		stateHolder.reply(Message(content = "The capybara ate my interaction handler."))
 	}
 
 	fun onAutocomplete(stateHolder: AutocompleteStateHolder) {
-//		state.reply(Message(content = "The dog ate my interaction handler."))
+//		state.reply(Message(content = "The capybara ate my interaction handler."))
 	}
 
 	fun onModalSubmit(stateHolder: ModalStateHolder) {
-//		state.reply(Message(content = "The dog ate my interaction handler."))
+//		state.reply(Message(content = "The capybara ate my interaction handler."))
 	}
 
 	fun onInteraction(stateHolder: InteractionState.InteractionStateHolder<*>) {

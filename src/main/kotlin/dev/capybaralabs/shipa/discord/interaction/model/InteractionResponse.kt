@@ -75,10 +75,10 @@ sealed interface InteractionCallbackData {
 	data class Message(
 		val tts: Boolean? = null,
 		val content: String? = null,
-		val embeds: List<Embed>? = null,
+		val embeds: List<Embed>? = listOf(), // set to null when updating to keep existing
 		val allowedMentions: AllowedMentions? = null,
 		val flags: Int? = null,
-		val components: List<MessageComponent>? = null,
+		val components: List<MessageComponent>? = listOf(), // set to null when updating to keep existing
 //	val attachments: List<PartialAttachment>?,
 	) : InteractionCallbackData
 
