@@ -1,5 +1,6 @@
 package dev.capybaralabs.shipa.discord.interaction.model
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.DEDUCTION
 import java.awt.TextComponent
@@ -19,8 +20,8 @@ sealed interface InteractionData {
 		val type: ApplicationCommandType,
 		val resolved: ResolvedData?,
 		val options: List<ApplicationCommandInteractionDataOption>?,
-		val guildId: Long?,
-		val targetId: Long?,
+		@JsonProperty("guild_id") val guildId: Long?,
+		@JsonProperty("target_id") val targetId: Long?,
 	) : InteractionData {
 
 		/**
@@ -40,8 +41,8 @@ sealed interface InteractionData {
 	 * [Discord Message Component Data](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-message-component-data-structure)
 	 */
 	data class MessageComponentData(
-		val customId: String,
-		val componenType: MessageComponent.ComponentType,
+		@JsonProperty("custom_id") val customId: String,
+		@JsonProperty("component_type") val componenType: MessageComponent.ComponentType,
 		val values: List<MessageComponent.SelectMenu.SelectOption>?,
 	) : InteractionData
 
@@ -49,7 +50,7 @@ sealed interface InteractionData {
 	 * [Discord Modal Submit Data](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-modal-submit-data-structure)
 	 */
 	data class ModalSubmitData(
-		val customId: String,
+		@JsonProperty("custom_id") val customId: String,
 		val components: List<TextComponent>,
 	) : InteractionData
 
