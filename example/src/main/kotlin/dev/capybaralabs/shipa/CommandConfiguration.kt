@@ -1,6 +1,6 @@
 package dev.capybaralabs.shipa
 
-import dev.capybaralabs.shipa.discord.interaction.InteractionState.ApplicationCommandState
+import dev.capybaralabs.shipa.discord.interaction.InteractionState.ApplicationCommandState.ApplicationCommandStateHolder
 import dev.capybaralabs.shipa.discord.interaction.command.InteractionCommand
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData.Message
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
@@ -19,8 +19,8 @@ class CommandConfiguration {
 				return CreateCommand.User("henlo", debugGuildId)
 			}
 
-			override fun onApplicationCommand(received: ApplicationCommandState.Received) {
-				received.reply(Message(content = "Henlo, ${received.interaction().data.resolved?.users?.values?.first()?.username}!"))
+			override fun onApplicationCommand(stateHolder: ApplicationCommandStateHolder) {
+				stateHolder.reply(Message(content = "Henlo, ${stateHolder.getInteraction().data.resolved?.users?.values?.first()?.username}!"))
 			}
 		}
 	}

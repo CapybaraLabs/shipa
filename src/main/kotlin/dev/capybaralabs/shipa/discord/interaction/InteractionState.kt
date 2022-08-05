@@ -1,7 +1,5 @@
 package dev.capybaralabs.shipa.discord.interaction
 
-import dev.capybaralabs.shipa.discord.interaction.InteractionState.MessageComponentState.MessageSent
-import dev.capybaralabs.shipa.discord.interaction.InteractionState.MessageComponentState.Received
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.ApplicationCommand
@@ -36,12 +34,32 @@ sealed class InteractionState {
 		if (success) {
 			return func.invoke()
 		} else {
-			throw IllegalStateException("This state has been used, continue with the return value!")
+			throw IllegalStateException("This state has been used already, continue with the return value!")
 		}
 	}
 
+	protected fun replaceOrAppend(messages: List<Message>, message: Message): List<Message> {
+		val index = messages.indexOfFirst { it.id == message.id }
+		return if (index < 0) {
+			messages + message
+		} else {
+			messages.mapIndexed { i, it -> if (i == index) message else it }
+		}
+	}
 
-	sealed class ApplicationCommandState(private val context: ApplicationCommandContext) : InteractionState() {
+	// marker interface for initial states
+	sealed interface Initial
+
+	// marker interface for all holders
+	// holder are convenience classes that update their state in place but do not enforce method use through typesafety.
+	// use the doXYZ methods on the concrete classes to take advantage of typesafety of possible actions but you will have to hold the state yourself.
+	sealed interface InteractionStateHolder {
+		// entry point for typesafe state chains
+		fun getInitialState(): Initial
+		fun getInteraction(): InteractionWithData
+	}
+
+	sealed interface ApplicationCommandState {
 
 		companion object {
 			fun received(interaction: ApplicationCommand, initial: CompletableFuture<InteractionResponse>, restService: InteractionRestService): Received {
@@ -49,34 +67,92 @@ sealed class InteractionState {
 			}
 		}
 
-		override fun interaction(): ApplicationCommand {
-			return context.interaction
+		fun ack(): Thinking {
+			throw IllegalStateException("Cannot ack while in state ${javaClass.simpleName}")
+		}
+
+		fun reply(message: InteractionCallbackData.Message): MessageSent {
+			throw IllegalStateException("Cannot reply while in state ${javaClass.simpleName}")
+		}
+
+		fun edit(message: InteractionCallbackData.Message, messageId: Long? = null): MessageSent {
+			throw IllegalStateException("Cannot edit while in state ${javaClass.simpleName}")
+		}
+
+		// TODO sendModal?
+
+		class ApplicationCommandStateHolder(private val initial: Received) : ApplicationCommandState, InteractionStateHolder {
+			private var state: ApplicationCommandState = initial
+
+			override fun getInitialState(): Received {
+				return initial
+			}
+
+			override fun getInteraction(): ApplicationCommand {
+				return initial.interaction()
+			}
+
+			override fun ack(): Thinking {
+				val ack = state.ack()
+				state = ack
+				return ack
+			}
+
+			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+				val reply = state.reply(message)
+				state = reply
+				return reply
+			}
+
+			override fun edit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
+				val edit = state.edit(message, messageId)
+				state = edit
+				return edit
+			}
 		}
 
 
-		class Received internal constructor(private val initial: CompletableFuture<InteractionResponse>, private val context: ApplicationCommandContext) : ApplicationCommandState(context) {
+		abstract class Base(private val interaction: ApplicationCommand) : InteractionState(), ApplicationCommandState {
+			override fun interaction(): ApplicationCommand {
+				return interaction
+			}
+		}
 
-			fun ack(): Thinking {
+		class Received internal constructor(
+			private val initial: CompletableFuture<InteractionResponse>,
+			private val context: ApplicationCommandContext,
+		) : Initial, Base(context.interaction) {
+
+			override fun ack(): Thinking {
+				return doAck()
+			}
+
+			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+				return doReply(message)
+			}
+
+			fun doAck(): Thinking {
 				return checkUsed {
 					initial.complete(InteractionResponse.Ack)
 					Thinking(context)
 				}
 			}
 
-			fun reply(message: InteractionCallbackData.Message): MessageSent {
+			fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
 					initial.complete(InteractionResponse.SendMessage(message))
 					MessageSent(context, listOf())
 				}
 			}
-
-			// TODO sendModal?
-
 		}
 
-		class Thinking internal constructor(private val context: ApplicationCommandContext) : ApplicationCommandState(context) {
+		class Thinking internal constructor(private val context: ApplicationCommandContext) : Base(context.interaction) {
 
-			fun editOriginal(message: InteractionCallbackData.Message): MessageSent {
+			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+				return doReply(message)
+			}
+
+			fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
 					context.restService.editOriginalResponse(context.token(), message)
 					MessageSent(context, listOf())
@@ -84,42 +160,41 @@ sealed class InteractionState {
 			}
 		}
 
-		class MessageSent internal constructor(private val context: ApplicationCommandContext, private val followupMessages: List<Message>) : ApplicationCommandState(context) {
+		class MessageSent internal constructor(
+			private val context: ApplicationCommandContext,
+			private val followupMessages: List<Message>,
+		) : Base(context.interaction) {
 
-			fun editOriginal(message: InteractionCallbackData.Message): MessageSent {
-				return checkUsed {
-					context.restService.editOriginalResponse(context.token(), message)
-					MessageSent(context, followupMessages)
-				}
+			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+				return doReply(message)
 			}
 
-			fun createFollowup(message: InteractionCallbackData.Message): MessageSent {
+			override fun edit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
+				return doEdit(message, messageId)
+			}
+
+			fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
 					val followup = context.restService.createFollowupMessage(context.token(), message)
 					MessageSent(context, followupMessages + followup)
 				}
 			}
 
-			fun editFollowup(messageId: Long, message: InteractionCallbackData.Message): MessageSent {
+			fun doEdit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
 				return checkUsed {
-					val editedFollowup = context.restService.editFollowupMessage(context.token(), message, messageId)
-					MessageSent(context, replaceOrAppend(followupMessages, editedFollowup))
-				}
-			}
-
-			private fun replaceOrAppend(messages: List<Message>, message: Message): List<Message> {
-				val index = followupMessages.indexOfFirst { it.id == message.id }
-				return if (index < 0) {
-					messages + message
-				} else {
-					messages.mapIndexed { i, it -> if (i == index) message else it }
+					if (messageId == null) {
+						context.restService.editOriginalResponse(context.token(), message)
+						MessageSent(context, followupMessages)
+					} else {
+						val editedFollowup = context.restService.editFollowupMessage(context.token(), message, messageId)
+						MessageSent(context, replaceOrAppend(followupMessages, editedFollowup))
+					}
 				}
 			}
 		}
 	}
 
-
-	sealed class MessageComponentState(private val context: MessageComponentContext) : InteractionState() {
+	sealed interface MessageComponentState {
 
 		companion object {
 			fun received(interaction: MessageComponent, initial: CompletableFuture<InteractionResponse>, restService: InteractionRestService): Received {
@@ -127,20 +202,77 @@ sealed class InteractionState {
 			}
 		}
 
-		override fun interaction(): MessageComponent {
-			return context.interaction
+		fun ack(): Thinking {
+			throw IllegalStateException("Cannot ack while in state ${javaClass.simpleName}")
 		}
 
-		class Received internal constructor(private val initial: CompletableFuture<InteractionResponse>, private val context: MessageComponentContext) : MessageComponentState(context) {
+		fun reply(message: InteractionCallbackData.Message): MessageSent {
+			throw IllegalStateException("Cannot reply while in state ${javaClass.simpleName}")
+		}
 
-			fun ack(): Thinking {
+		fun edit(message: InteractionCallbackData.Message, messageId: Long? = null): MessageSent {
+			throw IllegalStateException("Cannot edit while in state ${javaClass.simpleName}")
+		}
+
+		class MessageComponentStateHolder(private val initial: Received) : MessageComponentState, InteractionStateHolder {
+			private var state: MessageComponentState = initial
+
+			override fun getInitialState(): Received {
+				return initial
+			}
+
+			override fun getInteraction(): MessageComponent {
+				return initial.interaction()
+			}
+
+			override fun ack(): Thinking {
+				val ack = state.ack()
+				state = ack
+				return ack
+			}
+
+			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+				val reply = state.reply(message)
+				state = reply
+				return reply
+			}
+
+			override fun edit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
+				val edit = state.edit(message, messageId)
+				state = edit
+				return edit
+			}
+		}
+
+		abstract class Base(private val interaction: MessageComponent) : MessageComponentState, InteractionState() {
+			override fun interaction(): MessageComponent {
+				return interaction
+			}
+
+		}
+
+		class Received internal constructor(
+			private val initial: CompletableFuture<InteractionResponse>,
+			private val context: MessageComponentContext,
+		) : Base(context.interaction), Initial {
+
+			override fun ack(): Thinking {
+				return doAck()
+			}
+
+			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+				return doReply(message)
+			}
+
+
+			fun doAck(): Thinking {
 				return checkUsed {
 					initial.complete(InteractionResponse.AckUpdate)
 					Thinking(context)
 				}
 			}
 
-			fun reply(message: InteractionCallbackData.Message): MessageSent {
+			fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
 					initial.complete(InteractionResponse.UpdateMessage(message))
 					MessageSent(context, listOf())
@@ -149,9 +281,13 @@ sealed class InteractionState {
 
 		}
 
-		class Thinking internal constructor(private val context: MessageComponentContext) : MessageComponentState(context) {
+		class Thinking internal constructor(private val context: MessageComponentContext) : Base(context.interaction) {
 
-			fun editOriginal(message: InteractionCallbackData.Message): MessageSent {
+			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+				return doReply(message)
+			}
+
+			fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
 					context.restService.editOriginalResponse(context.token(), message)
 					MessageSent(context, listOf())
@@ -159,42 +295,42 @@ sealed class InteractionState {
 			}
 		}
 
-		class MessageSent internal constructor(private val context: MessageComponentContext, private val followupMessages: List<Message>) : MessageComponentState(context) {
+		class MessageSent internal constructor(
+			private val context: MessageComponentContext,
+			private val followupMessages: List<Message>,
+		) : Base(context.interaction) {
 
-			fun editOriginal(message: InteractionCallbackData.Message): MessageSent {
-				return checkUsed {
-					context.restService.editOriginalResponse(context.token(), message)
-					MessageSent(context, followupMessages)
-				}
+			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+				return doReply(message)
 			}
 
-			fun createFollowup(message: InteractionCallbackData.Message): MessageSent {
+			override fun edit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
+				return doEdit(message, messageId)
+			}
+
+
+			fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
 					val followup = context.restService.createFollowupMessage(context.token(), message)
 					MessageSent(context, followupMessages + followup)
 				}
 			}
 
-			fun editFollowup(messageId: Long, message: InteractionCallbackData.Message): MessageSent {
+			fun doEdit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
 				return checkUsed {
-					val editedFollowup = context.restService.editFollowupMessage(context.token(), message, messageId)
-					MessageSent(context, replaceOrAppend(followupMessages, editedFollowup))
-				}
-			}
-
-			private fun replaceOrAppend(messages: List<Message>, message: Message): List<Message> {
-				val index = followupMessages.indexOfFirst { it.id == message.id }
-				return if (index < 0) {
-					messages + message
-				} else {
-					messages.mapIndexed { i, it -> if (i == index) message else it }
+					if (messageId == null) {
+						context.restService.editOriginalResponse(context.token(), message)
+						MessageSent(context, followupMessages)
+					} else {
+						val editedFollowup = context.restService.editFollowupMessage(context.token(), message, messageId)
+						MessageSent(context, replaceOrAppend(followupMessages, editedFollowup))
+					}
 				}
 			}
 		}
 	}
 
-
-	sealed class AutocompleteState(private val interaction: Autocomplete) : InteractionState() {
+	sealed interface AutocompleteState {
 
 		companion object {
 			fun received(interaction: Autocomplete): Received {
@@ -202,26 +338,52 @@ sealed class InteractionState {
 			}
 		}
 
-		override fun interaction(): Autocomplete {
-			return interaction
+		class AutocompleteStateHolder(private val initial: Received) : AutocompleteState, InteractionStateHolder {
+
+			override fun getInitialState(): Received {
+				return initial
+			}
+
+			override fun getInteraction(): Autocomplete {
+				return initial.interaction()
+			}
 		}
 
-		class Received internal constructor(interaction: Autocomplete) : AutocompleteState(interaction)
+		abstract class Base(private val interaction: Autocomplete) : AutocompleteState, InteractionState() {
+			override fun interaction(): Autocomplete {
+				return interaction
+			}
+		}
+
+		class Received internal constructor(interaction: Autocomplete) : Base(interaction), Initial
 	}
 
-	sealed class ModalState(private val interaction: ModalSubmit) : InteractionState() {
-
+	sealed interface ModalState {
 		companion object {
 			fun received(interaction: ModalSubmit): Received {
 				return Received(interaction)
 			}
 		}
 
-		override fun interaction(): ModalSubmit {
-			return interaction
+		class ModalStateHolder(private val initial: Received) : AutocompleteState, InteractionStateHolder {
+
+			override fun getInitialState(): Received {
+				return initial
+			}
+
+			override fun getInteraction(): ModalSubmit {
+				return initial.interaction()
+			}
 		}
 
-		class Received internal constructor(interaction: ModalSubmit) : ModalState(interaction)
+		abstract class Base(private val interaction: ModalSubmit) : InteractionState(), ModalState {
+
+			override fun interaction(): ModalSubmit {
+				return interaction
+			}
+		}
+
+		class Received internal constructor(interaction: ModalSubmit) : Base(interaction), Initial
 
 
 	}

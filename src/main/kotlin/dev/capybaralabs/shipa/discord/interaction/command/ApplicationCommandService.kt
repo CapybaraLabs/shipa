@@ -2,6 +2,11 @@ package dev.capybaralabs.shipa.discord.interaction.command
 
 import dev.capybaralabs.shipa.discord.interaction.InteractionRestService
 import dev.capybaralabs.shipa.discord.interaction.InteractionState
+import dev.capybaralabs.shipa.discord.interaction.InteractionState.ApplicationCommandState.ApplicationCommandStateHolder
+import dev.capybaralabs.shipa.discord.interaction.InteractionState.AutocompleteState.AutocompleteStateHolder
+import dev.capybaralabs.shipa.discord.interaction.InteractionState.InteractionStateHolder
+import dev.capybaralabs.shipa.discord.interaction.InteractionState.MessageComponentState.MessageComponentStateHolder
+import dev.capybaralabs.shipa.discord.interaction.InteractionState.ModalState.ModalStateHolder
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.logger
@@ -22,14 +27,14 @@ class ApplicationCommandService(
 			is InteractionWithData.ModalSubmit -> commandLookupService.findByCustomId(interaction.data.customId)
 		}
 
-		val interactionState = when (interaction) {
-			is InteractionWithData.ApplicationCommand -> InteractionState.ApplicationCommandState.received(interaction, result, restService)
-			is InteractionWithData.MessageComponent -> InteractionState.MessageComponentState.received(interaction, result, restService)
-			is InteractionWithData.Autocomplete -> InteractionState.AutocompleteState.received(interaction)
-			is InteractionWithData.ModalSubmit -> InteractionState.ModalState.received(interaction)
+		val interactionStateHolder: InteractionStateHolder = when (interaction) {
+			is InteractionWithData.ApplicationCommand -> ApplicationCommandStateHolder(InteractionState.ApplicationCommandState.received(interaction, result, restService))
+			is InteractionWithData.MessageComponent -> MessageComponentStateHolder(InteractionState.MessageComponentState.received(interaction, result, restService))
+			is InteractionWithData.Autocomplete -> AutocompleteStateHolder(InteractionState.AutocompleteState.received(interaction))
+			is InteractionWithData.ModalSubmit -> ModalStateHolder(InteractionState.ModalState.received(interaction))
 		}
 
-		command?.onInteraction(interactionState)
+		command?.onInteraction(interactionStateHolder)
 			?: logger().warn("Unknown Command {}", interaction)
 	}
 

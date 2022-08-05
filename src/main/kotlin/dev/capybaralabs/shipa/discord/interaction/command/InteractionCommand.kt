@@ -1,6 +1,10 @@
 package dev.capybaralabs.shipa.discord.interaction.command
 
 import dev.capybaralabs.shipa.discord.interaction.InteractionState
+import dev.capybaralabs.shipa.discord.interaction.InteractionState.ApplicationCommandState.ApplicationCommandStateHolder
+import dev.capybaralabs.shipa.discord.interaction.InteractionState.AutocompleteState.AutocompleteStateHolder
+import dev.capybaralabs.shipa.discord.interaction.InteractionState.MessageComponentState.MessageComponentStateHolder
+import dev.capybaralabs.shipa.discord.interaction.InteractionState.ModalState.ModalStateHolder
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData.Message
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 
@@ -15,28 +19,28 @@ interface InteractionCommand {
 		return listOf()
 	}
 
-	fun onApplicationCommand(received: InteractionState.ApplicationCommandState.Received) {
-		received.reply(Message(content = "The dog ate my interaction handler."))
+	fun onApplicationCommand(stateHolder: ApplicationCommandStateHolder) {
+		stateHolder.reply(Message(content = "The dog ate my interaction handler."))
 	}
 
-	fun onMessageComponent(received: InteractionState.MessageComponentState.Received) {
-		received.reply(Message(content = "The dog ate my interaction handler."))
+	fun onMessageComponent(stateHolder: MessageComponentStateHolder) {
+		stateHolder.reply(Message(content = "The dog ate my interaction handler."))
 	}
 
-	fun onAutocomplete(received: InteractionState.AutocompleteState.Received) {
+	fun onAutocomplete(stateHolder: AutocompleteStateHolder) {
 //		state.reply(Message(content = "The dog ate my interaction handler."))
 	}
 
-	fun onModalSubmit(received: InteractionState.ModalState.Received) {
+	fun onModalSubmit(stateHolder: ModalStateHolder) {
 //		state.reply(Message(content = "The dog ate my interaction handler."))
 	}
 
-	fun onInteraction(interactionState: InteractionState) {
-		when (interactionState) {
-			is InteractionState.ApplicationCommandState -> onApplicationCommand(interactionState as InteractionState.ApplicationCommandState.Received)
-			is InteractionState.MessageComponentState -> onMessageComponent(interactionState as InteractionState.MessageComponentState.Received)
-			is InteractionState.AutocompleteState -> onAutocomplete(interactionState as InteractionState.AutocompleteState.Received)
-			is InteractionState.ModalState -> onModalSubmit(interactionState as InteractionState.ModalState.Received)
+	fun onInteraction(stateHolder: InteractionState.InteractionStateHolder) {
+		when (stateHolder) {
+			is ApplicationCommandStateHolder -> onApplicationCommand(stateHolder)
+			is MessageComponentStateHolder -> onMessageComponent(stateHolder)
+			is AutocompleteStateHolder -> onAutocomplete(stateHolder)
+			is ModalStateHolder -> onModalSubmit(stateHolder)
 		}
 	}
 }
