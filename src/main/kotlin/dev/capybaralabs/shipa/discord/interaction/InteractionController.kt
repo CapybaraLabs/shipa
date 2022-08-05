@@ -11,6 +11,7 @@ import dev.capybaralabs.shipa.logger
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedStage
 import java.util.concurrent.CompletionStage
+import java.util.concurrent.TimeUnit.SECONDS
 import javax.servlet.http.HttpServletRequest
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -51,7 +52,7 @@ internal class InteractionController(
 		val result = CompletableFuture<InteractionResponse>()
 
 		interactionScope.launchInteractionProcessing(interaction, result)
-		return result.thenApply { ResponseEntity.ok().body(it) }
+		return result.thenApply { ResponseEntity.ok().body(it) }.orTimeout(3, SECONDS)
 	}
 
 	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, result: CompletableFuture<InteractionResponse>) =

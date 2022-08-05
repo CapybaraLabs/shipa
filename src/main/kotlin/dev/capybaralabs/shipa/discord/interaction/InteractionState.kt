@@ -8,7 +8,9 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.Intera
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.ModalSubmit
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.model.Message
+import dev.capybaralabs.shipa.logger
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 
 internal open class Context<T : InteractionWithData>(
@@ -47,6 +49,13 @@ sealed interface InteractionState {
 				messages.mapIndexed { i, it -> if (i == index) message else it }
 			}
 		}
+
+		protected fun tryComplete(result: CompletableFuture<InteractionResponse>, response: InteractionResponse) {
+			val completed = result.complete(response)
+			if (!completed) {
+				logger().warn("It seems we were too late processing a command.", TimeoutException("stacktrace"))
+			}
+		}
 	}
 
 	// marker interface for initial states
@@ -65,8 +74,8 @@ sealed interface InteractionState {
 	sealed interface ApplicationCommandState : InteractionState {
 
 		companion object {
-			fun received(interaction: ApplicationCommand, initial: CompletableFuture<InteractionResponse>, restService: InteractionRestService): Received {
-				return Received(initial, ApplicationCommandContext(restService, interaction))
+			fun received(interaction: ApplicationCommand, result: CompletableFuture<InteractionResponse>, restService: InteractionRestService): Received {
+				return Received(result, ApplicationCommandContext(restService, interaction))
 			}
 		}
 
@@ -127,7 +136,7 @@ sealed interface InteractionState {
 		}
 
 		class Received internal constructor(
-			private val initial: CompletableFuture<InteractionResponse>,
+			private val result: CompletableFuture<InteractionResponse>,
 			private val context: ApplicationCommandContext,
 		) : Initial, Base(context.interaction) {
 
@@ -141,14 +150,14 @@ sealed interface InteractionState {
 
 			fun doAck(): Thinking {
 				return checkUsed {
-					initial.complete(InteractionResponse.Ack)
+					tryComplete(result, InteractionResponse.Ack)
 					Thinking(context)
 				}
 			}
 
 			fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
-					initial.complete(InteractionResponse.SendMessage(message))
+					tryComplete(result, InteractionResponse.SendMessage(message))
 					MessageSent(context, listOf())
 				}
 			}
@@ -205,8 +214,8 @@ sealed interface InteractionState {
 	sealed interface MessageComponentState : InteractionState {
 
 		companion object {
-			fun received(interaction: MessageComponent, initial: CompletableFuture<InteractionResponse>, restService: InteractionRestService): Received {
-				return Received(initial, MessageComponentContext(restService, interaction))
+			fun received(interaction: MessageComponent, result: CompletableFuture<InteractionResponse>, restService: InteractionRestService): Received {
+				return Received(result, MessageComponentContext(restService, interaction))
 			}
 		}
 
@@ -264,7 +273,7 @@ sealed interface InteractionState {
 		}
 
 		class Received internal constructor(
-			private val initial: CompletableFuture<InteractionResponse>,
+			private val result: CompletableFuture<InteractionResponse>,
 			private val context: MessageComponentContext,
 		) : Base(context.interaction), Initial {
 
@@ -279,14 +288,14 @@ sealed interface InteractionState {
 
 			fun doAck(): Thinking {
 				return checkUsed {
-					initial.complete(InteractionResponse.AckUpdate)
+					tryComplete(result, InteractionResponse.AckUpdate)
 					Thinking(context)
 				}
 			}
 
 			fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
-					initial.complete(InteractionResponse.UpdateMessage(message))
+					tryComplete(result, InteractionResponse.UpdateMessage(message))
 					MessageSent(context, listOf())
 				}
 			}
