@@ -10,7 +10,11 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse.Upda
 import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
 import dev.capybaralabs.shipa.logger
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletableFuture.completedStage
+import java.util.concurrent.CompletionStage
 import javax.servlet.http.HttpServletRequest
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.springframework.http.HttpStatus
@@ -25,7 +29,7 @@ const val HEADER_TIMESTAMP = "X-Signature-Timestamp"
 
 @RestController
 @RequestMapping("\${shipa.controller-path:/api}/interaction")
-class InteractionController(
+internal class InteractionController(
 	private val interactionValidator: InteractionValidator,
 	@Suppress("SpringJavaInjectionPointsAutowiringInspection") private val mapper: ObjectMapper,
 	private val applicationCommandService: ApplicationCommandService,
@@ -34,44 +38,49 @@ class InteractionController(
 ) {
 
 	@PostMapping
-	fun post(req: HttpServletRequest, @RequestBody rawBody: String): ResponseEntity<InteractionResponse> {
+	fun post(req: HttpServletRequest, @RequestBody rawBody: String): CompletionStage<ResponseEntity<InteractionResponse>> {
 		val signature: String? = req.getHeader(HEADER_SIGNATURE)
 		val timestamp: String? = req.getHeader(HEADER_TIMESTAMP)
 		if (signature == null || timestamp == null) {
-			return ResponseEntity.badRequest().build()
+			return completedStage(ResponseEntity.badRequest().build())
 		}
 
 		if (!interactionValidator.validateSignature(signature, timestamp, rawBody)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+			return completedStage(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build())
 		}
 
 		val interaction = mapper.readValue(rawBody, UntypedInteractionObject::class.java).typed()
-		val response = when (interaction) {
-			is InteractionObject.Ping -> sequenceOf(InteractionResponse.Pong)
-			is InteractionWithData -> applicationCommandService.onInteraction(interaction)
-		}
+		val result = CompletableFuture<ResponseEntity<InteractionResponse>>()
 
-		val iterator = response.iterator()
-		val initialResponse = iterator.next()
-
-		// TODO order of responses? how to ensure ACK is dispatched first?
-		interactionScope.launchInteractionProcessing(interaction.token, iterator)
-
-		logger().debug("Returning initial response $initialResponse")
-		return ResponseEntity.ok().body(initialResponse)
+		interactionScope.launchInteractionProcessing(interaction, result)
+		return result
 	}
 
-	fun CoroutineScope.launchInteractionProcessing(interactionToken: String, responses: Iterator<InteractionResponse>) = launch {
-		while (responses.hasNext()) {
-			val nextResponse = responses.next()
-			logger().debug("Dispatching additional response $nextResponse")
-			if (nextResponse is UpdateMessage) {
-				restService.editOriginalResponse(interactionToken, nextResponse.data)
+	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, result: CompletableFuture<ResponseEntity<InteractionResponse>>) =
+		launch(CoroutineExceptionHandler { _, t -> logger().error("Unhandled exception in coroutine", t) }) {
+			logger().debug("Launching interaction processing coroutine!")
+
+			val response = when (interaction) {
+				is InteractionObject.Ping -> sequenceOf(InteractionResponse.Pong)
+				is InteractionWithData -> applicationCommandService.onInteraction(interaction)
 			}
-			if (nextResponse is SendMessage) {
-				restService.createFollowupMessage(interactionToken, nextResponse.data)
+
+			val iterator = response.iterator()
+			val initialResponse = iterator.next()
+
+			logger().debug("Returning initial response $initialResponse")
+			result.complete(ResponseEntity.ok().body(initialResponse))
+
+			while (iterator.hasNext()) {
+				val nextResponse = iterator.next()
+				logger().debug("Dispatching additional response $nextResponse")
+				if (nextResponse is UpdateMessage) {
+					restService.editOriginalResponse(interaction.token, nextResponse.data)
+				}
+				if (nextResponse is SendMessage) {
+					restService.createFollowupMessage(interaction.token, nextResponse.data)
+				}
 			}
+			logger().debug("Done processing additional responses")
 		}
-		logger().debug("Done processing additional responses")
-	}
 }

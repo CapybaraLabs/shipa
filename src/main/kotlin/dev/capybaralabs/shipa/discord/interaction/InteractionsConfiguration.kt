@@ -34,7 +34,7 @@ class InteractionsConfiguration(private val discord: DiscordProperties) {
 
 	@Bean
 	@OptIn(ExperimentalCoroutinesApi::class)
-	fun interactionCoroutineScope(): CoroutineScope {
+	internal fun interactionCoroutineScope(): CoroutineScope {
 		return CoroutineScope(Dispatchers.IO.limitedParallelism(100))
 	}
 
