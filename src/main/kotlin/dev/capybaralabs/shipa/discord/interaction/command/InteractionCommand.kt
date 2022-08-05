@@ -35,7 +35,7 @@ interface InteractionCommand {
 //		state.reply(Message(content = "The dog ate my interaction handler."))
 	}
 
-	fun onInteraction(stateHolder: InteractionState.InteractionStateHolder) {
+	fun onInteraction(stateHolder: InteractionState.InteractionStateHolder<*>) {
 		when (stateHolder) {
 			is ApplicationCommandStateHolder -> onApplicationCommand(stateHolder)
 			is MessageComponentStateHolder -> onMessageComponent(stateHolder)

@@ -27,7 +27,7 @@ class ApplicationCommandService(
 			is InteractionWithData.ModalSubmit -> commandLookupService.findByCustomId(interaction.data.customId)
 		}
 
-		val interactionStateHolder: InteractionStateHolder = when (interaction) {
+		val interactionStateHolder: InteractionStateHolder<*> = when (interaction) {
 			is InteractionWithData.ApplicationCommand -> ApplicationCommandStateHolder(InteractionState.ApplicationCommandState.received(interaction, result, restService))
 			is InteractionWithData.MessageComponent -> MessageComponentStateHolder(InteractionState.MessageComponentState.received(interaction, result, restService))
 			is InteractionWithData.Autocomplete -> AutocompleteStateHolder(InteractionState.AutocompleteState.received(interaction))

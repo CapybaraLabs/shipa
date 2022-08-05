@@ -23,27 +23,29 @@ internal class MessageComponentContext(restService: InteractionRestService, inte
 
 
 // TODO: how to (if necessary) model doneness / timeout
-sealed class InteractionState {
+sealed interface InteractionState {
 
-	abstract fun interaction(): InteractionWithData
+	fun interaction(): InteractionWithData
 
-	private var used = AtomicBoolean(false)
-	protected fun <T> checkUsed(func: () -> T): T {
-		val success = used.compareAndSet(false, true)
+	abstract class Base {
+		private var used = AtomicBoolean(false)
+		protected fun <T> checkUsed(func: () -> T): T {
+			val success = used.compareAndSet(false, true)
 
-		if (success) {
-			return func.invoke()
-		} else {
-			throw IllegalStateException("This state has been used already, continue with the return value!")
+			if (success) {
+				return func.invoke()
+			} else {
+				throw IllegalStateException("This state has been used already, continue with the return value!")
+			}
 		}
-	}
 
-	protected fun replaceOrAppend(messages: List<Message>, message: Message): List<Message> {
-		val index = messages.indexOfFirst { it.id == message.id }
-		return if (index < 0) {
-			messages + message
-		} else {
-			messages.mapIndexed { i, it -> if (i == index) message else it }
+		protected fun replaceOrAppend(messages: List<Message>, message: Message): List<Message> {
+			val index = messages.indexOfFirst { it.id == message.id }
+			return if (index < 0) {
+				messages + message
+			} else {
+				messages.mapIndexed { i, it -> if (i == index) message else it }
+			}
 		}
 	}
 
@@ -53,13 +55,14 @@ sealed class InteractionState {
 	// marker interface for all holders
 	// holder are convenience classes that update their state in place but do not enforce method use through typesafety.
 	// use the doXYZ methods on the concrete classes to take advantage of typesafety of possible actions but you will have to hold the state yourself.
-	sealed interface InteractionStateHolder {
+	sealed interface InteractionStateHolder<S : InteractionState> {
 		// entry point for typesafe state chains
 		fun getInitialState(): Initial
 		fun getInteraction(): InteractionWithData
+		fun <F : S> getCurrentState(): F
 	}
 
-	sealed interface ApplicationCommandState {
+	sealed interface ApplicationCommandState : InteractionState {
 
 		companion object {
 			fun received(interaction: ApplicationCommand, initial: CompletableFuture<InteractionResponse>, restService: InteractionRestService): Received {
@@ -81,7 +84,7 @@ sealed class InteractionState {
 
 		// TODO sendModal?
 
-		class ApplicationCommandStateHolder(private val initial: Received) : ApplicationCommandState, InteractionStateHolder {
+		class ApplicationCommandStateHolder(private val initial: Received) : InteractionStateHolder<ApplicationCommandState> {
 			private var state: ApplicationCommandState = initial
 
 			override fun getInitialState(): Received {
@@ -92,19 +95,24 @@ sealed class InteractionState {
 				return initial.interaction()
 			}
 
-			override fun ack(): Thinking {
+			override fun <F : ApplicationCommandState> getCurrentState(): F {
+				@Suppress("UNCHECKED_CAST") return state as F
+			}
+
+
+			fun ack(): Thinking {
 				val ack = state.ack()
 				state = ack
 				return ack
 			}
 
-			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+			fun reply(message: InteractionCallbackData.Message): MessageSent {
 				val reply = state.reply(message)
 				state = reply
 				return reply
 			}
 
-			override fun edit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
+			fun edit(message: InteractionCallbackData.Message, messageId: Long? = null): MessageSent {
 				val edit = state.edit(message, messageId)
 				state = edit
 				return edit
@@ -112,7 +120,7 @@ sealed class InteractionState {
 		}
 
 
-		abstract class Base(private val interaction: ApplicationCommand) : InteractionState(), ApplicationCommandState {
+		abstract class Base(private val interaction: ApplicationCommand) : InteractionState.Base(), ApplicationCommandState {
 			override fun interaction(): ApplicationCommand {
 				return interaction
 			}
@@ -162,7 +170,7 @@ sealed class InteractionState {
 
 		class MessageSent internal constructor(
 			private val context: ApplicationCommandContext,
-			private val followupMessages: List<Message>,
+			val followupMessages: List<Message>,
 		) : Base(context.interaction) {
 
 			override fun reply(message: InteractionCallbackData.Message): MessageSent {
@@ -194,7 +202,7 @@ sealed class InteractionState {
 		}
 	}
 
-	sealed interface MessageComponentState {
+	sealed interface MessageComponentState : InteractionState {
 
 		companion object {
 			fun received(interaction: MessageComponent, initial: CompletableFuture<InteractionResponse>, restService: InteractionRestService): Received {
@@ -214,7 +222,7 @@ sealed class InteractionState {
 			throw IllegalStateException("Cannot edit while in state ${javaClass.simpleName}")
 		}
 
-		class MessageComponentStateHolder(private val initial: Received) : MessageComponentState, InteractionStateHolder {
+		class MessageComponentStateHolder(private val initial: Received) : InteractionStateHolder<MessageComponentState> {
 			private var state: MessageComponentState = initial
 
 			override fun getInitialState(): Received {
@@ -225,26 +233,30 @@ sealed class InteractionState {
 				return initial.interaction()
 			}
 
-			override fun ack(): Thinking {
+			override fun <F : MessageComponentState> getCurrentState(): F {
+				@Suppress("UNCHECKED_CAST") return state as F
+			}
+
+			fun ack(): Thinking {
 				val ack = state.ack()
 				state = ack
 				return ack
 			}
 
-			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+			fun reply(message: InteractionCallbackData.Message): MessageSent {
 				val reply = state.reply(message)
 				state = reply
 				return reply
 			}
 
-			override fun edit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
+			fun edit(message: InteractionCallbackData.Message, messageId: Long? = null): MessageSent {
 				val edit = state.edit(message, messageId)
 				state = edit
 				return edit
 			}
 		}
 
-		abstract class Base(private val interaction: MessageComponent) : MessageComponentState, InteractionState() {
+		abstract class Base(private val interaction: MessageComponent) : MessageComponentState, InteractionState.Base() {
 			override fun interaction(): MessageComponent {
 				return interaction
 			}
@@ -330,7 +342,7 @@ sealed class InteractionState {
 		}
 	}
 
-	sealed interface AutocompleteState {
+	sealed interface AutocompleteState : InteractionState {
 
 		companion object {
 			fun received(interaction: Autocomplete): Received {
@@ -338,7 +350,8 @@ sealed class InteractionState {
 			}
 		}
 
-		class AutocompleteStateHolder(private val initial: Received) : AutocompleteState, InteractionStateHolder {
+		class AutocompleteStateHolder(private val initial: Received) : InteractionStateHolder<AutocompleteState> {
+			private val state: AutocompleteState = initial
 
 			override fun getInitialState(): Received {
 				return initial
@@ -347,9 +360,13 @@ sealed class InteractionState {
 			override fun getInteraction(): Autocomplete {
 				return initial.interaction()
 			}
+
+			override fun <F : AutocompleteState> getCurrentState(): F {
+				@Suppress("UNCHECKED_CAST") return state as F
+			}
 		}
 
-		abstract class Base(private val interaction: Autocomplete) : AutocompleteState, InteractionState() {
+		abstract class Base(private val interaction: Autocomplete) : AutocompleteState, InteractionState.Base() {
 			override fun interaction(): Autocomplete {
 				return interaction
 			}
@@ -358,14 +375,15 @@ sealed class InteractionState {
 		class Received internal constructor(interaction: Autocomplete) : Base(interaction), Initial
 	}
 
-	sealed interface ModalState {
+	sealed interface ModalState : InteractionState {
 		companion object {
 			fun received(interaction: ModalSubmit): Received {
 				return Received(interaction)
 			}
 		}
 
-		class ModalStateHolder(private val initial: Received) : AutocompleteState, InteractionStateHolder {
+		class ModalStateHolder(private val initial: Received) : InteractionStateHolder<ModalState> {
+			private val state: ModalState = initial
 
 			override fun getInitialState(): Received {
 				return initial
@@ -374,9 +392,13 @@ sealed class InteractionState {
 			override fun getInteraction(): ModalSubmit {
 				return initial.interaction()
 			}
+
+			override fun <F : ModalState> getCurrentState(): F {
+				@Suppress("UNCHECKED_CAST") return state as F
+			}
 		}
 
-		abstract class Base(private val interaction: ModalSubmit) : InteractionState(), ModalState {
+		abstract class Base(private val interaction: ModalSubmit) : InteractionState.Base(), ModalState {
 
 			override fun interaction(): ModalSubmit {
 				return interaction
