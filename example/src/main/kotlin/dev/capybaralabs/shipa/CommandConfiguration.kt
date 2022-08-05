@@ -20,7 +20,7 @@ class CommandConfiguration {
 			}
 
 			override fun onApplicationCommand(stateHolder: ApplicationCommandStateHolder) {
-				stateHolder.reply(Message(content = "Henlo, ${stateHolder.getInteraction().data.resolved?.users?.values?.first()?.username}!"))
+				stateHolder.reply(Message("Henlo, ${stateHolder.getInteraction().data.resolved?.users?.values?.first()?.username}!"))
 			}
 		}
 	}

@@ -73,12 +73,12 @@ sealed interface InteractionCallbackData {
 	 * [Discord Interaction Message Callback](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-messages)
 	 */
 	data class Message(
-		val tts: Boolean? = null,
 		val content: String? = null,
-		val embeds: List<Embed>? = listOf(), // set to null when updating to keep existing
-		val allowedMentions: AllowedMentions? = null,
-		val flags: Int? = null,
 		val components: List<MessageComponent>? = listOf(), // set to null when updating to keep existing
+		val embeds: List<Embed>? = listOf(), // set to null when updating to keep existing
+		val flags: Int? = null,
+		val allowedMentions: AllowedMentions? = null,
+		val tts: Boolean? = null,
 //	val attachments: List<PartialAttachment>?,
 	) : InteractionCallbackData
 
