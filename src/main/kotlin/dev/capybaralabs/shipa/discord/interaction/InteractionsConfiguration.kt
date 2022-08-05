@@ -19,7 +19,6 @@ import org.springframework.http.client.BufferingClientHttpRequestFactory
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.client.ClientHttpResponse
-import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.web.client.RestTemplate
 
@@ -51,8 +50,9 @@ class InteractionsConfiguration(private val discord: DiscordProperties) {
 			)
 
 		if (logger().isDebugEnabled) {
+			val requestFactory = builder.buildRequestFactory()  // avoid SimpleRequestFactory, it does not support PATCH requests
 			builder = builder
-				.requestFactory { BufferingClientHttpRequestFactory(SimpleClientHttpRequestFactory()) }
+				.requestFactory { BufferingClientHttpRequestFactory(requestFactory) }
 				.additionalInterceptors(LoggingInterceptor())
 		}
 
