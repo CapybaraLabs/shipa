@@ -1,15 +1,70 @@
-# Shipa
+# Shipa [![Release](https://jitpack.io/v/dev.capybaralabs/shipa.svg?style=flat-square)](https://jitpack.io/#dev.capybaralabs/shipa) [![Coverage](https://img.shields.io/sonar/coverage/dev.capybaralabs.shipa?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/summary/overall?id=dev.capybaralabs.shipa)
 
 This is a discord interaction lib that fits CapybaraLabs' needs. It is named
 after [a beer](https://www.kehrwieder.shop/shipa-eclipse-single-hop-ipa) which the original author was drinking when
 creating the repository.
 
-### Using
+## Usage
 
-This lib is still in development, so no versions have been released yet. You can try it out
-via [Gradle Composite builds](https://docs.gradle.org/current/userguide/composite_builds.html).
+This lib is in early development, and not ready for production. Fundamental things such as ratelimiting are missing, and
+only a small subset of features has been implemented and tested. The ABI is not comfortably usable yet, and it might
+never be.
 
-### Nullability
+### Gradle
+
+```groovy
+repositories {
+	maven { url "https://jitpack.io" }
+}
+
+dependencies {
+	implementation "dev.capybaralabs:shipa:x.y.z"
+}
+ ```
+
+### Spring Boot Component Scan
+
+Include the project in your Spring Boot component scan, e.g. by using the provided module in your application launcher
+class:
+
+```kotlin
+@SpringBootApplication
+@Import(ShipaModule::class)
+class Launcher {
+	// ...
+}
+```
+
+### Spring Boot Config Properties
+
+Discord properties are not optional.
+
+If not otherwise configured, the interaction-receiving controller will be deployed to `/api/interaction`.
+
+```yaml
+shipa:
+    discord:
+        application-id: 123
+        public-key: "abc"
+        bot-token: "xyz"
+    interaction-controller-path: "/webhook/interaction"
+```
+
+### Implementations
+
+You need to provide an implementation for `CommandLookupService`,
+see [InMemoryCommandLookupService](example/src/main/kotlin/dev/capybaralabs/shipa/InMemoryCommandLookupService.kt) for
+example.
+
+Commands should
+implement [InteractionCommand](src/main/kotlin/dev/capybaralabs/shipa/discord/interaction/command/InteractionCommand.kt)
+. The `onXYZ` methods will be called. The passed in `InteractionStateHolders` offer an API for responding. They are
+backed by [state machines](#interaction-state-machine).
+
+[CommandRegisterService](src/main/kotlin/dev/capybaralabs/shipa/discord/interaction/command/CommandRegisterService.kt)
+can be used to register your commands with Discord.
+
+## Nullability
 
 Extended table from the
 related [Discord Docs](https://discord.com/developers/docs/reference#nullable-and-optional-resource-fields)
