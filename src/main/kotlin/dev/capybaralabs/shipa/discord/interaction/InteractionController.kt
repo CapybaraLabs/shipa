@@ -25,7 +25,7 @@ const val HEADER_SIGNATURE = "X-Signature-Ed25519"
 const val HEADER_TIMESTAMP = "X-Signature-Timestamp"
 
 @RestController
-@RequestMapping("\${shipa.controller-path:/api}/interaction")
+@RequestMapping("\${shipa.interaction-controller-path:/api/interaction}")
 internal class InteractionController(
 	private val interactionValidator: InteractionValidator,
 	@Suppress("SpringJavaInjectionPointsAutowiringInspection") private val mapper: ObjectMapper,

@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConstructorBinding
-@ConfigurationProperties("discord")
+@ConfigurationProperties("shipa.discord")
 data class DiscordProperties(
 	var publicKey: String = "",
 	var applicationId: Long = 0,
