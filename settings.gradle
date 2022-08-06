@@ -11,6 +11,7 @@ pluginManagement {
 		id "org.springframework.boot" version "$springBootVersion"
 		id "org.jetbrains.kotlin.plugin.spring" version "$kotlinVersion"
 		id "com.adarshr.test-logger" version "$testloggerVersion"
+		id "org.sonarqube" version "$sonarVersion"
 	}
 }
 

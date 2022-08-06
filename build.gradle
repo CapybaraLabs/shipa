@@ -9,7 +9,13 @@ plugins {
 	id "org.jetbrains.kotlin.jvm"
 	id "com.github.ben-manes.versions"
 	id "org.jetbrains.kotlin.plugin.spring" // opens certain classes
+	id "jacoco"
+	id "org.sonarqube"
+	id "maven-publish"
 }
+
+group = "dev.capybaralabs.shipa"
+version = "0.0.1"
 
 allprojects {
 	java {
@@ -97,4 +103,41 @@ static def isNonStable(String version) {
 	def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { it -> version.toUpperCase().contains(it) }
 	def regex = /^[0-9,.v-]+(-r)?$/
 	return !stableKeyword && !(version ==~ regex)
+}
+
+
+// See https://github.com/gradle/gradle/issues/8881#issuecomment-593227192
+tasks.register('codeCoverageReport', JacocoReport) {
+	dependsOn(test, ':example:test')
+	// Gather execution data from all subprojects
+	executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+	// Add all relevant sourcesets from the subprojects
+	subprojects.each {
+		sourceSets it.sourceSets.main
+	}
+	reports {
+		xml.required.set(true)
+		html.required.set(true)
+		csv.required.set(false)
+	}
+}
+
+tasks.withType(org.sonarqube.gradle.SonarQubeTask) {
+	dependsOn codeCoverageReport
+}
+sonarqube {
+	properties {
+		property "sonar.projectKey", "dev.capybaralabs.shipa"
+		property "sonar.coverage.jacoco.xmlReportPaths", "${rootDir}/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml"
+		property "sonar.coverage.exclusions", "example/**/*"
+	}
+}
+
+
+publishing {
+	publications {
+		create("main", MavenPublication) {
+			from(components.kotlin)
+		}
+	}
 }
