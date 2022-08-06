@@ -63,7 +63,7 @@ dependencyLocking {
 }
 
 // ./gradlew resolveAndLockAll --write-locks
-task resolveAndLockAll {
+tasks.register("resolveAndLockAll") {
 	doFirst {
 		assert gradle.startParameter.writeDependencyLocks
 	}
@@ -93,22 +93,22 @@ static def properReleasesOnly() {
 	return { rules ->
 		rules.all { ComponentSelection selection ->
 			if (isNonStable(selection.candidate.version) && !isNonStable(selection.currentVersion)) {
-				reject('Release candidate')
+				reject("Release candidate")
 			}
 		}
 	}
 }
 
 static def isNonStable(String version) {
-	def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { it -> version.toUpperCase().contains(it) }
+	def stableKeyword = ["RELEASE", "FINAL", "GA"].any { it -> version.toUpperCase().contains(it) }
 	def regex = /^[0-9,.v-]+(-r)?$/
 	return !stableKeyword && !(version ==~ regex)
 }
 
 
 // See https://github.com/gradle/gradle/issues/8881#issuecomment-593227192
-tasks.register('codeCoverageReport', JacocoReport) {
-	dependsOn(test, ':example:test')
+tasks.register("codeCoverageReport", JacocoReport) {
+	dependsOn(test, ":example:test")
 	// Gather execution data from all subprojects
 	executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 	// Add all relevant sourcesets from the subprojects
