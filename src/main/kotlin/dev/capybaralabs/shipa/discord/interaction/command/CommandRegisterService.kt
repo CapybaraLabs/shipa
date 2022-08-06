@@ -1,17 +1,17 @@
 package dev.capybaralabs.shipa.discord.interaction.command
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.client.RestService
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 import org.springframework.core.env.Environment
 import org.springframework.core.env.Profiles
+import org.springframework.http.RequestEntity
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestTemplate
-import org.springframework.web.client.postForEntity
 
 @Service
 class CommandRegisterService(
 	private val properties: DiscordProperties,
-	private val restTemplate: RestTemplate,
+	private val restService: RestService,
 	private val environment: Environment,
 ) {
 
@@ -19,7 +19,7 @@ class CommandRegisterService(
 		return environment.acceptsProfiles(Profiles.of("test"))
 	}
 
-	fun register(command: CreateCommand) {
+	suspend fun register(command: CreateCommand) {
 		val guildId = command.guildId
 		if (guildId != null) {
 			registerInGuild(command, guildId)
@@ -28,29 +28,28 @@ class CommandRegisterService(
 		}
 	}
 
-	fun registerGlobally(command: CreateCommand) {
+	suspend fun registerGlobally(command: CreateCommand) {
 		if (isTestEnvironment()) return
 
-		restTemplate.postForEntity<Void>(
-			"/applications/{applicationId}/commands",
-			command,
-			properties.applicationId,
+		restService.exchange<Void>(
+			RequestEntity
+				.post("/applications/{applicationId}/commands", properties.applicationId)
+				.body(command)
 		)
 	}
 
 
-	fun registerInGuild(command: CreateCommand, guildId: Long) {
+	suspend fun registerInGuild(command: CreateCommand, guildId: Long) {
 		if (isTestEnvironment()) return
 
-		restTemplate.postForEntity<Void>(
-			"/applications/{applicationId}/guilds/{guildId}/commands",
-			command,
-			properties.applicationId,
-			guildId,
+		restService.exchange<Void>(
+			RequestEntity
+				.post("/applications/{applicationId}/guilds/{guildId}/commands", properties.applicationId, guildId)
+				.body(command)
 		)
 	}
 
-	fun deleteCommand(commandId: Long, guildId: Long?) {
+	suspend fun deleteCommand(commandId: Long, guildId: Long?) {
 		if (guildId != null) {
 			deleteGuildCommand(commandId, guildId)
 		} else {
@@ -58,15 +57,23 @@ class CommandRegisterService(
 		}
 	}
 
-	fun deleteGlobalCommand(commandId: Long) {
+	suspend fun deleteGlobalCommand(commandId: Long) {
 		if (isTestEnvironment()) return
 
-		restTemplate.delete("/applications/{applicationId}/commands/{commandId}", properties.applicationId, commandId)
+		restService.exchange<Void>(
+			RequestEntity
+				.delete("/applications/{applicationId}/commands/{commandId}", properties.applicationId, commandId)
+				.build()
+		)
 	}
 
-	fun deleteGuildCommand(commandId: Long, guildId: Long) {
+	suspend fun deleteGuildCommand(commandId: Long, guildId: Long) {
 		if (isTestEnvironment()) return
 
-		restTemplate.delete("/applications/{applicationId}/guilds/{guildId}/commands/{commandId}", properties.applicationId, guildId, commandId)
+		restService.exchange<Void>(
+			RequestEntity
+				.delete("/applications/{applicationId}/guilds/{guildId}/commands/{commandId}", properties.applicationId, guildId, commandId)
+				.build()
+		)
 	}
 }

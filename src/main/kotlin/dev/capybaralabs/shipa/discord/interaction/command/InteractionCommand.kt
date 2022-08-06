@@ -19,23 +19,23 @@ interface InteractionCommand {
 		return listOf()
 	}
 
-	fun onApplicationCommand(stateHolder: ApplicationCommandStateHolder) {
+	suspend fun onApplicationCommand(stateHolder: ApplicationCommandStateHolder) {
 		stateHolder.reply(Message("The capybara ate my interaction handler."))
 	}
 
-	fun onMessageComponent(stateHolder: MessageComponentStateHolder) {
+	suspend fun onMessageComponent(stateHolder: MessageComponentStateHolder) {
 		stateHolder.reply(Message("The capybara ate my interaction handler."))
 	}
 
-	fun onAutocomplete(stateHolder: AutocompleteStateHolder) {
+	suspend fun onAutocomplete(stateHolder: AutocompleteStateHolder) {
 //		state.reply(Message( "The capybara ate my interaction handler."))
 	}
 
-	fun onModalSubmit(stateHolder: ModalStateHolder) {
+	suspend fun onModalSubmit(stateHolder: ModalStateHolder) {
 //		state.reply(Message( "The capybara ate my interaction handler."))
 	}
 
-	fun onInteraction(stateHolder: InteractionState.InteractionStateHolder<*>) {
+	suspend fun onInteraction(stateHolder: InteractionState.InteractionStateHolder<*>) {
 		when (stateHolder) {
 			is ApplicationCommandStateHolder -> onApplicationCommand(stateHolder)
 			is MessageComponentStateHolder -> onMessageComponent(stateHolder)

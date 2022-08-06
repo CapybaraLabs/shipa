@@ -2,7 +2,7 @@ package dev.capybaralabs.shipa
 
 import dev.capybaralabs.shipa.discord.interaction.command.CommandRegisterService
 import dev.capybaralabs.shipa.discord.interaction.command.InteractionCommand
-import javax.annotation.PostConstruct
+import kotlinx.coroutines.runBlocking
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
@@ -17,12 +17,11 @@ class Launcher(
 	init {
 		Thread.setDefaultUncaughtExceptionHandler { t, e -> logger().warn("Uncaught exception in thread {}", t.name, e) }
 		println("Henlo")
-	}
 
-	@PostConstruct // TODO consider putting this into some kind of autoconfig
-	fun setup() {
-		for (command in commands) {
-			registerService.register(command.creation())
+		runBlocking {
+			for (command in commands) {
+				registerService.register(command.creation())
+			}
 		}
 	}
 }

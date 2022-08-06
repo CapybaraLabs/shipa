@@ -19,7 +19,7 @@ class ApplicationCommandService(
 	private val restService: InteractionRestService,
 ) {
 
-	fun onInteraction(interaction: InteractionWithData, result: CompletableFuture<InteractionResponse>) {
+	suspend fun onInteraction(interaction: InteractionWithData, result: CompletableFuture<InteractionResponse>) {
 		val command = when (interaction) {
 			is InteractionWithData.ApplicationCommand -> commandLookupService.findByName(interaction.data.name)
 			is InteractionWithData.MessageComponent -> commandLookupService.findByCustomId(interaction.data.customId)

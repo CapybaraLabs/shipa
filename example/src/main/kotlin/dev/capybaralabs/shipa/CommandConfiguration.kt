@@ -19,7 +19,7 @@ class CommandConfiguration {
 				return CreateCommand.User("henlo", debugGuildId)
 			}
 
-			override fun onApplicationCommand(stateHolder: ApplicationCommandStateHolder) {
+			override suspend fun onApplicationCommand(stateHolder: ApplicationCommandStateHolder) {
 				stateHolder.reply(Message("Henlo, ${stateHolder.getInteraction().data.resolved?.users?.values?.first()?.username}!"))
 			}
 		}

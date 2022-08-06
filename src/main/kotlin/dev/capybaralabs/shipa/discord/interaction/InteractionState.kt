@@ -31,7 +31,7 @@ sealed interface InteractionState {
 
 	abstract class Base {
 		private var used = AtomicBoolean(false)
-		protected fun <T> checkUsed(func: () -> T): T {
+		protected suspend fun <T> checkUsed(func: suspend () -> T): T {
 			val success = used.compareAndSet(false, true)
 
 			if (success) {
@@ -79,15 +79,15 @@ sealed interface InteractionState {
 			}
 		}
 
-		fun ack(): Thinking {
+		suspend fun ack(): Thinking {
 			throw IllegalStateException("Cannot ack while in state ${javaClass.simpleName}")
 		}
 
-		fun reply(message: InteractionCallbackData.Message): MessageSent {
+		suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 			throw IllegalStateException("Cannot reply while in state ${javaClass.simpleName}")
 		}
 
-		fun edit(message: InteractionCallbackData.Message, messageId: Long? = null): MessageSent {
+		suspend fun edit(message: InteractionCallbackData.Message, messageId: Long? = null): MessageSent {
 			throw IllegalStateException("Cannot edit while in state ${javaClass.simpleName}")
 		}
 
@@ -109,19 +109,19 @@ sealed interface InteractionState {
 			}
 
 
-			fun ack(): Thinking {
+			suspend fun ack(): Thinking {
 				val ack = state.ack()
 				state = ack
 				return ack
 			}
 
-			fun reply(message: InteractionCallbackData.Message): MessageSent {
+			suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 				val reply = state.reply(message)
 				state = reply
 				return reply
 			}
 
-			fun edit(message: InteractionCallbackData.Message, messageId: Long? = null): MessageSent {
+			suspend fun edit(message: InteractionCallbackData.Message, messageId: Long? = null): MessageSent {
 				val edit = state.edit(message, messageId)
 				state = edit
 				return edit
@@ -140,22 +140,22 @@ sealed interface InteractionState {
 			private val context: ApplicationCommandContext,
 		) : Initial, Base(context.interaction) {
 
-			override fun ack(): Thinking {
+			override suspend fun ack(): Thinking {
 				return doAck()
 			}
 
-			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+			override suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 				return doReply(message)
 			}
 
-			fun doAck(): Thinking {
+			suspend fun doAck(): Thinking {
 				return checkUsed {
 					tryComplete(result, InteractionResponse.Ack)
 					Thinking(context)
 				}
 			}
 
-			fun doReply(message: InteractionCallbackData.Message): MessageSent {
+			suspend fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
 					tryComplete(result, InteractionResponse.SendMessage(message))
 					MessageSent(context, listOf())
@@ -165,11 +165,11 @@ sealed interface InteractionState {
 
 		class Thinking internal constructor(private val context: ApplicationCommandContext) : Base(context.interaction) {
 
-			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+			override suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 				return doReply(message)
 			}
 
-			fun doReply(message: InteractionCallbackData.Message): MessageSent {
+			suspend fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
 					context.restService.editOriginalResponse(context.token(), message)
 					MessageSent(context, listOf())
@@ -182,22 +182,22 @@ sealed interface InteractionState {
 			val followupMessages: List<Message>,
 		) : Base(context.interaction) {
 
-			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+			override suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 				return doReply(message)
 			}
 
-			override fun edit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
+			override suspend fun edit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
 				return doEdit(message, messageId)
 			}
 
-			fun doReply(message: InteractionCallbackData.Message): MessageSent {
+			suspend fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
 					val followup = context.restService.createFollowupMessage(context.token(), message)
 					MessageSent(context, followupMessages + followup)
 				}
 			}
 
-			fun doEdit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
+			suspend fun doEdit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
 				return checkUsed {
 					if (messageId == null) {
 						context.restService.editOriginalResponse(context.token(), message)
@@ -219,15 +219,15 @@ sealed interface InteractionState {
 			}
 		}
 
-		fun ack(): Thinking {
+		suspend fun ack(): Thinking {
 			throw IllegalStateException("Cannot ack while in state ${javaClass.simpleName}")
 		}
 
-		fun reply(message: InteractionCallbackData.Message): MessageSent {
+		suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 			throw IllegalStateException("Cannot reply while in state ${javaClass.simpleName}")
 		}
 
-		fun edit(message: InteractionCallbackData.Message, messageId: Long? = null): MessageSent {
+		suspend fun edit(message: InteractionCallbackData.Message, messageId: Long? = null): MessageSent {
 			throw IllegalStateException("Cannot edit while in state ${javaClass.simpleName}")
 		}
 
@@ -246,19 +246,19 @@ sealed interface InteractionState {
 				@Suppress("UNCHECKED_CAST") return state as F
 			}
 
-			fun ack(): Thinking {
+			suspend fun ack(): Thinking {
 				val ack = state.ack()
 				state = ack
 				return ack
 			}
 
-			fun reply(message: InteractionCallbackData.Message): MessageSent {
+			suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 				val reply = state.reply(message)
 				state = reply
 				return reply
 			}
 
-			fun edit(message: InteractionCallbackData.Message, messageId: Long? = null): MessageSent {
+			suspend fun edit(message: InteractionCallbackData.Message, messageId: Long? = null): MessageSent {
 				val edit = state.edit(message, messageId)
 				state = edit
 				return edit
@@ -277,23 +277,23 @@ sealed interface InteractionState {
 			private val context: MessageComponentContext,
 		) : Base(context.interaction), Initial {
 
-			override fun ack(): Thinking {
+			override suspend fun ack(): Thinking {
 				return doAck()
 			}
 
-			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+			override suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 				return doReply(message)
 			}
 
 
-			fun doAck(): Thinking {
+			suspend fun doAck(): Thinking {
 				return checkUsed {
 					tryComplete(result, InteractionResponse.AckUpdate)
 					Thinking(context)
 				}
 			}
 
-			fun doReply(message: InteractionCallbackData.Message): MessageSent {
+			suspend fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
 					tryComplete(result, InteractionResponse.UpdateMessage(message))
 					MessageSent(context, listOf())
@@ -304,11 +304,11 @@ sealed interface InteractionState {
 
 		class Thinking internal constructor(private val context: MessageComponentContext) : Base(context.interaction) {
 
-			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+			override suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 				return doReply(message)
 			}
 
-			fun doReply(message: InteractionCallbackData.Message): MessageSent {
+			suspend fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
 					context.restService.editOriginalResponse(context.token(), message)
 					MessageSent(context, listOf())
@@ -321,23 +321,23 @@ sealed interface InteractionState {
 			private val followupMessages: List<Message>,
 		) : Base(context.interaction) {
 
-			override fun reply(message: InteractionCallbackData.Message): MessageSent {
+			override suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 				return doReply(message)
 			}
 
-			override fun edit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
+			override suspend fun edit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
 				return doEdit(message, messageId)
 			}
 
 
-			fun doReply(message: InteractionCallbackData.Message): MessageSent {
+			suspend fun doReply(message: InteractionCallbackData.Message): MessageSent {
 				return checkUsed {
 					val followup = context.restService.createFollowupMessage(context.token(), message)
 					MessageSent(context, followupMessages + followup)
 				}
 			}
 
-			fun doEdit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
+			suspend fun doEdit(message: InteractionCallbackData.Message, messageId: Long?): MessageSent {
 				return checkUsed {
 					if (messageId == null) {
 						context.restService.editOriginalResponse(context.token(), message)
