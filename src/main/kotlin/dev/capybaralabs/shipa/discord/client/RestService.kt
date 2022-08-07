@@ -2,6 +2,8 @@
 
 package dev.capybaralabs.shipa.discord.client
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import dev.capybaralabs.shipa.discord.client.ratelimit.Bucket
 import dev.capybaralabs.shipa.discord.client.ratelimit.BucketService
 import dev.capybaralabs.shipa.logger
@@ -15,12 +17,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.springframework.core.ParameterizedTypeReference
-import org.springframework.http.HttpStatus
+import org.springframework.http.HttpHeaders
 import org.springframework.http.RequestEntity
 import org.springframework.http.RequestEntity.UriTemplateRequestEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.web.client.HttpClientErrorException.TooManyRequests
 import org.springframework.web.client.RestTemplate
 
 const val HEADER_LIMIT = "X-RateLimit-Limit"
@@ -37,13 +39,14 @@ const val HEADER_RETRY_AFTER = "Retry-After"
 class RestService(
 	private val restTemplate: RestTemplate,
 	private val bucketService: BucketService,
+	@Suppress("SpringJavaInjectionPointsAutowiringInspection") private val mapper: ObjectMapper,
 ) {
 
-	final suspend inline fun <reified R> exchange(request: RequestEntity<*>): ResponseEntity<R> {
-		return exchange(request, object : ParameterizedTypeReference<R>() {})
+	final suspend inline fun <reified R> exchange(request: RequestEntity<*>): R {
+		return exchange(request, object : TypeReference<R>() {})
 	}
 
-	suspend fun <R> exchange(request: RequestEntity<*>, type: ParameterizedTypeReference<R>): ResponseEntity<R> {
+	suspend fun <R> exchange(request: RequestEntity<*>, type: TypeReference<R>): R {
 
 		val bucketKey = if (request is UriTemplateRequestEntity) {
 			request.uriTemplate
@@ -61,25 +64,29 @@ class RestService(
 						delay(untilReset.toKotlinDuration())
 					}
 
-					val response = withContext(Dispatchers.IO) {
-						restTemplate.exchange(request, type)
-					}
-
-					updateBucket(bucket, response)
-
-					if (response.statusCode == HttpStatus.TOO_MANY_REQUESTS) {
-						logger().warn("Hit ratelimit!")
-						val resetAfter = resetAfter(response)
-						if (resetAfter == null) {
+					val response: ResponseEntity<String>
+					try {
+						response = withContext(Dispatchers.IO) {
+							restTemplate.exchange(request, String::class.java)
+						}
+					} catch (e: TooManyRequests) {
+						logger().warn("Hit ratelimit!", e)
+						val resetAfter = e.responseHeaders?.let {
+							updateBucket(bucket, it)
+							resetAfter(it)
+						}
+						if (resetAfter != null) {
+							delay(resetAfter.toKotlinDuration())
+						} else {
 							logger().warn("Hit ratelimit but don't know how long to wait")
 							delay(1.seconds) // shrug
-						} else {
-							delay(resetAfter.toKotlinDuration())
 						}
 						continue
 					}
 
-					return response
+					updateBucket(bucket, response.headers)
+					val body = response.body
+					return mapper.readValue(body, type)
 				}
 			} finally {
 				bucketService.update(bucketKey, bucket) // trigger expiry update
@@ -87,17 +94,17 @@ class RestService(
 		}
 	}
 
-	private fun updateBucket(bucket: Bucket, response: ResponseEntity<*>) {
-		val limit = response.headers.getFirst(HEADER_LIMIT)?.toInt()
-		val remaining = response.headers.getFirst(HEADER_REMAINING)?.toInt()
-		val resetAfter = resetAfter(response)
+	private fun updateBucket(bucket: Bucket, responseHeaders: HttpHeaders) {
+		val limit = responseHeaders.getFirst(HEADER_LIMIT)?.toInt()
+		val remaining = responseHeaders.getFirst(HEADER_REMAINING)?.toInt()
+		val resetAfter = resetAfter(responseHeaders)
 
 		if (limit != null) bucket.limit = limit
 		if (remaining != null) bucket.tokens = remaining else bucket.tokens -= 1
 		if (resetAfter != null) bucket.nextReset = Instant.now().plus(resetAfter)
 
 
-		val name = discordBucketName(response)
+		val name = discordBucketName(responseHeaders)
 		logger().debug("Got Bucket $name with $limit $remaining $resetAfter")
 		if (bucket.discordName != null && bucket.discordName != name) {
 			logger().warn("Got different discord bucket names ${bucket.discordName} -> $name. Could indicate a problem with bucket key determination.")
@@ -105,21 +112,17 @@ class RestService(
 		bucket.discordName = name
 	}
 
-	private fun discordBucketName(response: ResponseEntity<*>): String {
-		val isGlobal = response.headers.getFirst(HEADER_GLOBAL) == "true"
-			|| response.headers.getFirst(HEADER_SCOPE) == "global"
+	private fun discordBucketName(responseHeaders: HttpHeaders): String {
+		val isGlobal = responseHeaders.getFirst(HEADER_GLOBAL) == "true"
+			|| responseHeaders.getFirst(HEADER_SCOPE) == "global"
 
-		return if (isGlobal) {
-			"global"
-		} else {
-			response.headers.getFirst(HEADER_BUCKET) ?: "unknown"
-		}
+		return if (isGlobal) "global" else responseHeaders.getFirst(HEADER_BUCKET) ?: "unknown"
 	}
 
-	private fun resetAfter(response: ResponseEntity<*>): Duration? {
+	private fun resetAfter(responseHeaders: HttpHeaders): Duration? {
 
-		val resetAfterHeader: String? = (response.headers.getFirst(HEADER_RESET_AFTER)
-			?: response.headers.getFirst(HEADER_RETRY_AFTER))
+		val resetAfterHeader: String? = (responseHeaders.getFirst(HEADER_RESET_AFTER)
+			?: responseHeaders.getFirst(HEADER_RETRY_AFTER))
 
 		return resetAfterHeader?.toDouble()?.times(1000)?.milliseconds?.toJavaDuration()
 	}
