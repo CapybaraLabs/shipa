@@ -2,8 +2,6 @@
 
 package dev.capybaralabs.shipa.discord.client
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import dev.capybaralabs.shipa.discord.client.ratelimit.Bucket
 import dev.capybaralabs.shipa.discord.client.ratelimit.BucketService
 import dev.capybaralabs.shipa.logger
@@ -17,9 +15,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.http.RequestEntity
-import org.springframework.http.RequestEntity.UriTemplateRequestEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException.TooManyRequests
@@ -39,22 +37,13 @@ const val HEADER_RETRY_AFTER = "Retry-After"
 class RestService(
 	private val restTemplate: RestTemplate,
 	private val bucketService: BucketService,
-	@Suppress("SpringJavaInjectionPointsAutowiringInspection") private val mapper: ObjectMapper,
 ) {
 
-	final suspend inline fun <reified R> exchange(request: RequestEntity<*>): R {
-		return exchange(request, object : TypeReference<R>() {})
+	final suspend inline fun <reified R> exchange(bucketKey: String, request: RequestEntity<*>): ResponseEntity<R> {
+		return exchange(bucketKey, request, object : ParameterizedTypeReference<R>() {})
 	}
 
-	suspend fun <R> exchange(request: RequestEntity<*>, type: TypeReference<R>): R {
-
-		val bucketKey = if (request is UriTemplateRequestEntity) {
-			request.uriTemplate
-		} else {
-			logger().warn("$request is not a UriTemplateRequestEntity so cannot determine bucket key, using a shared one.")
-			"unknown"
-		}
-
+	suspend fun <R> exchange(bucketKey: String, request: RequestEntity<*>, type: ParameterizedTypeReference<R>): ResponseEntity<R> {
 		val bucket = bucketService.bucket(bucketKey)
 		bucket.mutex.withLock {
 			try {
@@ -64,10 +53,10 @@ class RestService(
 						delay(untilReset.toKotlinDuration())
 					}
 
-					val response: ResponseEntity<String>
+					val response: ResponseEntity<R>
 					try {
 						response = withContext(Dispatchers.IO) {
-							restTemplate.exchange(request, String::class.java)
+							restTemplate.exchange(request, type)
 						}
 					} catch (e: TooManyRequests) {
 						logger().warn("Hit ratelimit!", e)
@@ -85,8 +74,7 @@ class RestService(
 					}
 
 					updateBucket(bucket, response.headers)
-					val body = response.body
-					return mapper.readValue(body, type)
+					return response
 				}
 			} finally {
 				bucketService.update(bucketKey, bucket) // trigger expiry update

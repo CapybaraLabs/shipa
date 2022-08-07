@@ -14,24 +14,18 @@ import org.springframework.stereotype.Service
  */
 @Service
 class InteractionRestService(
-	private val properties: DiscordProperties,
+	properties: DiscordProperties,
 	private val restService: RestService,
 ) {
 
-	// https://discord.com/developers/docs/interactions/receiving-and-responding#create-interaction-response
-	suspend fun createResponse(token: String, interactionId: Long, data: InteractionCallbackData) {
-		restService.exchange<Void>(
-			RequestEntity
-				.post("/interactions/{interactionId}/{token}/callback", interactionId, token)
-				.body(data)
-		)
-	}
+	private val applicationId = properties.applicationId
 
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#get-original-interaction-response
 	suspend fun getOriginalResponse(token: String): Message {
 		return restService.exchange<Message>(
+			"$applicationId-$token",
 			RequestEntity
-				.get("/webhooks/{applicationId}/{token}/messages/@original", properties.applicationId, token)
+				.get("/webhooks/{applicationId}/{token}/messages/@original", applicationId, token)
 				.build()
 		).body!!
 	}
@@ -39,8 +33,9 @@ class InteractionRestService(
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#edit-original-interaction-response
 	suspend fun editOriginalResponse(token: String, data: InteractionCallbackData): Message {
 		return restService.exchange<Message>(
+			"$applicationId-$token",
 			RequestEntity
-				.patch("/webhooks/{applicationId}/{token}/messages/@original", properties.applicationId, token)
+				.patch("/webhooks/{applicationId}/{token}/messages/@original", applicationId, token)
 				.body(data)
 		).body!!
 	}
@@ -48,8 +43,9 @@ class InteractionRestService(
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#delete-original-interaction-response
 	suspend fun deleteOriginalResponse(token: String) {
 		restService.exchange<Void>(
+			"$applicationId-$token",
 			RequestEntity
-				.delete("/webhooks/{applicationId}/{token}/messages/@original", properties.applicationId, token)
+				.delete("/webhooks/{applicationId}/{token}/messages/@original", applicationId, token)
 				.build()
 		)
 	}
@@ -58,8 +54,9 @@ class InteractionRestService(
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#create-followup-message
 	suspend fun createFollowupMessage(token: String, data: InteractionCallbackData): Message {
 		return restService.exchange<Message>(
+			"$applicationId-$token",
 			RequestEntity
-				.post("/webhooks/{applicationId}/{token}", properties.applicationId, token)
+				.post("/webhooks/{applicationId}/{token}", applicationId, token)
 				.body(data)
 		).body!!
 	}
@@ -67,8 +64,9 @@ class InteractionRestService(
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#get-followup-message
 	suspend fun getFollowupMessage(token: String, messageId: Long): Message {
 		return restService.exchange<Message>(
+			"$applicationId-$token",
 			RequestEntity
-				.get("/webhooks/{applicationId}/{token}/messages/{messageId}", properties.applicationId, token, messageId)
+				.get("/webhooks/{applicationId}/{token}/messages/{messageId}", applicationId, token, messageId)
 				.build()
 		).body!!
 	}
@@ -76,8 +74,9 @@ class InteractionRestService(
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#edit-followup-message
 	suspend fun editFollowupMessage(token: String, response: InteractionCallbackData, messageId: Long): Message {
 		return restService.exchange<Message>(
+			"$applicationId-$token",
 			RequestEntity
-				.patch("/webhooks/{applicationId}/{token}/messages/{messageId}", properties.applicationId, token, messageId)
+				.patch("/webhooks/{applicationId}/{token}/messages/{messageId}", applicationId, token, messageId)
 				.body(response)
 		).body!!
 	}
@@ -85,8 +84,9 @@ class InteractionRestService(
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#delete-followup-message
 	suspend fun deleteFollowupMessage(token: String, messageId: Long) {
 		restService.exchange<Void>(
+			"$applicationId-$token",
 			RequestEntity
-				.delete("/webhooks/{applicationId}/{token}/messages/{messageId}", properties.applicationId, token, messageId)
+				.delete("/webhooks/{applicationId}/{token}/messages/{messageId}", applicationId, token, messageId)
 				.build()
 		)
 	}

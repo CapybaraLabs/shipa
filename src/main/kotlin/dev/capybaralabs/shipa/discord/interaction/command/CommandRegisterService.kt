@@ -10,10 +10,12 @@ import org.springframework.stereotype.Service
 
 @Service
 class CommandRegisterService(
-	private val properties: DiscordProperties,
+	properties: DiscordProperties,
 	private val restService: RestService,
 	private val environment: Environment,
 ) {
+
+	private val applicationId = properties.applicationId
 
 	private fun isTestEnvironment(): Boolean {
 		return environment.acceptsProfiles(Profiles.of("test"))
@@ -32,8 +34,9 @@ class CommandRegisterService(
 		if (isTestEnvironment()) return
 
 		restService.exchange<Void>(
+			"$applicationId",
 			RequestEntity
-				.post("/applications/{applicationId}/commands", properties.applicationId)
+				.post("/applications/{applicationId}/commands", applicationId)
 				.body(command)
 		)
 	}
@@ -43,8 +46,9 @@ class CommandRegisterService(
 		if (isTestEnvironment()) return
 
 		restService.exchange<Void>(
+			"$applicationId-$guildId",
 			RequestEntity
-				.post("/applications/{applicationId}/guilds/{guildId}/commands", properties.applicationId, guildId)
+				.post("/applications/{applicationId}/guilds/{guildId}/commands", applicationId, guildId)
 				.body(command)
 		)
 	}
@@ -61,8 +65,9 @@ class CommandRegisterService(
 		if (isTestEnvironment()) return
 
 		restService.exchange<Void>(
+			"$applicationId",
 			RequestEntity
-				.delete("/applications/{applicationId}/commands/{commandId}", properties.applicationId, commandId)
+				.delete("/applications/{applicationId}/commands/{commandId}", applicationId, commandId)
 				.build()
 		)
 	}
@@ -71,8 +76,9 @@ class CommandRegisterService(
 		if (isTestEnvironment()) return
 
 		restService.exchange<Void>(
+			"$applicationId-$guildId",
 			RequestEntity
-				.delete("/applications/{applicationId}/guilds/{guildId}/commands/{commandId}", properties.applicationId, guildId, commandId)
+				.delete("/applications/{applicationId}/guilds/{guildId}/commands/{commandId}", applicationId, guildId, commandId)
 				.build()
 		)
 	}
