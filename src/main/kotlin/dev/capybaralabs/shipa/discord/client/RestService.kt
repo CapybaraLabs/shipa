@@ -64,10 +64,8 @@ class RestService(
 							updateBucket(bucket, it)
 							resetAfter(it)
 						}
-						if (resetAfter != null) {
-							delay(resetAfter.toKotlinDuration())
-						} else {
-							logger().warn("Hit ratelimit but don't know how long to wait")
+						if (resetAfter == null) {
+							logger().warn("Hit ratelimit but no known wait time. Backing off.")
 							delay(1.seconds) // shrug
 						}
 						continue
