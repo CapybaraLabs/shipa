@@ -10,6 +10,7 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.APPLICAT
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.MESSAGE_COMPONENT
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.MODAL_SUBMIT
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.PING
+import dev.capybaralabs.shipa.discord.model.DiscordLocale
 import dev.capybaralabs.shipa.discord.model.Member
 import dev.capybaralabs.shipa.discord.model.Message
 import dev.capybaralabs.shipa.discord.model.User
@@ -23,7 +24,7 @@ sealed interface InteractionObject {
 	val token: String
 	val type: InteractionType
 	val version: Int
-	val locale: String?
+	val locale: DiscordLocale?
 	val data: InteractionData?
 	val guildId: Long?
 	val channelId: Long?
@@ -31,7 +32,7 @@ sealed interface InteractionObject {
 	val user: User?
 	val message: Message?
 	val appPermissions: String?
-	val guildLocale: String?
+	val guildLocale: DiscordLocale?
 
 	data class Ping(
 		override val id: Long,
@@ -54,12 +55,16 @@ sealed interface InteractionObject {
 	sealed interface InteractionWithData : InteractionObject {
 		override val data: InteractionData
 
+		fun user(): User {
+			return user ?: member!!.user
+		}
+
 		data class ApplicationCommand(
 			override val id: Long,
 			override val applicationId: Long,
 			override val token: String,
 			override val version: Int,
-			override val locale: String,
+			override val locale: DiscordLocale,
 			override val data: ApplicationCommandData,
 			override val guildId: Long?,
 			override val channelId: Long?,
@@ -67,7 +72,7 @@ sealed interface InteractionObject {
 			override val user: User?,
 			override val message: Message?,
 			override val appPermissions: String?,
-			override val guildLocale: String?,
+			override val guildLocale: DiscordLocale?,
 		) : InteractionWithData {
 			override val type = APPLICATION_COMMAND
 		}
@@ -77,7 +82,7 @@ sealed interface InteractionObject {
 			override val applicationId: Long,
 			override val token: String,
 			override val version: Int,
-			override val locale: String,
+			override val locale: DiscordLocale,
 			override val data: MessageComponentData,
 			override val guildId: Long?,
 			override val channelId: Long?,
@@ -85,7 +90,7 @@ sealed interface InteractionObject {
 			override val user: User?,
 			override val message: Message?,
 			override val appPermissions: String?,
-			override val guildLocale: String?,
+			override val guildLocale: DiscordLocale?,
 		) : InteractionWithData {
 			override val type = MESSAGE_COMPONENT
 		}
@@ -95,7 +100,7 @@ sealed interface InteractionObject {
 			override val applicationId: Long,
 			override val token: String,
 			override val version: Int,
-			override val locale: String,
+			override val locale: DiscordLocale,
 			override val data: ApplicationCommandData,
 			override val guildId: Long?,
 			override val channelId: Long?,
@@ -103,7 +108,7 @@ sealed interface InteractionObject {
 			override val user: User?,
 			override val message: Message?,
 			override val appPermissions: String?,
-			override val guildLocale: String?,
+			override val guildLocale: DiscordLocale?,
 		) : InteractionWithData {
 			override val type = APPLICATION_COMMAND_AUTOCOMPLETE
 		}
@@ -113,7 +118,7 @@ sealed interface InteractionObject {
 			override val applicationId: Long,
 			override val token: String,
 			override val version: Int,
-			override val locale: String,
+			override val locale: DiscordLocale,
 			override val data: ModalSubmitData,
 			override val guildId: Long?,
 			override val channelId: Long?,
@@ -121,7 +126,7 @@ sealed interface InteractionObject {
 			override val user: User?,
 			override val message: Message?,
 			override val appPermissions: String?,
-			override val guildLocale: String?,
+			override val guildLocale: DiscordLocale?,
 		) : InteractionWithData {
 			override val type = MODAL_SUBMIT
 		}
@@ -135,7 +140,7 @@ data class UntypedInteractionObject(
 	val token: String,
 	val version: Int,
 	val type: InteractionType,
-	val locale: String?,
+	val locale: DiscordLocale?,
 	val data: InteractionData?,
 	val guildId: Long?,
 	val channelId: Long?,
@@ -143,7 +148,7 @@ data class UntypedInteractionObject(
 	val user: User?,
 	val message: Message?,
 	val appPermissions: String?,
-	val guildLocale: String?,
+	val guildLocale: DiscordLocale?,
 ) {
 
 	fun typed(): InteractionObject {
