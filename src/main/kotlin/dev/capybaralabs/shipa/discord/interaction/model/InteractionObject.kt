@@ -10,6 +10,9 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.APPLICAT
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.MESSAGE_COMPONENT
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.MODAL_SUBMIT
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.PING
+import dev.capybaralabs.shipa.discord.model.Member
+import dev.capybaralabs.shipa.discord.model.Message
+import dev.capybaralabs.shipa.discord.model.User
 
 /**
  * [Discord Interaction](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object)
@@ -19,15 +22,33 @@ sealed interface InteractionObject {
 	val applicationId: Long
 	val token: String
 	val type: InteractionType
+	val version: Int
+	val locale: String?
 	val data: InteractionData?
+	val guildId: Long?
+	val channelId: Long?
+	val member: Member?
+	val user: User?
+	val message: Message?
+	val appPermissions: String?
+	val guildLocale: String?
 
 	data class Ping(
 		override val id: Long,
 		override val applicationId: Long,
-		override val token: String
+		override val token: String,
+		override val version: Int,
 	) : InteractionObject {
-		override val data: Nothing? = null
 		override val type = PING
+		override val locale: Nothing? = null
+		override val data: Nothing? = null
+		override val guildId: Nothing? = null
+		override val channelId: Nothing? = null
+		override val member: Nothing? = null
+		override val user: Nothing? = null
+		override val message: Nothing? = null
+		override val appPermissions: Nothing? = null
+		override val guildLocale: Nothing? = null
 	}
 
 	sealed interface InteractionWithData : InteractionObject {
@@ -37,7 +58,16 @@ sealed interface InteractionObject {
 			override val id: Long,
 			override val applicationId: Long,
 			override val token: String,
+			override val version: Int,
+			override val locale: String,
 			override val data: ApplicationCommandData,
+			override val guildId: Long?,
+			override val channelId: Long?,
+			override val member: Member?,
+			override val user: User?,
+			override val message: Message?,
+			override val appPermissions: String?,
+			override val guildLocale: String?,
 		) : InteractionWithData {
 			override val type = APPLICATION_COMMAND
 		}
@@ -46,7 +76,16 @@ sealed interface InteractionObject {
 			override val id: Long,
 			override val applicationId: Long,
 			override val token: String,
+			override val version: Int,
+			override val locale: String,
 			override val data: MessageComponentData,
+			override val guildId: Long?,
+			override val channelId: Long?,
+			override val member: Member?,
+			override val user: User?,
+			override val message: Message?,
+			override val appPermissions: String?,
+			override val guildLocale: String?,
 		) : InteractionWithData {
 			override val type = MESSAGE_COMPONENT
 		}
@@ -55,7 +94,16 @@ sealed interface InteractionObject {
 			override val id: Long,
 			override val applicationId: Long,
 			override val token: String,
+			override val version: Int,
+			override val locale: String,
 			override val data: ApplicationCommandData,
+			override val guildId: Long?,
+			override val channelId: Long?,
+			override val member: Member?,
+			override val user: User?,
+			override val message: Message?,
+			override val appPermissions: String?,
+			override val guildLocale: String?,
 		) : InteractionWithData {
 			override val type = APPLICATION_COMMAND_AUTOCOMPLETE
 		}
@@ -64,7 +112,16 @@ sealed interface InteractionObject {
 			override val id: Long,
 			override val applicationId: Long,
 			override val token: String,
+			override val version: Int,
+			override val locale: String,
 			override val data: ModalSubmitData,
+			override val guildId: Long?,
+			override val channelId: Long?,
+			override val member: Member?,
+			override val user: User?,
+			override val message: Message?,
+			override val appPermissions: String?,
+			override val guildLocale: String?,
 		) : InteractionWithData {
 			override val type = MODAL_SUBMIT
 		}
@@ -76,17 +133,78 @@ data class UntypedInteractionObject(
 	val id: Long,
 	val applicationId: Long,
 	val token: String,
+	val version: Int,
 	val type: InteractionType,
+	val locale: String?,
 	val data: InteractionData?,
+	val guildId: Long?,
+	val channelId: Long?,
+	val member: Member?,
+	val user: User?,
+	val message: Message?,
+	val appPermissions: String?,
+	val guildLocale: String?,
 ) {
 
 	fun typed(): InteractionObject {
 		return when (type) {
-			PING -> Ping(id, applicationId, token)
-			APPLICATION_COMMAND -> InteractionWithData.ApplicationCommand(id, applicationId, token, data!! as ApplicationCommandData)
-			MESSAGE_COMPONENT -> InteractionWithData.MessageComponent(id, applicationId, token, data!! as MessageComponentData)
-			APPLICATION_COMMAND_AUTOCOMPLETE -> InteractionWithData.Autocomplete(id, applicationId, token, data!! as ApplicationCommandData)
-			MODAL_SUBMIT -> InteractionWithData.ModalSubmit(id, applicationId, token, data!! as ModalSubmitData)
+			PING -> Ping(id, applicationId, token, version)
+			APPLICATION_COMMAND -> InteractionWithData.ApplicationCommand(
+				id,
+				applicationId,
+				token,
+				version,
+				locale!!,
+				data!! as ApplicationCommandData,
+				guildId,
+				channelId,
+				member,
+				user,
+				message, appPermissions,
+				guildLocale,
+			)
+			MESSAGE_COMPONENT -> InteractionWithData.MessageComponent(
+				id,
+				applicationId,
+				token,
+				version,
+				locale!!,
+				data!! as MessageComponentData,
+				guildId,
+				channelId,
+				member,
+				user,
+				message, appPermissions,
+				guildLocale,
+			)
+			APPLICATION_COMMAND_AUTOCOMPLETE -> InteractionWithData.Autocomplete(
+				id,
+				applicationId,
+				token,
+				version,
+				locale!!,
+				data!! as ApplicationCommandData,
+				guildId,
+				channelId,
+				member,
+				user,
+				message, appPermissions,
+				guildLocale,
+			)
+			MODAL_SUBMIT -> InteractionWithData.ModalSubmit(
+				id,
+				applicationId,
+				token,
+				version,
+				locale!!,
+				data!! as ModalSubmitData,
+				guildId,
+				channelId,
+				member,
+				user,
+				message, appPermissions,
+				guildLocale,
+			)
 		}
 	}
 }
