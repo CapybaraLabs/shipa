@@ -7,13 +7,13 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.Intera
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
-import dev.capybaralabs.shipa.logger
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.servlet.http.HttpServletRequest
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -32,6 +32,8 @@ internal class InteractionController(
 	private val applicationCommandService: ApplicationCommandService,
 	private val interactionScope: CoroutineScope,
 ) {
+
+	private val log = LoggerFactory.getLogger(InteractionController::class.java)
 
 	@PostMapping
 	fun post(req: HttpServletRequest, @RequestBody rawBody: String): ResponseEntity<InteractionResponse> {
@@ -57,8 +59,8 @@ internal class InteractionController(
 	}
 
 	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, result: CompletableFuture<InteractionResponse>) =
-		launch(CoroutineExceptionHandler { _, t -> logger().error("Unhandled exception in coroutine", t) }) {
-			logger().debug("Launching interaction processing coroutine!")
+		launch(CoroutineExceptionHandler { _, t -> log.error("Unhandled exception in coroutine", t) }) {
+			log.debug("Launching interaction processing coroutine!")
 
 			try {
 				when (interaction) {
@@ -66,7 +68,7 @@ internal class InteractionController(
 					is InteractionWithData -> applicationCommandService.onInteraction(interaction, result)
 				}
 			} catch (t: Throwable) {
-				logger().error("Oh no", t)
+				log.error("Oh no", t)
 				result.completeExceptionally(t)
 			}
 		}
