@@ -29,8 +29,8 @@ sealed interface MessageComponent {
 
 
 	data class PartialEmoji(
-		val id: Optional<Long>,
-		val name: Optional<String>,
+		val id: Optional<Long> = Optional.empty(),
+		val name: Optional<String> = Optional.empty(),
 		val animated: Boolean? = null,
 	)
 

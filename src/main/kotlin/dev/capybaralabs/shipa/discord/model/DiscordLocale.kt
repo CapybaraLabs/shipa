@@ -2,7 +2,7 @@ package dev.capybaralabs.shipa.discord.model
 
 import com.fasterxml.jackson.annotation.JsonValue
 
-enum class DiscordLocale(@JsonValue val value: String, languageName: String, nativeName: String) {
+enum class DiscordLocale(@JsonValue val value: String, val languageName: String, val nativeName: String) {
 	DANISH("da", "Danish", "Dansk"),
 	GERMAN("de", "German", "Deutsch"),
 	ENGLISH_GB("en-GB", "English, UK", "English, UK"),

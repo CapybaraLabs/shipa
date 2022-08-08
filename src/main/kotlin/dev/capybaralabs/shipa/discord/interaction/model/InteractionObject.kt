@@ -55,7 +55,7 @@ sealed interface InteractionObject {
 	sealed interface InteractionWithData : InteractionObject {
 		override val data: InteractionData
 
-		fun user(): User {
+		fun invoker(): User {
 			return user ?: member!!.user
 		}
 
@@ -67,7 +67,7 @@ sealed interface InteractionObject {
 			override val locale: DiscordLocale,
 			override val data: ApplicationCommandData,
 			override val guildId: Long?,
-			override val channelId: Long?,
+			override val channelId: Long,
 			override val member: Member?,
 			override val user: User?,
 			override val message: Message?,
@@ -85,10 +85,10 @@ sealed interface InteractionObject {
 			override val locale: DiscordLocale,
 			override val data: MessageComponentData,
 			override val guildId: Long?,
-			override val channelId: Long?,
+			override val channelId: Long,
 			override val member: Member?,
 			override val user: User?,
-			override val message: Message?,
+			override val message: Message,
 			override val appPermissions: String?,
 			override val guildLocale: DiscordLocale?,
 		) : InteractionWithData {
@@ -162,10 +162,11 @@ data class UntypedInteractionObject(
 				locale!!,
 				data!! as ApplicationCommandData,
 				guildId,
-				channelId,
+				channelId!!,
 				member,
 				user,
-				message, appPermissions,
+				message,
+				appPermissions,
 				guildLocale,
 			)
 			MESSAGE_COMPONENT -> InteractionWithData.MessageComponent(
@@ -176,10 +177,11 @@ data class UntypedInteractionObject(
 				locale!!,
 				data!! as MessageComponentData,
 				guildId,
-				channelId,
+				channelId!!,
 				member,
 				user,
-				message, appPermissions,
+				message!!,
+				appPermissions,
 				guildLocale,
 			)
 			APPLICATION_COMMAND_AUTOCOMPLETE -> InteractionWithData.Autocomplete(
@@ -193,7 +195,8 @@ data class UntypedInteractionObject(
 				channelId,
 				member,
 				user,
-				message, appPermissions,
+				message,
+				appPermissions,
 				guildLocale,
 			)
 			MODAL_SUBMIT -> InteractionWithData.ModalSubmit(
@@ -207,7 +210,8 @@ data class UntypedInteractionObject(
 				channelId,
 				member,
 				user,
-				message, appPermissions,
+				message,
+				appPermissions,
 				guildLocale,
 			)
 		}
