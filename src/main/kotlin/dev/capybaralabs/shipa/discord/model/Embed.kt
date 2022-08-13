@@ -60,8 +60,20 @@ data class EmbedAuthor(
 	val proxyIconUrl: String? = null,
 )
 
-data class EmbedField(
-	val name: String,
-	val value: String,
+const val ZERO_WIDTH_SPACE = "\u200E"
+
+data class EmbedField private constructor(
+	val name: String = ZERO_WIDTH_SPACE,
+	val value: String = ZERO_WIDTH_SPACE,
 	val inline: Boolean? = null,
-)
+) {
+	companion object {
+		operator fun invoke(name: String? = null, value: String? = null, inline: Boolean? = null): EmbedField {
+			return EmbedField(
+				(name ?: ZERO_WIDTH_SPACE).let { it.ifBlank { ZERO_WIDTH_SPACE } },
+				(value ?: ZERO_WIDTH_SPACE).let { it.ifBlank { ZERO_WIDTH_SPACE } },
+				inline
+			)
+		}
+	}
+}
