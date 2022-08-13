@@ -1,5 +1,6 @@
 package dev.capybaralabs.shipa.discord.interaction.model
 
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData.Flags
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
@@ -9,7 +10,9 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.UPDATE_MESSAGE
 import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.TextInput
 import dev.capybaralabs.shipa.discord.model.AllowedMentions
+import dev.capybaralabs.shipa.discord.model.Bitfield
 import dev.capybaralabs.shipa.discord.model.Embed
+import dev.capybaralabs.shipa.discord.model.MessageFlag
 
 /**
  * [Discord Interaction Response](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-interaction-response-structure)
@@ -30,9 +33,10 @@ sealed interface InteractionResponse {
 		override val type = CHANNEL_MESSAGE_WITH_SOURCE
 	}
 
-	object Ack : InteractionResponse {
+	data class Ack(
+		override val data: Flags? = null
+	) : InteractionResponse {
 		override val type = DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
-		override val data: Nothing? = null
 	}
 
 	//Only valid for message-component interactions
@@ -69,6 +73,10 @@ sealed interface InteractionResponse {
  */
 sealed interface InteractionCallbackData {
 
+	data class Flags(
+		val flags: Bitfield<MessageFlag>? = null // EPHEMERAL only
+	) : InteractionCallbackData
+
 	/**
 	 * [Discord Interaction Message Callback](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-messages)
 	 */
@@ -76,7 +84,7 @@ sealed interface InteractionCallbackData {
 		val content: String? = null,
 		val components: List<MessageComponent>? = listOf(), // set to null when updating to keep existing
 		val embeds: List<Embed>? = listOf(), // set to null when updating to keep existing
-		val flags: Int? = null,
+		val flags: Bitfield<MessageFlag>? = null, // SUPPRESS_EMBEDS & EPHEMERAL only
 		val allowedMentions: AllowedMentions? = null,
 		val tts: Boolean? = null,
 //	val attachments: List<PartialAttachment>?,

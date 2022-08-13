@@ -1,13 +1,16 @@
 package dev.capybaralabs.shipa.discord.interaction
 
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData.Flags
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.ApplicationCommand
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.Autocomplete
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.MessageComponent
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.ModalSubmit
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
+import dev.capybaralabs.shipa.discord.model.Bitfield
 import dev.capybaralabs.shipa.discord.model.Message
+import dev.capybaralabs.shipa.discord.model.MessageFlag
 import dev.capybaralabs.shipa.logger
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeoutException
@@ -79,7 +82,7 @@ sealed interface InteractionState {
 			}
 		}
 
-		suspend fun ack(): Thinking {
+		suspend fun ack(ephemeral: Boolean? = null): Thinking {
 			throw IllegalStateException("Cannot ack while in state ${javaClass.simpleName}")
 		}
 
@@ -109,8 +112,8 @@ sealed interface InteractionState {
 			}
 
 
-			suspend fun ack(): Thinking {
-				val ack = state.ack()
+			suspend fun ack(ephemeral: Boolean? = null): Thinking {
+				val ack = state.ack(ephemeral)
 				state = ack
 				return ack
 			}
@@ -140,17 +143,23 @@ sealed interface InteractionState {
 			private val context: ApplicationCommandContext,
 		) : Initial, Base(context.interaction) {
 
-			override suspend fun ack(): Thinking {
-				return doAck()
+			override suspend fun ack(ephemeral: Boolean?): Thinking {
+				return doAck(ephemeral)
 			}
 
 			override suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 				return doReply(message)
 			}
 
-			suspend fun doAck(): Thinking {
+			suspend fun doAck(ephemeral: Boolean?): Thinking {
+				val ack = if (ephemeral != null && ephemeral) {
+					InteractionResponse.Ack(Flags(Bitfield.of(MessageFlag.EPHEMERAL)))
+				} else {
+					InteractionResponse.Ack()
+				}
+
 				return checkUsed {
-					tryComplete(result, InteractionResponse.Ack)
+					tryComplete(result, ack)
 					Thinking(context)
 				}
 			}
