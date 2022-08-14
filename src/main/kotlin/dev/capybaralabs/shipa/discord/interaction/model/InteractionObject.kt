@@ -54,6 +54,7 @@ sealed interface InteractionObject {
 
 	sealed interface InteractionWithData : InteractionObject {
 		override val data: InteractionData
+		override val locale: DiscordLocale
 
 		fun invoker(): User {
 			return user ?: member!!.user
@@ -169,6 +170,7 @@ data class UntypedInteractionObject(
 				appPermissions,
 				guildLocale,
 			)
+
 			MESSAGE_COMPONENT -> InteractionWithData.MessageComponent(
 				id,
 				applicationId,
@@ -184,6 +186,7 @@ data class UntypedInteractionObject(
 				appPermissions,
 				guildLocale,
 			)
+
 			APPLICATION_COMMAND_AUTOCOMPLETE -> InteractionWithData.Autocomplete(
 				id,
 				applicationId,
@@ -199,6 +202,7 @@ data class UntypedInteractionObject(
 				appPermissions,
 				guildLocale,
 			)
+
 			MODAL_SUBMIT -> InteractionWithData.ModalSubmit(
 				id,
 				applicationId,
