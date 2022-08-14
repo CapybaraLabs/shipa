@@ -14,21 +14,21 @@ import java.util.Optional
 abstract class CreateCommand(
 	val type: ApplicationCommandType,
 	open val name: String,
-	open val guildId: Long? = null
+	open val guildIds: List<Long>? = null
 ) {
 
 	data class User(
 		override val name: String,
-		override val guildId: Long? = null,
-	) : CreateCommand(USER, name, guildId)
+		override val guildIds: List<Long>? = null,
+	) : CreateCommand(USER, name, guildIds)
 
 
 	data class Slash(
 		override val name: String,
 		val description: String,
-		override val guildId: Long? = null,
+		override val guildIds: List<Long>? = null,
 		val options: List<ApplicationCommandOption>? = null,
 		val defaultMemberPermissions: Optional<String> = Optional.empty(), // Admin only: Optional.of("0")
 		val dmPermission: Boolean? = null,
-	) : CreateCommand(CHAT_INPUT, name, guildId)
+	) : CreateCommand(CHAT_INPUT, name, guildIds)
 }

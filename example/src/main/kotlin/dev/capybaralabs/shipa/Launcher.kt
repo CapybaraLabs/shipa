@@ -19,9 +19,7 @@ class Launcher(
 		println("Henlo")
 
 		runBlocking {
-			for (command in commands) {
-				registerService.register(command.creation())
-			}
+			registerService.bulkOverwrite(commands.map { it.creation() })
 		}
 	}
 }

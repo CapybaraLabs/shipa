@@ -2,6 +2,7 @@ package dev.capybaralabs.shipa.discord.interaction.command
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.RestService
+import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommand
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 import org.springframework.core.env.Environment
 import org.springframework.core.env.Profiles
@@ -21,10 +22,49 @@ class CommandRegisterService(
 		return environment.acceptsProfiles(Profiles.of("test"))
 	}
 
+	suspend fun bulkOverwrite(commands: List<CreateCommand>): List<ApplicationCommand> {
+		val groupBy: Map<Boolean, List<CreateCommand>> = commands.groupBy { it.guildIds == null }
+		val globalCommands = groupBy[true] ?: listOf()
+		val guildCommands = groupBy[false] ?: listOf()
+
+		val globalApplicationCommands = bulkOverwriteGlobally(globalCommands)
+
+		val guildApplicationCommands = guildCommands.map { it.guildIds!! to it }
+			.flatMap { it.first.map { guildId -> guildId to it.second } }
+			.groupBy({ it.first }) { it.second }
+			.flatMap { (guildId, commands) -> bulkOverwriteGuild(guildId, commands) }
+
+		return globalApplicationCommands + guildApplicationCommands
+	}
+
+	suspend fun bulkOverwriteGlobally(commands: List<CreateCommand>): List<ApplicationCommand> {
+		if (isTestEnvironment()) return listOf()
+
+		return restService.exchange<List<ApplicationCommand>>(
+			"$applicationId",
+			RequestEntity
+				.put("/applications/{applicationId}/commands", applicationId)
+				.body(commands)
+		).body!!
+	}
+
+	suspend fun bulkOverwriteGuild(guildId: Long, commands: List<CreateCommand>): List<ApplicationCommand> {
+		if (isTestEnvironment()) return listOf()
+
+		return restService.exchange<List<ApplicationCommand>>(
+			"$applicationId-$guildId",
+			RequestEntity
+				.put("/applications/{applicationId}/guilds/{guildId}/commands", applicationId, guildId)
+				.body(commands)
+		).body!!
+	}
+
 	suspend fun register(command: CreateCommand) {
-		val guildId = command.guildId
-		if (guildId != null) {
-			registerInGuild(command, guildId)
+		val guildIds = command.guildIds
+		if (guildIds != null) {
+			for (guildId in guildIds) {
+				registerInGuild(command, guildId)
+			}
 		} else {
 			registerGlobally(command)
 		}
