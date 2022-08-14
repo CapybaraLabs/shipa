@@ -21,7 +21,7 @@ import org.springframework.web.client.RestTemplate
 class DiscordClientConfiguration {
 
 	@Bean
-	fun restTemplate(properties: DiscordProperties, @Suppress("SpringJavaInjectionPointsAutowiringInspection") converter: MappingJackson2HttpMessageConverter): RestTemplate {
+	fun restTemplate(properties: DiscordProperties, converter: MappingJackson2HttpMessageConverter): RestTemplate {
 		var builder = RestTemplateBuilder()
 			.rootUri("https://discord.com/api/v10/")
 			.messageConverters(converter)

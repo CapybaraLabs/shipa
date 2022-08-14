@@ -75,7 +75,7 @@ related [Discord Docs](https://discord.com/developers/docs/reference#nullable-an
 | optional_and_nullable_field? | ?string | `Optional<String>?` |
 
 The Kotlin types are somewhat unintuitively mapped, and
-require [Jackson adjustments](src/main/kotlin/dev/capybaralabs/shipa/JacksonConfig.kt): We use
+require [Jackson adjustments](src/main/kotlin/dev/capybaralabs/shipa/jackson/JacksonConfig.kt): We use
 
 - **Kotlin nullability** to signal the **optionality** of a field
 - **Java's Optional** to signal the **nullability** of a type

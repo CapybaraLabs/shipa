@@ -1,5 +1,3 @@
-@file:Suppress("UastIncorrectHttpHeaderInspection")
-
 package dev.capybaralabs.shipa.discord.client
 
 import dev.capybaralabs.shipa.discord.client.ratelimit.Bucket

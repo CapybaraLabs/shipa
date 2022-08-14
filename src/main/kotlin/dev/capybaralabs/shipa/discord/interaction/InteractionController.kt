@@ -28,7 +28,7 @@ const val HEADER_TIMESTAMP = "X-Signature-Timestamp"
 @RequestMapping("\${shipa.interaction-controller-path:/api/interaction}")
 internal class InteractionController(
 	private val interactionValidator: InteractionValidator,
-	@Suppress("SpringJavaInjectionPointsAutowiringInspection") private val mapper: ObjectMapper,
+	private val mapper: ObjectMapper,
 	private val applicationCommandService: ApplicationCommandService,
 	private val interactionScope: CoroutineScope,
 ) {

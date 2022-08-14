@@ -1,4 +1,4 @@
-package dev.capybaralabs.shipa.discord.interaction
+package dev.capybaralabs.shipa
 
 import dev.capybaralabs.shipa.discord.interaction.command.CommandLookupService
 import dev.capybaralabs.shipa.discord.interaction.command.InteractionCommand
@@ -16,7 +16,7 @@ class InMemoryCommandLookupService(
 
 	private val byName: MutableMap<String, InteractionCommand> = HashMap()
 	private val byStaticCustomId: MutableMap<String, InteractionCommand> = HashMap()
-	private val byDynamicCustomId: MutableMap<String, InteractionCommand> = ConcurrentHashMap() // TODO implement expiration
+	private val byDynamicCustomId: MutableMap<String, InteractionCommand> = ConcurrentHashMap()
 
 	init {
 		commands.forEach { command ->
@@ -29,7 +29,7 @@ class InMemoryCommandLookupService(
 
 	@EventListener
 	fun onRegisterDynamicCustomId(event: RegisterDynamicCustomId) {
-		byDynamicCustomId[event.customId] = event.command // TODO check for overwrites?
+		byDynamicCustomId[event.customId] = event.command
 	}
 
 	override fun findByName(name: String): InteractionCommand? {
