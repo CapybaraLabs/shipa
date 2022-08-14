@@ -57,13 +57,13 @@ class RestService(
 							restTemplate.exchange(request, type)
 						}
 					} catch (e: TooManyRequests) {
-						logger().warn("Hit ratelimit!", e)
+						logger().info("Hit ratelimit on bucket $bucketKey: ${e.message}")
 						val resetAfter = e.responseHeaders?.let {
 							updateBucket(bucket, it)
 							resetAfter(it)
 						}
 						if (resetAfter == null) {
-							logger().warn("Hit ratelimit but no known wait time. Backing off.")
+							logger().warn("Hit ratelimit on bucket $bucketKey but no known wait time. Backing off.", e)
 							delay(1.seconds) // shrug
 						}
 						continue

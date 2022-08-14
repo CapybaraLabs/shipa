@@ -38,7 +38,7 @@ class CommandRegisterService(
 	}
 
 	suspend fun bulkOverwriteGlobally(commands: List<CreateCommand>): List<ApplicationCommand> {
-		if (isTestEnvironment()) return listOf()
+		if (isTestEnvironment() || commands.isEmpty()) return listOf()
 
 		return restService.exchange<List<ApplicationCommand>>(
 			"$applicationId",
@@ -49,7 +49,7 @@ class CommandRegisterService(
 	}
 
 	suspend fun bulkOverwriteGuild(guildId: Long, commands: List<CreateCommand>): List<ApplicationCommand> {
-		if (isTestEnvironment()) return listOf()
+		if (isTestEnvironment() || commands.isEmpty()) return listOf()
 
 		return restService.exchange<List<ApplicationCommand>>(
 			"$applicationId-$guildId",

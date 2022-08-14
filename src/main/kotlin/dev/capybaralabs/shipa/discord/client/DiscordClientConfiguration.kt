@@ -14,6 +14,7 @@ import org.springframework.http.client.BufferingClientHttpRequestFactory
 import org.springframework.http.client.ClientHttpRequestExecution
 import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.client.ClientHttpResponse
+import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.web.client.RestTemplate
 
@@ -32,8 +33,12 @@ class DiscordClientConfiguration {
 				}
 			)
 
+		val requestFactory = builder.buildRequestFactory()
+		if (requestFactory is SimpleClientHttpRequestFactory) {
+			logger().warn("Please include either Apache HttpComponents4 or OkHttp3 http client lib in your class path. The simple client based on Java's URL does not work properly with PATCH requests, and doesn't handle 429s Ratelimits gracefully.")
+		}
+
 		if (logger().isDebugEnabled) {
-			val requestFactory = builder.buildRequestFactory()  // avoid SimpleRequestFactory, it does not support PATCH requests
 			builder = builder
 				.requestFactory { BufferingClientHttpRequestFactory(requestFactory) }
 				.additionalInterceptors(LoggingInterceptor())
