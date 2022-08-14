@@ -4,7 +4,13 @@ server:
 logging:
   level:
     dev.capybaralabs: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG
 spring:
   devtools:
     restart:
       additional-paths: "../"
+  main:
+    banner-mode: log
+  output:
+    ansi:
+      enabled: always
