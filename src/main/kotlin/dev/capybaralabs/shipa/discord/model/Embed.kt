@@ -75,5 +75,9 @@ data class EmbedField private constructor(
 				inline
 			)
 		}
+
+		fun blank(inline: Boolean? = null): EmbedField {
+			return EmbedField(ZERO_WIDTH_SPACE, ZERO_WIDTH_SPACE, inline)
+		}
 	}
 }
