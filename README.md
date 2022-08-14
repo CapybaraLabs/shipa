@@ -6,9 +6,8 @@ creating the repository.
 
 ## Usage
 
-This lib is in early development, and not ready for production. Fundamental things such as ratelimiting are missing, and
-only a small subset of features has been implemented and tested. The ABI is not comfortably usable yet, and it might
-never be.
+This lib is in early development, and not ready for production. Only a subset of features has been implemented and
+tested.
 
 ### Gradle
 
