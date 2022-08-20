@@ -13,7 +13,7 @@ data class Role(
 	val icon: Optional<String>?,
 	val unicodeEmoji: Optional<String>?,
 	val position: Int,
-	val permissions: String,
+	val permissions: StringBitfield<Permission>,
 	val managed: Boolean,
 	val mentionable: Boolean,
 	val tags: List<RoleTag>?,

@@ -9,38 +9,78 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.deser.ContextualDeserializer
-import dev.capybaralabs.shipa.discord.model.Bitfield
-import dev.capybaralabs.shipa.discord.model.Bitflag
+import dev.capybaralabs.shipa.discord.model.IntBitfield
+import dev.capybaralabs.shipa.discord.model.IntBitflag
+import dev.capybaralabs.shipa.discord.model.StringBitfield
+import dev.capybaralabs.shipa.discord.model.StringBitflag
+import java.math.BigInteger
 
-class BitfieldSerializer : JsonSerializer<Bitfield<*>>() {
+class IntBitfieldSerializer : JsonSerializer<IntBitfield<*>>() {
 
-	override fun handledType(): Class<Bitfield<*>> {
-		return Bitfield::class.java
+	override fun handledType(): Class<IntBitfield<*>> {
+		return IntBitfield::class.java
 	}
 
-	override fun serialize(value: Bitfield<*>, gen: JsonGenerator, serializers: SerializerProvider) {
+	override fun serialize(value: IntBitfield<*>, gen: JsonGenerator, serializers: SerializerProvider) {
 		val reduced: Int = value.map { it.value }.reduceOrNull { acc, i -> acc or i } ?: 0
 		gen.writeNumber(reduced)
 	}
 }
 
-class BitfieldDeserializer(private val type: JavaType) : JsonDeserializer<Bitfield<*>>(), ContextualDeserializer {
+class IntBitfieldDeserializer(private val type: JavaType) : JsonDeserializer<IntBitfield<*>>(), ContextualDeserializer {
 
-	override fun handledType(): Class<Bitfield<*>> {
-		return Bitfield::class.java
+	override fun handledType(): Class<IntBitfield<*>> {
+		return IntBitfield::class.java
 	}
 
-	override fun deserialize(p: JsonParser, ctxt: DeserializationContext): Bitfield<*> {
+	override fun deserialize(p: JsonParser, ctxt: DeserializationContext): IntBitfield<*> {
 		val flags = ctxt.readValue(p, Int::class.java)
 
 		return type.rawClass.enumConstants.asList()
-			.map { it as Bitflag }
+			.map { it as IntBitflag }
 			.filter { flags and it.value == it.value }
-			.let { Bitfield(it) }
+			.let { IntBitfield(it) }
 	}
 
 	override fun createContextual(ctxt: DeserializationContext, property: BeanProperty): JsonDeserializer<*> {
-		return BitfieldDeserializer(property.type.containedType(0))
+		return IntBitfieldDeserializer(property.type.containedType(0))
+	}
+
+}
+
+
+class StringBitfieldSerializer : JsonSerializer<StringBitfield<*>>() {
+
+	override fun handledType(): Class<StringBitfield<*>> {
+		return StringBitfield::class.java
+	}
+
+	override fun serialize(value: StringBitfield<*>, gen: JsonGenerator, serializers: SerializerProvider) {
+		val reduced: BigInteger = value.map { it.value.toBigInteger() }.reduceOrNull { acc, i -> acc.or(i) } ?: BigInteger.ZERO
+		gen.writeString(reduced.toString())
+	}
+}
+
+class StringBitfieldDeserializer(private val type: JavaType) : JsonDeserializer<StringBitfield<*>>(), ContextualDeserializer {
+
+	override fun handledType(): Class<StringBitfield<*>> {
+		return StringBitfield::class.java
+	}
+
+	override fun deserialize(p: JsonParser, ctxt: DeserializationContext): StringBitfield<*> {
+		val flags = ctxt.readValue(p, String::class.java).toBigInteger()
+
+		return type.rawClass.enumConstants.asList()
+			.map { it as StringBitflag }
+			.filter {
+				val value = it.value.toBigInteger()
+				flags.and(value) == value
+			}
+			.let { StringBitfield(it) }
+	}
+
+	override fun createContextual(ctxt: DeserializationContext, property: BeanProperty): JsonDeserializer<*> {
+		return StringBitfieldDeserializer(property.type.containedType(0))
 	}
 
 }

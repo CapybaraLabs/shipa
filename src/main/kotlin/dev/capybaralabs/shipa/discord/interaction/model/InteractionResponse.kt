@@ -10,8 +10,8 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.UPDATE_MESSAGE
 import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.TextInput
 import dev.capybaralabs.shipa.discord.model.AllowedMentions
-import dev.capybaralabs.shipa.discord.model.Bitfield
 import dev.capybaralabs.shipa.discord.model.Embed
+import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.MessageFlag
 
 /**
@@ -74,7 +74,7 @@ sealed interface InteractionResponse {
 sealed interface InteractionCallbackData {
 
 	data class Flags(
-		val flags: Bitfield<MessageFlag>? = null // EPHEMERAL only
+		val flags: IntBitfield<MessageFlag>? = null // EPHEMERAL only
 	) : InteractionCallbackData
 
 	/**
@@ -84,7 +84,7 @@ sealed interface InteractionCallbackData {
 		val content: String? = null,
 		val components: List<MessageComponent>? = listOf(), // set to null when updating to keep existing
 		val embeds: List<Embed>? = listOf(), // set to null when updating to keep existing
-		val flags: Bitfield<MessageFlag>? = null, // SUPPRESS_EMBEDS & EPHEMERAL only
+		val flags: IntBitfield<MessageFlag>? = null, // SUPPRESS_EMBEDS & EPHEMERAL only
 		val allowedMentions: AllowedMentions? = null,
 		val tts: Boolean? = null,
 //	val attachments: List<PartialAttachment>?,

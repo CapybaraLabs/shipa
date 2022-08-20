@@ -1,7 +1,9 @@
 package dev.capybaralabs.shipa.discord.interaction.model
 
 import dev.capybaralabs.shipa.discord.model.Attachment
+import dev.capybaralabs.shipa.discord.model.Permission
 import dev.capybaralabs.shipa.discord.model.Role
+import dev.capybaralabs.shipa.discord.model.StringBitfield
 import dev.capybaralabs.shipa.discord.model.User
 import java.time.Instant
 import java.util.Optional
@@ -30,7 +32,7 @@ data class PartialMember(
 	val joinedAt: Instant,
 	val premiumSince: Optional<Instant>?,
 	val pending: Boolean?,
-	val permissions: String?,
+	val permissions: StringBitfield<Permission>?,
 	val communicationDisabledUntil: Optional<Instant>?,
 )
 
@@ -43,7 +45,7 @@ data class PartialChannel(
 	val id: Long,
 	val type: Int,
 	val name: Optional<String>?,
-	val permissions: String?,
+	val permissions: StringBitfield<Permission>?,
 //	val threadMetadata: ThreadMetadata?,
 	val parentId: Optional<Long>?,
 )

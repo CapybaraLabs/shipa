@@ -18,12 +18,12 @@ data class User(
 	val locale: String?,
 	val verified: Boolean?,
 	val email: Optional<String>?,
-	val flags: Bitfield<UserFlag>?,
+	val flags: IntBitfield<UserFlag>?,
 	val premiumType: Int?,
-	val publicFlags: Bitfield<UserFlag>?,
+	val publicFlags: IntBitfield<UserFlag>?,
 )
 
-enum class UserFlag(override val value: Int) : Bitflag {
+enum class UserFlag(override val value: Int) : IntBitflag {
 	STAFF(1 shl 0),
 	PARTNER(1 shl 1),
 	HYPESQUAD(1 shl 2),

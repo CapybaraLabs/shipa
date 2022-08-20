@@ -13,6 +13,8 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.PING
 import dev.capybaralabs.shipa.discord.model.DiscordLocale
 import dev.capybaralabs.shipa.discord.model.Member
 import dev.capybaralabs.shipa.discord.model.Message
+import dev.capybaralabs.shipa.discord.model.Permission
+import dev.capybaralabs.shipa.discord.model.StringBitfield
 import dev.capybaralabs.shipa.discord.model.User
 
 /**
@@ -31,7 +33,7 @@ sealed interface InteractionObject {
 	val member: Member?
 	val user: User?
 	val message: Message?
-	val appPermissions: String?
+	val appPermissions: StringBitfield<Permission>?
 	val guildLocale: DiscordLocale?
 
 	data class Ping(
@@ -72,7 +74,7 @@ sealed interface InteractionObject {
 			override val member: Member?,
 			override val user: User?,
 			override val message: Message?,
-			override val appPermissions: String?,
+			override val appPermissions: StringBitfield<Permission>?,
 			override val guildLocale: DiscordLocale?,
 		) : InteractionWithData {
 			override val type = APPLICATION_COMMAND
@@ -90,7 +92,7 @@ sealed interface InteractionObject {
 			override val member: Member?,
 			override val user: User?,
 			override val message: Message,
-			override val appPermissions: String?,
+			override val appPermissions: StringBitfield<Permission>?,
 			override val guildLocale: DiscordLocale?,
 		) : InteractionWithData {
 			override val type = MESSAGE_COMPONENT
@@ -108,7 +110,7 @@ sealed interface InteractionObject {
 			override val member: Member?,
 			override val user: User?,
 			override val message: Message?,
-			override val appPermissions: String?,
+			override val appPermissions: StringBitfield<Permission>?,
 			override val guildLocale: DiscordLocale?,
 		) : InteractionWithData {
 			override val type = APPLICATION_COMMAND_AUTOCOMPLETE
@@ -126,7 +128,7 @@ sealed interface InteractionObject {
 			override val member: Member?,
 			override val user: User?,
 			override val message: Message?,
-			override val appPermissions: String?,
+			override val appPermissions: StringBitfield<Permission>?,
 			override val guildLocale: DiscordLocale?,
 		) : InteractionWithData {
 			override val type = MODAL_SUBMIT
@@ -148,7 +150,7 @@ data class UntypedInteractionObject(
 	val member: Member?,
 	val user: User?,
 	val message: Message?,
-	val appPermissions: String?,
+	val appPermissions: StringBitfield<Permission>?,
 	val guildLocale: DiscordLocale?,
 ) {
 

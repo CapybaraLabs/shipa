@@ -16,8 +16,11 @@ class JacksonConfig {
 			it.serializationInclusion(Include.NON_NULL)
 			it.propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
 
-			it.serializers(BitfieldSerializer())
-			it.deserializers(BitfieldDeserializer(SimpleType.constructUnsafe(Void::class.java)))
+			it.serializers(IntBitfieldSerializer(), StringBitfieldSerializer())
+			it.deserializers(
+				IntBitfieldDeserializer(SimpleType.constructUnsafe(Void::class.java)),
+				StringBitfieldDeserializer(SimpleType.constructUnsafe(Void::class.java)),
+			)
 		}
 	}
 }

@@ -4,6 +4,8 @@ import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandOption
 import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandType
 import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandType.CHAT_INPUT
 import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandType.USER
+import dev.capybaralabs.shipa.discord.model.Permission
+import dev.capybaralabs.shipa.discord.model.StringBitfield
 import java.util.Optional
 
 /**
@@ -28,7 +30,7 @@ abstract class CreateCommand(
 		val description: String,
 		override val guildIds: List<Long>? = null,
 		val options: List<ApplicationCommandOption>? = null,
-		val defaultMemberPermissions: Optional<String> = Optional.empty(), // Admin only: Optional.of("0")
+		val defaultMemberPermissions: Optional<StringBitfield<Permission>> = Optional.empty(),
 		val dmPermission: Boolean? = null,
 	) : CreateCommand(CHAT_INPUT, name, guildIds)
 }

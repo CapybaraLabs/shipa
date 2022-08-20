@@ -29,11 +29,11 @@ data class Message(
 	//	application
 	val applicationId: Long?,
 	//	messageReference
-	val flags: Bitfield<MessageFlag>?,
+	val flags: IntBitfield<MessageFlag>?,
 	// TODO more stuff
 )
 
-enum class MessageFlag(override val value: Int) : Bitflag {
+enum class MessageFlag(override val value: Int) : IntBitflag {
 	CROSSPOSTED(1 shl 0),
 	IS_CROSSPOST(1 shl 1),
 	SUPPRESS_EMBEDS(1 shl 2),

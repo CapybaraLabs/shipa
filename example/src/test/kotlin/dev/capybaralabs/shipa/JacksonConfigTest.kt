@@ -3,6 +3,17 @@ package dev.capybaralabs.shipa
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath
 import com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath
+import dev.capybaralabs.shipa.discord.model.IntBitfield
+import dev.capybaralabs.shipa.discord.model.MessageFlag
+import dev.capybaralabs.shipa.discord.model.MessageFlag.CROSSPOSTED
+import dev.capybaralabs.shipa.discord.model.MessageFlag.EPHEMERAL
+import dev.capybaralabs.shipa.discord.model.MessageFlag.FAILED_TO_MENTION_SOME_ROLES_IN_THREAD
+import dev.capybaralabs.shipa.discord.model.MessageFlag.URGENT
+import dev.capybaralabs.shipa.discord.model.Permission
+import dev.capybaralabs.shipa.discord.model.Permission.ADMINISTRATOR
+import dev.capybaralabs.shipa.discord.model.Permission.CREATE_INSTANT_INVITE
+import dev.capybaralabs.shipa.discord.model.Permission.MODERATE_MEMBERS
+import dev.capybaralabs.shipa.discord.model.StringBitfield
 import java.util.Optional
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
@@ -138,4 +149,38 @@ internal class JacksonConfigTest : ApplicationTest() {
 		assertJThat(value.snakeCase).isEqualTo("hss")
 	}
 
+
+	data class BitfieldTestObject(
+		val messageFlags: IntBitfield<MessageFlag>?,
+		val permissions: StringBitfield<Permission>?,
+	)
+
+	@Test
+	internal fun intBitfield() {
+		val payload = BitfieldTestObject(IntBitfield(listOf(CROSSPOSTED, EPHEMERAL, URGENT, FAILED_TO_MENTION_SOME_ROLES_IN_THREAD)), null)
+
+		val json = objectMapper.writeValueAsString(payload)
+
+		assertThat(json, hasNoJsonPath("$.permissions"))
+		assertThat(json, hasJsonPath("$.message_flags", equalTo("101010001".toInt(2))))
+
+		val value = objectMapper.readValue(json, BitfieldTestObject::class.java)
+		assertJThat(value.permissions).isNull()
+		assertJThat(value.messageFlags).containsExactlyInAnyOrder(CROSSPOSTED, EPHEMERAL, URGENT, FAILED_TO_MENTION_SOME_ROLES_IN_THREAD)
+	}
+
+
+	@Test
+	internal fun stringBitfield() {
+		val payload = BitfieldTestObject(null, StringBitfield(listOf(CREATE_INSTANT_INVITE, ADMINISTRATOR, MODERATE_MEMBERS)))
+
+		val json = objectMapper.writeValueAsString(payload)
+
+		assertThat(json, hasNoJsonPath("$.message_flags"))
+		assertThat(json, hasJsonPath("$.permissions", equalTo("10000000000000000000000000000000000001001".toBigInteger(2).toString())))
+
+		val value = objectMapper.readValue(json, BitfieldTestObject::class.java)
+		assertJThat(value.messageFlags).isNull()
+		assertJThat(value.permissions).containsExactlyInAnyOrder(CREATE_INSTANT_INVITE, ADMINISTRATOR, MODERATE_MEMBERS)
+	}
 }

@@ -8,7 +8,7 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.Intera
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.MessageComponent
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.ModalSubmit
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
-import dev.capybaralabs.shipa.discord.model.Bitfield
+import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.Message
 import dev.capybaralabs.shipa.discord.model.MessageFlag
 import dev.capybaralabs.shipa.logger
@@ -153,7 +153,7 @@ sealed interface InteractionState {
 
 			suspend fun doAck(ephemeral: Boolean?): Thinking {
 				val ack = if (ephemeral != null && ephemeral) {
-					InteractionResponse.Ack(Flags(Bitfield.of(MessageFlag.EPHEMERAL)))
+					InteractionResponse.Ack(Flags(IntBitfield.of(MessageFlag.EPHEMERAL)))
 				} else {
 					InteractionResponse.Ack()
 				}

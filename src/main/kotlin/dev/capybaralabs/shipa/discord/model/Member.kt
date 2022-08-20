@@ -17,6 +17,6 @@ data class Member(
 	val deaf: Boolean,
 	val mute: Boolean,
 	val pending: Boolean?,
-	val permissions: String?,
+	val permissions: StringBitfield<Permission>?,
 	val communicationDisabledUntil: Optional<Instant>?,
 )
