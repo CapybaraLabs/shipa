@@ -7,8 +7,8 @@ import java.util.Optional
 /**
  * [Discord Member](https://discord.com/developers/docs/resources/guild#guild-member-object)
  */
-data class Member(
-	val user: User, // only nullable in gateway events
+open class Member(
+	open val user: User?,
 	val nick: Optional<String>?,
 	val avatar: Optional<String>?,
 	val roles: List<Long>,
@@ -17,6 +17,20 @@ data class Member(
 	val deaf: Boolean,
 	val mute: Boolean,
 	val pending: Boolean?,
-	val permissions: StringBitfield<Permission>?,
+	open val permissions: StringBitfield<Permission>?,
 	val communicationDisabledUntil: Optional<Instant>?,
 )
+
+class InteractionMember(
+	override val user: User, // only nullable in gateway events
+	nick: Optional<String>?,
+	avatar: Optional<String>?,
+	roles: List<Long>,
+	joinedAt: Instant,
+	premiumSince: Optional<Instant>?,
+	deaf: Boolean,
+	mute: Boolean,
+	pending: Boolean?,
+	override val permissions: StringBitfield<Permission>,
+	communicationDisabledUntil: Optional<Instant>?,
+) : Member(user, nick, avatar, roles, joinedAt, premiumSince, deaf, mute, pending, permissions, communicationDisabledUntil)

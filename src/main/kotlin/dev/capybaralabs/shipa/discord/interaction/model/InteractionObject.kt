@@ -11,7 +11,7 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.MESSAGE_
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.MODAL_SUBMIT
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.PING
 import dev.capybaralabs.shipa.discord.model.DiscordLocale
-import dev.capybaralabs.shipa.discord.model.Member
+import dev.capybaralabs.shipa.discord.model.InteractionMember
 import dev.capybaralabs.shipa.discord.model.Message
 import dev.capybaralabs.shipa.discord.model.Permission
 import dev.capybaralabs.shipa.discord.model.StringBitfield
@@ -30,7 +30,7 @@ sealed interface InteractionObject {
 	val data: InteractionData?
 	val guildId: Long?
 	val channelId: Long?
-	val member: Member?
+	val member: InteractionMember?
 	val user: User?
 	val message: Message?
 	val appPermissions: StringBitfield<Permission>?
@@ -71,7 +71,7 @@ sealed interface InteractionObject {
 			override val data: ApplicationCommandData,
 			override val guildId: Long?,
 			override val channelId: Long,
-			override val member: Member?,
+			override val member: InteractionMember?,
 			override val user: User?,
 			override val message: Message?,
 			override val appPermissions: StringBitfield<Permission>?,
@@ -89,7 +89,7 @@ sealed interface InteractionObject {
 			override val data: MessageComponentData,
 			override val guildId: Long?,
 			override val channelId: Long,
-			override val member: Member?,
+			override val member: InteractionMember?,
 			override val user: User?,
 			override val message: Message,
 			override val appPermissions: StringBitfield<Permission>?,
@@ -107,7 +107,7 @@ sealed interface InteractionObject {
 			override val data: ApplicationCommandData,
 			override val guildId: Long?,
 			override val channelId: Long?,
-			override val member: Member?,
+			override val member: InteractionMember?,
 			override val user: User?,
 			override val message: Message?,
 			override val appPermissions: StringBitfield<Permission>?,
@@ -125,7 +125,7 @@ sealed interface InteractionObject {
 			override val data: ModalSubmitData,
 			override val guildId: Long?,
 			override val channelId: Long?,
-			override val member: Member?,
+			override val member: InteractionMember?,
 			override val user: User?,
 			override val message: Message?,
 			override val appPermissions: StringBitfield<Permission>?,
@@ -147,7 +147,7 @@ data class UntypedInteractionObject(
 	val data: InteractionData?,
 	val guildId: Long?,
 	val channelId: Long?,
-	val member: Member?,
+	val member: InteractionMember?,
 	val user: User?,
 	val message: Message?,
 	val appPermissions: StringBitfield<Permission>?,
