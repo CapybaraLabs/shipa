@@ -98,7 +98,7 @@ sealed interface MessageComponent {
 			val label: String,
 			val value: String,
 			val description: String? = null,
-			val emojis: PartialEmoji? = null,
+			val emoji: PartialEmoji? = null,
 			val default: Boolean? = null,
 		)
 	}
