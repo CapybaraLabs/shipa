@@ -1,5 +1,6 @@
 package dev.capybaralabs.shipa.discord.interaction.command
 
+import dev.capybaralabs.shipa.discord.interaction.InteractionRepository
 import dev.capybaralabs.shipa.discord.interaction.InteractionRestService
 import dev.capybaralabs.shipa.discord.interaction.InteractionState
 import dev.capybaralabs.shipa.discord.interaction.InteractionState.ApplicationCommandState.ApplicationCommandStateHolder
@@ -17,9 +18,12 @@ import org.springframework.stereotype.Service
 class ApplicationCommandService(
 	private val commandLookupService: CommandLookupService,
 	private val restService: InteractionRestService,
+	private val interactionRepository: InteractionRepository,
 ) {
 
 	suspend fun onInteraction(interaction: InteractionWithData, result: CompletableFuture<InteractionResponse>) {
+		interactionRepository.save(interaction)
+
 		val command = when (interaction) {
 			is InteractionWithData.ApplicationCommand -> commandLookupService.findByName(interaction.data.name)
 			is InteractionWithData.MessageComponent -> commandLookupService.findByCustomId(interaction.data.customId)

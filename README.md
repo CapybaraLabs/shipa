@@ -55,6 +55,10 @@ You need to provide an implementation for `CommandLookupService`,
 see [InMemoryCommandLookupService](example/src/main/kotlin/dev/capybaralabs/shipa/InMemoryCommandLookupService.kt) for
 example.
 
+You need to provide an implementation for `InteractionRepository`,
+see [InMemoryInteractionRepository](example/src/main/kotlin/dev/capybaralabs/shipa/InMemoryInteractionRepository.kt) for
+example. If you don't want to use the functionality, a noop implementation will do.
+
 Commands should
 implement [InteractionCommand](src/main/kotlin/dev/capybaralabs/shipa/discord/interaction/command/InteractionCommand.kt)
 . The `onXYZ` methods will be called. The passed in `InteractionStateHolders` offer an API for responding. They are
