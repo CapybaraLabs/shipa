@@ -13,6 +13,7 @@ import dev.capybaralabs.shipa.discord.model.AllowedMentions
 import dev.capybaralabs.shipa.discord.model.Embed
 import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.MessageFlag
+import dev.capybaralabs.shipa.discord.model.ZERO_WIDTH_SPACE
 
 /**
  * [Discord Interaction Response](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-interaction-response-structure)
@@ -81,7 +82,7 @@ sealed interface InteractionCallbackData {
 	 * [Discord Interaction Message Callback](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-messages)
 	 */
 	data class Message(
-		val content: String? = null,
+		val content: String? = ZERO_WIDTH_SPACE, // set to null when updating to keep existing
 		val components: List<MessageComponent>? = listOf(), // set to null when updating to keep existing
 		val embeds: List<Embed>? = listOf(), // set to null when updating to keep existing
 		val flags: IntBitfield<MessageFlag>? = null, // SUPPRESS_EMBEDS & EPHEMERAL only
