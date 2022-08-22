@@ -37,6 +37,17 @@ class RestService(
 	private val bucketService: BucketService,
 ) {
 
+	/**
+	 * [Discord Rate Limits](https://discord.com/developers/docs/topics/rate-limits#rate-limits)
+	 *
+	 * Bucket Keys are top-level resources. Currently considered:
+	 *  - guildId
+	 *  - channelId
+	 *  - webhookId
+	 *  - webhookId + token
+	 *
+	 * The applicationId should also be included, especially in case multiple applications are used.
+	 */
 	final suspend inline fun <reified R> exchange(bucketKey: String, request: RequestEntity<*>): ResponseEntity<R> {
 		return exchange(bucketKey, request, object : ParameterizedTypeReference<R>() {})
 	}

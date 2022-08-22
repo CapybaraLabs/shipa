@@ -16,13 +16,13 @@ data class Role(
 	val permissions: StringBitfield<Permission>,
 	val managed: Boolean,
 	val mentionable: Boolean,
-	val tags: List<RoleTag>?,
+	val tags: RoleTags?,
 )
 
 /**
- * [Discord Role Tag](https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure)
+ * [Discord Role Tags](https://discord.com/developers/docs/topics/permissions#role-object-role-tags-structure)
  */
-data class RoleTag(
+data class RoleTags(
 	val botId: Long?,
 	val integrationId: Long?,
 	val premiumSubscriber: Void?,

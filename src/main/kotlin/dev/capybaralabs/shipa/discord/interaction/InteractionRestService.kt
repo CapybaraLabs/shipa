@@ -21,7 +21,7 @@ class InteractionRestService(
 	private val applicationId = properties.applicationId
 
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#get-original-interaction-response
-	suspend fun getOriginalResponse(token: String): Message {
+	suspend fun fetchOriginalResponse(token: String): Message {
 		return restService.exchange<Message>(
 			"$applicationId-$token",
 			RequestEntity
@@ -62,7 +62,7 @@ class InteractionRestService(
 	}
 
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#get-followup-message
-	suspend fun getFollowupMessage(token: String, messageId: Long): Message {
+	suspend fun fetchFollowupMessage(token: String, messageId: Long): Message {
 		return restService.exchange<Message>(
 			"$applicationId-$token",
 			RequestEntity
