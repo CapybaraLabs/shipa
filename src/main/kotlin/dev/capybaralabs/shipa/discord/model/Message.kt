@@ -1,5 +1,7 @@
 package dev.capybaralabs.shipa.discord.model
 
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionType
+import dev.capybaralabs.shipa.discord.interaction.model.PartialMember
 import java.time.Instant
 import java.util.Optional
 
@@ -30,6 +32,7 @@ data class Message(
 	val applicationId: Long?,
 	//	messageReference
 	val flags: IntBitfield<MessageFlag>?,
+	val interaction: MessageInteraction?,
 	// TODO more stuff
 )
 
@@ -44,3 +47,12 @@ enum class MessageFlag(override val value: Int) : IntBitflag {
 	LOADING(1 shl 7),
 	FAILED_TO_MENTION_SOME_ROLES_IN_THREAD(1 shl 8),
 }
+
+
+data class MessageInteraction(
+	val id: Long,
+	val type: InteractionType,
+	val name: String,
+	val user: User,
+	val member: PartialMember?,
+)
