@@ -15,13 +15,17 @@ class InteractionHydrationService(
 	private val restService: InteractionRestService,
 ) {
 
+	suspend fun hydrate(interactionId: Long): HydratedState? {
+		return interactionRepository.find(interactionId)?.let { hydrateInteraction(it) }
+	}
+
 	suspend fun hydrateAll(interactionIds: Collection<Long>): List<HydratedState> {
 		val interactions = interactionRepository.findAll(interactionIds)
 
-		return interactions.map { hydrate(it) }
+		return interactions.map { hydrateInteraction(it) }
 	}
 
-	private fun hydrate(interaction: InteractionWithData): HydratedState {
+	private fun hydrateInteraction(interaction: InteractionWithData): HydratedState {
 		return HydratedState(interaction, restService)
 	}
 
