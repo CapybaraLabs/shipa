@@ -174,6 +174,10 @@ sealed interface InteractionState {
 
 		class Thinking internal constructor(private val context: ApplicationCommandContext) : Base(context.interaction) {
 
+			override suspend fun ack(ephemeral: Boolean?): Thinking {
+				return this // already acked. don't throw.
+			}
+
 			override suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 				return doReply(message)
 			}
@@ -312,6 +316,10 @@ sealed interface InteractionState {
 		}
 
 		class Thinking internal constructor(private val context: MessageComponentContext) : Base(context.interaction) {
+
+			override suspend fun ack(): Thinking {
+				return this // already acked. don't throw.
+			}
 
 			override suspend fun reply(message: InteractionCallbackData.Message): MessageSent {
 				return doReply(message)
