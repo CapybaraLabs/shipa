@@ -78,7 +78,7 @@ internal class InteractionController(
 					is InteractionWithData -> applicationCommandService.onInteraction(interaction, result)
 				}
 			} catch (t: Throwable) {
-				log.error("Oh no", t)
+				log.error("Uncaught error processing the interaction", t)
 				result.completeExceptionally(t)
 			} finally {
 				totalTimer.observeDuration()
