@@ -86,7 +86,7 @@ sealed interface InteractionCallbackData {
 		val components: List<MessageComponent>? = listOf(), // set to null when updating to keep existing
 		val embeds: List<Embed>? = listOf(), // set to null when updating to keep existing
 		val flags: IntBitfield<MessageFlag>? = null, // SUPPRESS_EMBEDS & EPHEMERAL only
-		val allowedMentions: AllowedMentions? = null,
+		val allowedMentions: AllowedMentions? = AllowedMentions.none(),
 		val tts: Boolean? = null,
 //	val attachments: List<PartialAttachment>?,
 	) : InteractionCallbackData
