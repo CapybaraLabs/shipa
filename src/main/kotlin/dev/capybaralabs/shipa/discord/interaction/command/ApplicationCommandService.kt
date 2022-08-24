@@ -1,5 +1,6 @@
 package dev.capybaralabs.shipa.discord.interaction.command
 
+import dev.capybaralabs.shipa.ShipaMetrics
 import dev.capybaralabs.shipa.discord.interaction.InteractionRepository
 import dev.capybaralabs.shipa.discord.interaction.InteractionRestService
 import dev.capybaralabs.shipa.discord.interaction.InteractionState
@@ -19,6 +20,7 @@ class ApplicationCommandService(
 	private val commandLookupService: CommandLookupService,
 	private val restService: InteractionRestService,
 	private val interactionRepository: InteractionRepository,
+	private val metrics: ShipaMetrics,
 ) {
 
 	suspend fun onInteraction(interaction: InteractionWithData, result: CompletableFuture<InteractionResponse>) {
@@ -38,8 +40,13 @@ class ApplicationCommandService(
 			is InteractionWithData.ModalSubmit -> ModalStateHolder(InteractionState.ModalState.received(interaction))
 		}
 
-		command?.onInteraction(interactionStateHolder)
-			?: logger().warn("Unknown Command {}", interaction)
+		if (command != null) {
+			metrics.commandProcessTime.labels(command.name(), interaction.type.name).startTimer().use {
+				command.onInteraction(interactionStateHolder)
+			}
+		} else {
+			logger().warn("Unknown Command {}", interaction)
+		}
 	}
 
 }

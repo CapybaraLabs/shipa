@@ -1,6 +1,8 @@
 package dev.capybaralabs.shipa.discord.interaction
 
+import dev.capybaralabs.shipa.ShipaMetrics
 import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.interaction.validation.InstrumentedInteractionValidator
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
 import dev.capybaralabs.shipa.discord.interaction.validation.SaltyCoffeeInteractionValidator
 import kotlinx.coroutines.CoroutineScope
@@ -14,8 +16,8 @@ import org.springframework.context.annotation.Configuration
 class InteractionsConfiguration(private val discord: DiscordProperties) {
 
 	@Bean
-	fun interactionValidator(): InteractionValidator {
-		return SaltyCoffeeInteractionValidator(discord.publicKey)
+	fun interactionValidator(shipaMetrics: ShipaMetrics): InteractionValidator {
+		return InstrumentedInteractionValidator("salty-coffee", SaltyCoffeeInteractionValidator(discord.publicKey), shipaMetrics)
 	}
 
 	@Bean
