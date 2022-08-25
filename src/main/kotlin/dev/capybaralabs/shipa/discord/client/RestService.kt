@@ -13,6 +13,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import kotlin.time.toKotlinDuration
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -46,6 +47,9 @@ class RestService(
 
 	private val mapper = ObjectMapper()
 
+	@OptIn(ExperimentalCoroutinesApi::class)
+	private val restDispatcher = Dispatchers.IO.limitedParallelism(100)
+
 	/**
 	 * [Discord Rate Limits](https://discord.com/developers/docs/topics/rate-limits#rate-limits)
 	 *
@@ -73,7 +77,7 @@ class RestService(
 
 					val response: ResponseEntity<R>
 					try {
-						response = withContext(Dispatchers.IO) {
+						response = withContext(restDispatcher) {
 							instrument(request) { restTemplate.exchange(request, type) }
 						}
 					} catch (e: TooManyRequests) {
