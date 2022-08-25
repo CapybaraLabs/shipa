@@ -1,8 +1,11 @@
 package dev.capybaralabs.shipa.discord.client
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import dev.capybaralabs.shipa.ShipaMetrics
 import dev.capybaralabs.shipa.discord.client.ratelimit.Bucket
 import dev.capybaralabs.shipa.discord.client.ratelimit.BucketService
 import dev.capybaralabs.shipa.logger
+import io.prometheus.client.Collector
 import java.time.Duration
 import java.time.Instant
 import kotlin.time.Duration.Companion.milliseconds
@@ -16,9 +19,12 @@ import kotlinx.coroutines.withContext
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.http.RequestEntity
+import org.springframework.http.RequestEntity.UriTemplateRequestEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException.TooManyRequests
+import org.springframework.web.client.RestClientException
+import org.springframework.web.client.RestClientResponseException
 import org.springframework.web.client.RestTemplate
 
 const val HEADER_LIMIT = "X-RateLimit-Limit"
@@ -35,7 +41,10 @@ const val HEADER_RETRY_AFTER = "Retry-After"
 class RestService(
 	private val restTemplate: RestTemplate,
 	private val bucketService: BucketService,
+	private val metrics: ShipaMetrics,
 ) {
+
+	private val mapper = ObjectMapper()
 
 	/**
 	 * [Discord Rate Limits](https://discord.com/developers/docs/topics/rate-limits#rate-limits)
@@ -65,7 +74,7 @@ class RestService(
 					val response: ResponseEntity<R>
 					try {
 						response = withContext(Dispatchers.IO) {
-							restTemplate.exchange(request, type)
+							instrument(request) { restTemplate.exchange(request, type) }
 						}
 					} catch (e: TooManyRequests) {
 						logger().info("Hit ratelimit on bucket $bucketKey: ${e.message}")
@@ -86,6 +95,49 @@ class RestService(
 			} finally {
 				bucketService.update(bucketKey, bucket) // trigger expiry update
 			}
+		}
+	}
+
+	private fun <R> instrument(request: RequestEntity<*>, block: () -> ResponseEntity<R>): ResponseEntity<R> {
+		val method = request.method?.name ?: "WTF"
+		val uri = if (request is UriTemplateRequestEntity) request.uriTemplate else "Not Template"
+
+		val started = System.nanoTime()
+		try {
+			val result = metrics.discordRestRequestResponseTime.startTimer().use { block.invoke() }
+
+			val responseTimeNanos = System.nanoTime() - started
+			val responseTimeSeconds: Double = responseTimeNanos / Collector.NANOSECONDS_PER_SECOND
+
+			metrics.discordRestRequests
+				.labels(method, uri, "${result.statusCodeValue}", "")
+				.observe(responseTimeSeconds)
+
+			val responseTimeMillis = (responseTimeSeconds * 1000).toInt()
+			logger().debug("$method $uri ${responseTimeMillis}ms ${result.statusCodeValue}")
+
+			return result
+		} catch (e: RestClientResponseException) {
+			val responseTimeNanos = System.nanoTime() - started
+			val responseTimeSeconds: Double = responseTimeNanos / Collector.NANOSECONDS_PER_SECOND
+
+			val tree = mapper.readTree(e.responseBodyAsString)
+			val errorCode = tree.get("code").asInt(-1)
+
+			metrics.discordRestRequests
+				.labels(method, uri, "${e.rawStatusCode}", "$errorCode")
+				.observe(responseTimeSeconds)
+
+			val message = tree.get("message").asText()
+			val errors = tree.get("errors").asText()
+			val responseTimeMillis = (responseTimeSeconds * 1000).toInt()
+			logger().debug("Encountered error response: $method $uri ${responseTimeMillis}ms ${e.rawStatusCode} $errorCode $message $errors")
+
+			throw e
+		} catch (e: RestClientException) {
+			metrics.discordRestHardFailures.labels(method, uri).inc()
+			logger().warn("Failed request to: $method $uri", e)
+			throw e
 		}
 	}
 

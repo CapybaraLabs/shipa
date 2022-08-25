@@ -1,6 +1,8 @@
 package dev.capybaralabs.shipa
 
 import io.prometheus.client.CollectorRegistry
+import io.prometheus.client.Counter
+import io.prometheus.client.Histogram
 import io.prometheus.client.Summary
 import org.springframework.stereotype.Component
 
@@ -11,6 +13,10 @@ class ShipaMetrics(collectorRegistry: CollectorRegistry) {
 	final val interactionHttpResponseTime: Summary
 	final val interactionTotalTime: Summary
 	final val commandProcessTime: Summary
+
+	final val discordRestRequests: Summary
+	final val discordRestRequestResponseTime: Histogram
+	final val discordRestHardFailures: Counter
 
 	init {
 		interactionSignatureValidationTime = Summary.build()
@@ -33,6 +39,24 @@ class ShipaMetrics(collectorRegistry: CollectorRegistry) {
 			.name("shipa_command_process_time_seconds")
 			.help("How long until an interaction is fully processed")
 			.labelNames("name", "type")
+			.register(collectorRegistry)
+
+		discordRestRequests = Summary.build()
+			.name("shipa_discord_rest_request_seconds")
+			.help("Total Discord REST requests sent and their received responses")
+			.labelNames("method", "uri", "status", "error")
+			.register(collectorRegistry)
+
+		discordRestRequestResponseTime = Histogram.build()
+			.name("shipa_discord_rest_request_response_time_seconds")
+			.exponentialBuckets(0.05, 1.2, 20)
+			.help("Discord REST request response time")
+			.register(collectorRegistry)
+
+		discordRestHardFailures = Counter.build()
+			.name("shipa_discord_rest_request_hard_failures_total")
+			.help("Total Discord REST requests that experienced hard failures (not client response exceptions)")
+			.labelNames("method", "uri")
 			.register(collectorRegistry)
 	}
 
