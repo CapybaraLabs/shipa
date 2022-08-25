@@ -9,9 +9,8 @@ class ShipaMetrics(collectorRegistry: CollectorRegistry) {
 
 	final val interactionSignatureValidationTime: Summary
 	final val interactionHttpResponseTime: Summary
-	final val commandProcessTime: Summary
-
 	final val interactionTotalTime: Summary
+	final val commandProcessTime: Summary
 
 	init {
 		interactionSignatureValidationTime = Summary.build()
@@ -23,18 +22,18 @@ class ShipaMetrics(collectorRegistry: CollectorRegistry) {
 		interactionHttpResponseTime = Summary.build()
 			.name("shipa_interaction_http_response_time_seconds")
 			.help("How long until we return an http response to discord")
-			.register()
+			.register(collectorRegistry)
 
 		interactionTotalTime = Summary.build()
 			.name("shipa_interaction_total_time_seconds")
 			.help("How long until an interaction is fully processed")
-			.register()
+			.register(collectorRegistry)
 
 		commandProcessTime = Summary.build()
 			.name("shipa_command_process_time_seconds")
 			.help("How long until an interaction is fully processed")
 			.labelNames("name", "type")
-			.register()
+			.register(collectorRegistry)
 	}
 
 }
