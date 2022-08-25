@@ -16,7 +16,7 @@ class CommandConfiguration {
 	fun henloCommand(): InteractionCommand {
 		return object : InteractionCommand {
 			override fun creation(): CreateCommand {
-				return CreateCommand.User("henlo", listOf(debugGuildId))
+				return CreateCommand.CreateUserGuildCommand("henlo", listOf(debugGuildId))
 			}
 
 			override suspend fun onApplicationCommand(stateHolder: ApplicationCommandStateHolder) {

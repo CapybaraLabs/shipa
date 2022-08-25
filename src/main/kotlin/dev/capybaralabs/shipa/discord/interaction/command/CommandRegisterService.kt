@@ -4,6 +4,8 @@ import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.RestService
 import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommand
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
+import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand.GlobalCommand
+import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand.GuildCommand
 import org.springframework.core.env.Environment
 import org.springframework.core.env.Profiles
 import org.springframework.http.RequestEntity
@@ -23,13 +25,18 @@ class CommandRegisterService(
 	}
 
 	suspend fun bulkOverwrite(commands: List<CreateCommand>): List<ApplicationCommand> {
-		val groupBy: Map<Boolean, List<CreateCommand>> = commands.groupBy { it.guildIds == null }
-		val globalCommands = groupBy[true] ?: listOf()
-		val guildCommands = groupBy[false] ?: listOf()
+		val globalCommands = ArrayList<GlobalCommand>()
+		val guildCommands = ArrayList<GuildCommand>()
+		commands.forEach {
+			when (it) {
+				is GuildCommand -> guildCommands += it
+				is GlobalCommand -> globalCommands += it
+			}
+		}
 
 		val globalApplicationCommands = bulkOverwriteGlobally(globalCommands)
 
-		val guildApplicationCommands = guildCommands.map { it.guildIds!! to it }
+		val guildApplicationCommands = guildCommands.map { it.guildIds to it }
 			.flatMap { it.first.map { guildId -> guildId to it.second } }
 			.groupBy({ it.first }) { it.second }
 			.flatMap { (guildId, commands) -> bulkOverwriteGuild(guildId, commands) }
@@ -37,7 +44,7 @@ class CommandRegisterService(
 		return globalApplicationCommands + guildApplicationCommands
 	}
 
-	suspend fun bulkOverwriteGlobally(commands: List<CreateCommand>): List<ApplicationCommand> {
+	suspend fun bulkOverwriteGlobally(commands: List<GlobalCommand>): List<ApplicationCommand> {
 		if (isTestEnvironment() || commands.isEmpty()) return listOf()
 
 		return restService.exchange<List<ApplicationCommand>>(
@@ -48,7 +55,7 @@ class CommandRegisterService(
 		).body!!
 	}
 
-	suspend fun bulkOverwriteGuild(guildId: Long, commands: List<CreateCommand>): List<ApplicationCommand> {
+	suspend fun bulkOverwriteGuild(guildId: Long, commands: List<GuildCommand>): List<ApplicationCommand> {
 		if (isTestEnvironment() || commands.isEmpty()) return listOf()
 
 		return restService.exchange<List<ApplicationCommand>>(
@@ -60,17 +67,16 @@ class CommandRegisterService(
 	}
 
 	suspend fun register(command: CreateCommand) {
-		val guildIds = command.guildIds
-		if (guildIds != null) {
-			for (guildId in guildIds) {
+		when (command) {
+			is GuildCommand -> for (guildId in command.guildIds) {
 				registerInGuild(command, guildId)
 			}
-		} else {
-			registerGlobally(command)
+
+			is GlobalCommand -> registerGlobally(command)
 		}
 	}
 
-	suspend fun registerGlobally(command: CreateCommand) {
+	suspend fun registerGlobally(command: GlobalCommand) {
 		if (isTestEnvironment()) return
 
 		restService.exchange<Void>(
@@ -82,7 +88,7 @@ class CommandRegisterService(
 	}
 
 
-	suspend fun registerInGuild(command: CreateCommand, guildId: Long) {
+	suspend fun registerInGuild(command: GuildCommand, guildId: Long) {
 		if (isTestEnvironment()) return
 
 		restService.exchange<Void>(

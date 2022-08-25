@@ -3,6 +3,7 @@ package dev.capybaralabs.shipa.discord.interaction.model.create
 import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandOption
 import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandType
 import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandType.CHAT_INPUT
+import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandType.MESSAGE
 import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandType.USER
 import dev.capybaralabs.shipa.discord.model.Permission
 import dev.capybaralabs.shipa.discord.model.StringBitfield
@@ -13,24 +14,78 @@ import java.util.Optional
  * [Discord Making a Global Command](https://discord.com/developers/docs/interactions/application-commands#making-a-global-command)
  * [Discord Making a Guild Command](https://discord.com/developers/docs/interactions/application-commands#making-a-guild-command)
  */
-abstract class CreateCommand(
-	val type: ApplicationCommandType,
-	open val name: String,
-	open val guildIds: List<Long>? = null
-) {
+sealed interface CreateCommand {
+	val type: ApplicationCommandType
+	val name: String
+	val defaultMemberPermissions: Optional<StringBitfield<Permission>>
+		get() = Optional.empty()
 
-	data class User(
+	interface GlobalCommand : CreateCommand {
+		val dmPermission: Boolean?
+	}
+
+	interface GuildCommand : CreateCommand {
+		val guildIds: List<Long>
+	}
+
+	class CreateUserGlobalCommand(
 		override val name: String,
-		override val guildIds: List<Long>? = null,
-	) : CreateCommand(USER, name, guildIds)
+		override val dmPermission: Boolean? = null,
+		override val defaultMemberPermissions: Optional<StringBitfield<Permission>> = Optional.empty(),
+	) : GlobalCommand {
+		override val type = USER
+	}
 
-
-	data class Slash(
+	class CreateUserGuildCommand(
 		override val name: String,
-		val description: String,
-		override val guildIds: List<Long>? = null,
-		val options: List<ApplicationCommandOption>? = null,
-		val defaultMemberPermissions: Optional<StringBitfield<Permission>> = Optional.empty(),
-		val dmPermission: Boolean? = null,
-	) : CreateCommand(CHAT_INPUT, name, guildIds)
+		override val guildIds: List<Long>,
+		override val defaultMemberPermissions: Optional<StringBitfield<Permission>> = Optional.empty(),
+	) : GuildCommand {
+		override val type = USER
+	}
+
+
+	class CreateMessageGlobalCommand(
+		override val name: String,
+		override val dmPermission: Boolean? = null,
+		override val defaultMemberPermissions: Optional<StringBitfield<Permission>> = Optional.empty(),
+	) : GlobalCommand {
+		override val type = MESSAGE
+	}
+
+	class CreateMessageGuildCommand(
+		override val name: String,
+		override val guildIds: List<Long>,
+		override val defaultMemberPermissions: Optional<StringBitfield<Permission>> = Optional.empty(),
+	) : GuildCommand {
+		override val type = MESSAGE
+	}
+
+
+	interface SlashCommand {
+		val description: String
+		val options: List<ApplicationCommandOption>?
+			get() = null
+	}
+
+	class CreateSlashGlobalCommand(
+		override val name: String,
+		override val description: String,
+		override val dmPermission: Boolean? = null,
+		override val defaultMemberPermissions: Optional<StringBitfield<Permission>> = Optional.empty(),
+		override val options: List<ApplicationCommandOption>? = null,
+	) : GlobalCommand, SlashCommand {
+		override val type = CHAT_INPUT
+	}
+
+	class CreateSlashGuildCommand(
+		override val name: String,
+		override val description: String,
+		override val guildIds: List<Long>,
+		override val defaultMemberPermissions: Optional<StringBitfield<Permission>> = Optional.empty(),
+		override val options: List<ApplicationCommandOption>? = null,
+	) : GuildCommand, SlashCommand {
+		override val type = CHAT_INPUT
+	}
+
 }
