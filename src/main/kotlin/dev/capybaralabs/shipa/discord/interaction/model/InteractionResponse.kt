@@ -8,6 +8,7 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.MODAL
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.PONG
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.UPDATE_MESSAGE
+import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.ActionRow
 import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.TextInput
 import dev.capybaralabs.shipa.discord.model.AllowedMentions
 import dev.capybaralabs.shipa.discord.model.Embed
@@ -83,7 +84,7 @@ sealed interface InteractionCallbackData {
 	 */
 	data class Message(
 		val content: String? = ZERO_WIDTH_SPACE, // set to null when updating to keep existing
-		val components: List<MessageComponent>? = listOf(), // set to null when updating to keep existing
+		val components: List<ActionRow>? = listOf(), // set to null when updating to keep existing. max 5
 		val embeds: List<Embed>? = listOf(), // set to null when updating to keep existing
 		val flags: IntBitfield<MessageFlag>? = null, // SUPPRESS_EMBEDS & EPHEMERAL only
 		val allowedMentions: AllowedMentions? = AllowedMentions.none(),

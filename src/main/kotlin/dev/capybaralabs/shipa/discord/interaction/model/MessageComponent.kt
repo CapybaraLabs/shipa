@@ -6,6 +6,7 @@ import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.Compone
 import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.ComponentType.SELECT_MENU
 import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.ComponentType.TEXT_INPUT
 import java.util.Optional
+import org.springframework.util.Assert
 
 /**
  * [Discord Message Component](https://discord.com/developers/docs/interactions/message-components)
@@ -20,11 +21,28 @@ sealed interface MessageComponent {
 		TEXT_INPUT(4),
 	}
 
-	data class ActionRow(
-		val components: List<MessageComponent>,
+	sealed interface NotActionRow : MessageComponent
+
+	data class ActionRow internal constructor(
+		val components: List<NotActionRow>,
 	) : MessageComponent {
 
 		override val type = ACTION_ROW
+
+		companion object {
+			fun selectMenu(selectMenu: SelectMenu): ActionRow {
+				return ActionRow(listOf(selectMenu))
+			}
+
+			fun buttons(vararg buttons: Button): ActionRow {
+				return buttons(listOf(*buttons))
+			}
+
+			fun buttons(buttons: List<Button>): ActionRow {
+				Assert.isTrue(buttons.size <= 5, "Only a maximum of 5 buttons is allowed in an ActionRow")
+				return ActionRow(buttons)
+			}
+		}
 	}
 
 
@@ -44,7 +62,7 @@ sealed interface MessageComponent {
 		open val customId: String?,
 		open val url: String?,
 		open val disabled: Boolean?,
-	) : MessageComponent {
+	) : NotActionRow {
 
 		override val type = BUTTON
 
@@ -90,7 +108,7 @@ sealed interface MessageComponent {
 		val minValues: Int? = null,
 		val maxValues: Int? = null,
 		val disabled: Boolean? = null,
-	) : MessageComponent {
+	) : NotActionRow {
 
 		override val type = SELECT_MENU
 
@@ -115,7 +133,7 @@ sealed interface MessageComponent {
 		val required: Boolean? = null,
 		val value: String? = null,
 		val placeholder: String? = null,
-	) : MessageComponent {
+	) : NotActionRow {
 
 		override val type = TEXT_INPUT
 
