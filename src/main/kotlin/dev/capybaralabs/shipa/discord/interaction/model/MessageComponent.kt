@@ -1,6 +1,7 @@
 package dev.capybaralabs.shipa.discord.interaction.model
 
 import com.fasterxml.jackson.annotation.JsonValue
+import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.Button.ButtonStyle.LINK
 import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.ComponentType.ACTION_ROW
 import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.ComponentType.BUTTON
 import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.ComponentType.SELECT_MENU
@@ -88,12 +89,11 @@ sealed interface MessageComponent {
 
 
 		data class Link(
-			override val style: ButtonStyle,
 			override val url: String,
 			override val label: String? = null,
 			override val emoji: PartialEmoji? = null,
 			override val disabled: Boolean? = null,
-		) : Button(style, label, emoji, null, url, disabled)
+		) : Button(LINK, label, emoji, null, url, disabled)
 
 	}
 
