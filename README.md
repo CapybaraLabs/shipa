@@ -1,7 +1,7 @@
 # Shipa [![Release](https://jitpack.io/v/dev.capybaralabs/shipa.svg?style=flat-square)](https://jitpack.io/#dev.capybaralabs/shipa) [![Coverage](https://img.shields.io/sonar/coverage/dev.capybaralabs.shipa?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/summary/overall?id=dev.capybaralabs.shipa)
 
 This is a discord interaction lib that fits CapybaraLabs' needs. It is named
-after [a beer](https://www.kehrwieder.shop/shipa-eclipse-single-hop-ipa) which the original author was drinking when
+after [a beer](https://www.kehrwieder.beer/12/speaking-bottle/detail/15/shipa.html) which the original author was drinking when
 creating the repository.
 
 ## Usage
