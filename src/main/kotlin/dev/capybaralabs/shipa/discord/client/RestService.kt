@@ -127,15 +127,16 @@ class RestService(
 			val responseTimeNanos = System.nanoTime() - started
 			val responseTimeSeconds: Double = responseTimeNanos / Collector.NANOSECONDS_PER_SECOND
 
+			// https://discord.com/developers/docs/reference#error-messages
 			val tree = mapper.readTree(e.responseBodyAsString)
-			val errorCode = tree.get("code").asInt(-1)
+			val errorCode = tree.get("code")?.asInt(-1) ?: -1
 
 			metrics.discordRestRequests
 				.labels(method, uri, "${e.rawStatusCode}", "$errorCode")
 				.observe(responseTimeSeconds)
 
-			val message = tree.get("message").asText()
-			val errors = tree.get("errors").asText()
+			val message = tree.get("message")?.asText()
+			val errors = tree.get("errors")?.asText()
 			val responseTimeMillis = (responseTimeSeconds * 1000).toInt()
 			logger().debug("Encountered error response: $method $uri ${responseTimeMillis}ms ${e.rawStatusCode} $errorCode $message $errors")
 
