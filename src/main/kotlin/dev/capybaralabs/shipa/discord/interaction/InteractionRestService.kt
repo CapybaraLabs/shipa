@@ -2,7 +2,7 @@ package dev.capybaralabs.shipa.discord.interaction
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.RestService
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback
 import dev.capybaralabs.shipa.discord.model.Message
 import org.springframework.http.RequestEntity
 import org.springframework.stereotype.Service
@@ -31,7 +31,7 @@ class InteractionRestService(
 	}
 
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#edit-original-interaction-response
-	suspend fun editOriginalResponse(token: String, data: InteractionCallbackData): Message {
+	suspend fun editOriginalResponse(token: String, data: InteractionCallback): Message {
 		return restService.exchange<Message>(
 			"$applicationId-$token",
 			RequestEntity
@@ -52,7 +52,7 @@ class InteractionRestService(
 
 
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#create-followup-message
-	suspend fun createFollowupMessage(token: String, data: InteractionCallbackData): Message {
+	suspend fun createFollowupMessage(token: String, data: InteractionCallback): Message {
 		return restService.exchange<Message>(
 			"$applicationId-$token",
 			RequestEntity
@@ -72,7 +72,7 @@ class InteractionRestService(
 	}
 
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#edit-followup-message
-	suspend fun editFollowupMessage(token: String, response: InteractionCallbackData, messageId: Long): Message {
+	suspend fun editFollowupMessage(token: String, response: InteractionCallback, messageId: Long): Message {
 		return restService.exchange<Message>(
 			"$applicationId-$token",
 			RequestEntity

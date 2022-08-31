@@ -1,6 +1,6 @@
 package dev.capybaralabs.shipa.discord.interaction.model
 
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData.Flags
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Flags
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
@@ -21,7 +21,7 @@ import dev.capybaralabs.shipa.discord.model.ZERO_WIDTH_SPACE
  */
 sealed interface InteractionResponse {
 	val type: InteractionCallbackType
-	val data: InteractionCallbackData?
+	val data: InteractionCallback?
 
 	object Pong : InteractionResponse {
 		override val type = PONG
@@ -29,7 +29,7 @@ sealed interface InteractionResponse {
 	}
 
 	data class SendMessage(
-		override val data: InteractionCallbackData.Message
+		override val data: InteractionCallback.Message
 	) : InteractionResponse {
 
 		override val type = CHANNEL_MESSAGE_WITH_SOURCE
@@ -49,20 +49,20 @@ sealed interface InteractionResponse {
 
 	//Only valid for message-component interactions
 	data class UpdateMessage(
-		override val data: InteractionCallbackData.Message
+		override val data: InteractionCallback.Message
 	) : InteractionResponse {
 		override val type = UPDATE_MESSAGE
 	}
 
 	data class Autocomplete(
-		override val data: InteractionCallbackData.Autocomplete
+		override val data: InteractionCallback.Autocomplete
 	) : InteractionResponse {
 
 		override val type = APPLICATION_COMMAND_AUTOCOMPLETE_RESULT
 	}
 
 	data class Modal(
-		override val data: InteractionCallbackData.Modal
+		override val data: InteractionCallback.Modal
 	) : InteractionResponse {
 
 		override val type = MODAL
@@ -73,11 +73,11 @@ sealed interface InteractionResponse {
 /**
  * [Discord Interaction Callback Data](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-interaction-callback-data-structure)
  */
-sealed interface InteractionCallbackData {
+sealed interface InteractionCallback {
 
 	data class Flags(
 		val flags: IntBitfield<MessageFlag>? = null // EPHEMERAL only
-	) : InteractionCallbackData
+	) : InteractionCallback
 
 	/**
 	 * [Discord Interaction Message Callback](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-messages)
@@ -90,14 +90,14 @@ sealed interface InteractionCallbackData {
 		val allowedMentions: AllowedMentions? = AllowedMentions.none(),
 		val tts: Boolean? = null,
 //	val attachments: List<PartialAttachment>?,
-	) : InteractionCallbackData
+	) : InteractionCallback
 
 	/**
 	 * [Discord Interaction Response Callback Data Autocomplete](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-autocomplete)
 	 */
 	data class Autocomplete(
 		val choices: List<Choice>,
-	) : InteractionCallbackData {
+	) : InteractionCallback {
 
 		data class Choice(
 			val name: String,
@@ -112,6 +112,6 @@ sealed interface InteractionCallbackData {
 		val customId: String,
 		val title: String,
 		val components: List<TextInput>,
-	) : InteractionCallbackData
+	) : InteractionCallback
 
 }

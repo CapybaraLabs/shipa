@@ -2,7 +2,7 @@ package dev.capybaralabs.shipa
 
 import dev.capybaralabs.shipa.discord.interaction.InteractionState.ApplicationCommandState.ApplicationCommandStateHolder
 import dev.capybaralabs.shipa.discord.interaction.command.InteractionCommand
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData.Message
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Message
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

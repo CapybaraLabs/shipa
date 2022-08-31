@@ -5,7 +5,7 @@ import dev.capybaralabs.shipa.discord.interaction.InteractionState.ApplicationCo
 import dev.capybaralabs.shipa.discord.interaction.InteractionState.AutocompleteState.AutocompleteStateHolder
 import dev.capybaralabs.shipa.discord.interaction.InteractionState.MessageComponentState.MessageComponentStateHolder
 import dev.capybaralabs.shipa.discord.interaction.InteractionState.ModalState.ModalStateHolder
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData.Message
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Message
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 
 interface InteractionCommand {

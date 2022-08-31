@@ -1,6 +1,6 @@
 package dev.capybaralabs.shipa.discord.interaction
 
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackData
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
 import org.springframework.stereotype.Service
 
@@ -38,11 +38,11 @@ class InteractionHydrationService(
 			return interaction
 		}
 
-		suspend fun reply(message: InteractionCallbackData.Message) {
+		suspend fun reply(message: InteractionCallback.Message) {
 			restService.createFollowupMessage(interaction().token, message)
 		}
 
-		suspend fun edit(message: InteractionCallbackData.Message) {
+		suspend fun edit(message: InteractionCallback.Message) {
 			restService.editOriginalResponse(interaction().token, message)
 		}
 	}
