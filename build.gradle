@@ -55,6 +55,7 @@ dependencies {
 	api "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 	api "org.jetbrains.kotlin:kotlin-reflect"
 	api "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8"
 	api "org.springframework.boot:spring-boot-starter"
 	api "org.springframework.boot:spring-boot-starter-web"
 	api "com.fasterxml.jackson.module:jackson-module-kotlin"

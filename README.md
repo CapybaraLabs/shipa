@@ -61,8 +61,7 @@ example. If you don't want to use the functionality, a noop implementation will 
 
 Commands should
 implement [InteractionCommand](src/main/kotlin/dev/capybaralabs/shipa/discord/interaction/command/InteractionCommand.kt)
-. The `onXYZ` methods will be called. The passed in `InteractionStateHolders` offer an API for responding. They are
-backed by [state machines](#interaction-state-machine).
+. The passed in `InteractionStateHolder` offers an API for responding.
 
 [CommandRegisterService](src/main/kotlin/dev/capybaralabs/shipa/discord/interaction/command/CommandRegisterService.kt)
 can be used to register your commands with Discord.

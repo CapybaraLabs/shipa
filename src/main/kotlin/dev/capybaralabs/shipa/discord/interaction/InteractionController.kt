@@ -9,11 +9,12 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
 import io.prometheus.client.Summary
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.servlet.http.HttpServletRequest
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -58,17 +59,17 @@ internal class InteractionController(
 		}
 
 		val interaction = mapper.readValue(rawBody, UntypedInteractionObject::class.java).typed()
-		val result = CompletableFuture<InteractionResponse>()
+		val result = CompletableDeferred<InteractionResponse>()
 
 		interactionScope.launchInteractionProcessing(interaction, result, totalTimer)
-		return result
+		return result.asCompletableFuture()
 			.thenApply { ResponseEntity.ok().body(it) }
 			.orTimeout(3, SECONDS)
 			.join()
 
 	}
 
-	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, result: CompletableFuture<InteractionResponse>, totalTimer: Summary.Timer) =
+	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, result: CompletableDeferred<InteractionResponse>, totalTimer: Summary.Timer) =
 		launch(CoroutineExceptionHandler { _, t -> log.error("Unhandled exception in coroutine", t) }) {
 			log.debug("Launching interaction processing coroutine!")
 

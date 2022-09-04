@@ -1,10 +1,8 @@
 package dev.capybaralabs.shipa.discord.interaction.command
 
-import dev.capybaralabs.shipa.discord.interaction.InteractionState
-import dev.capybaralabs.shipa.discord.interaction.InteractionState.ApplicationCommandState.ApplicationCommandStateHolder
-import dev.capybaralabs.shipa.discord.interaction.InteractionState.AutocompleteState.AutocompleteStateHolder
-import dev.capybaralabs.shipa.discord.interaction.InteractionState.MessageComponentState.MessageComponentStateHolder
-import dev.capybaralabs.shipa.discord.interaction.InteractionState.ModalState.ModalStateHolder
+import dev.capybaralabs.shipa.discord.interaction.AutoAckTactic
+import dev.capybaralabs.shipa.discord.interaction.AutoAckTactic.ACK_EPHEMERAL
+import dev.capybaralabs.shipa.discord.interaction.InteractionStateHolder
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Message
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 
@@ -19,28 +17,11 @@ interface InteractionCommand {
 		return listOf()
 	}
 
-	suspend fun onApplicationCommand(stateHolder: ApplicationCommandStateHolder) {
-		stateHolder.reply(Message("The capybara ate my interaction handler."))
+	fun autoAckTactic(): AutoAckTactic {
+		return ACK_EPHEMERAL
 	}
 
-	suspend fun onMessageComponent(stateHolder: MessageComponentStateHolder) {
-		stateHolder.reply(Message("The capybara ate my interaction handler."))
-	}
-
-	suspend fun onAutocomplete(stateHolder: AutocompleteStateHolder) {
-//		state.reply(Message( "The capybara ate my interaction handler."))
-	}
-
-	suspend fun onModalSubmit(stateHolder: ModalStateHolder) {
-//		state.reply(Message( "The capybara ate my interaction handler."))
-	}
-
-	suspend fun onInteraction(stateHolder: InteractionState.InteractionStateHolder<*>) {
-		when (stateHolder) {
-			is ApplicationCommandStateHolder -> onApplicationCommand(stateHolder)
-			is MessageComponentStateHolder -> onMessageComponent(stateHolder)
-			is AutocompleteStateHolder -> onAutocomplete(stateHolder)
-			is ModalStateHolder -> onModalSubmit(stateHolder)
-		}
+	suspend fun onInteraction(stateHolder: InteractionStateHolder) {
+		stateHolder.completeOrEditOriginal(Message("The capybara ate my interaction handler.")).await()
 	}
 }

@@ -1,9 +1,12 @@
 package dev.capybaralabs.shipa
 
-import dev.capybaralabs.shipa.discord.interaction.InteractionState.ApplicationCommandState.ApplicationCommandStateHolder
+import dev.capybaralabs.shipa.discord.interaction.InteractionStateHolder
 import dev.capybaralabs.shipa.discord.interaction.command.InteractionCommand
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Message
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.ApplicationCommand
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
+import dev.capybaralabs.shipa.discord.model.IntBitfield
+import dev.capybaralabs.shipa.discord.model.MessageFlag
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -19,9 +22,35 @@ class CommandConfiguration {
 				return CreateCommand.CreateUserGuildCommand("henlo", listOf(debugGuildId))
 			}
 
-			override suspend fun onApplicationCommand(stateHolder: ApplicationCommandStateHolder) {
-				stateHolder.reply(Message("Henlo, ${stateHolder.getInteraction().data.resolved?.users?.values?.first()?.username}!"))
+			override suspend fun onInteraction(stateHolder: InteractionStateHolder) {
+				when (val interaction = stateHolder.interaction) {
+					is ApplicationCommand -> stateHolder.completeOrEditOriginal(Message("Henlo, ${interaction.data.resolved?.users?.values?.first()?.username}!")).await()
+					else -> throw IllegalStateException("Unhandled interaction type ${interaction.type}")
+				}
 			}
 		}
+	}
+
+	@Bean
+	fun testCommand(): InteractionCommand {
+		return object : InteractionCommand {
+			override fun creation(): CreateCommand {
+				return CreateCommand.CreateSlashGuildCommand("test", "Test command", listOf(debugGuildId))
+			}
+
+			override suspend fun onInteraction(stateHolder: InteractionStateHolder) {
+
+				stateHolder.ack(false).await()
+
+				stateHolder.completeOrEditOriginal(Message("Public")).await()
+
+				val id = stateHolder.followup(Message("Private!", flags = IntBitfield(listOf(MessageFlag.EPHEMERAL)))).await().message.id
+
+				stateHolder.completeOrFollowup(Message("Public2")).await()
+
+				stateHolder.editFollowup(id, Message("Private2")).await()
+			}
+		}
+
 	}
 }
