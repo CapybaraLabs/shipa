@@ -7,6 +7,7 @@ import dev.capybaralabs.shipa.discord.model.StringBitfield
 import dev.capybaralabs.shipa.discord.model.User
 import java.time.Instant
 import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * [Discord Resolved Data Structure](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-resolved-data-structure)
@@ -34,7 +35,17 @@ data class PartialMember(
 	val pending: Boolean?,
 	val permissions: StringBitfield<Permission>?,
 	val communicationDisabledUntil: Optional<Instant>?,
-)
+) {
+
+	@OptIn(ExperimentalStdlibApi::class)
+	fun avatarUrl(guildId: Long, userId: Long): String? {
+		return avatar?.getOrNull()?.let { avatarHash ->
+			val ext = if (avatarHash.startsWith("a_")) "gif" else "png"
+			"https://cdn.discordapp.com/guilds/$guildId/users/${userId}/avatars/$avatarHash.$ext"
+		}
+	}
+
+}
 
 
 /**

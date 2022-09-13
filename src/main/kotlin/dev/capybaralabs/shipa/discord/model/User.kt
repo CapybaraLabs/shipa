@@ -1,6 +1,7 @@
 package dev.capybaralabs.shipa.discord.model
 
 import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * [Discord User](https://discord.com/developers/docs/resources/user#user-object)
@@ -21,7 +22,24 @@ data class User(
 	val flags: IntBitfield<UserFlag>?,
 	val premiumType: Int?,
 	val publicFlags: IntBitfield<UserFlag>?,
-)
+) {
+
+	fun asMention(): String {
+		return "<@$id>"
+	}
+
+	@OptIn(ExperimentalStdlibApi::class)
+	fun avatarUrl(): String {
+		return avatar.getOrNull()?.let { avatarHash ->
+			val ext = if (avatarHash.startsWith("a_")) "gif" else "png"
+			"https://cdn.discordapp.com/avatars/${id}/$avatarHash.$ext"
+		} ?: defaultAvatarUrl()
+	}
+
+	private fun defaultAvatarUrl(): String {
+		return "https://cdn.discordapp.com/embed/avatars/${discriminator.toInt() % 5}.png"
+	}
+}
 
 enum class UserFlag(override val value: Int) : IntBitflag {
 	STAFF(1 shl 0),

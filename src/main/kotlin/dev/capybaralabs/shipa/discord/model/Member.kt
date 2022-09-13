@@ -2,6 +2,7 @@ package dev.capybaralabs.shipa.discord.model
 
 import java.time.Instant
 import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 
 
 /**
@@ -33,4 +34,13 @@ class InteractionMember(
 	pending: Boolean?,
 	override val permissions: StringBitfield<Permission>,
 	communicationDisabledUntil: Optional<Instant>?,
-) : Member(user, nick, avatar, roles, joinedAt, premiumSince, deaf, mute, pending, permissions, communicationDisabledUntil)
+) : Member(user, nick, avatar, roles, joinedAt, premiumSince, deaf, mute, pending, permissions, communicationDisabledUntil) {
+
+	@OptIn(ExperimentalStdlibApi::class)
+	fun avatarUrl(guildId: Long): String {
+		return avatar?.getOrNull()?.let { avatarHash ->
+			val ext = if (avatarHash.startsWith("a_")) "gif" else "png"
+			"https://cdn.discordapp.com/guilds/$guildId/users/${user.id}/avatars/$avatarHash.$ext"
+		} ?: user.avatarUrl()
+	}
+}
