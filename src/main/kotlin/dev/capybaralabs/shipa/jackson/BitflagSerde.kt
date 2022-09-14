@@ -36,14 +36,21 @@ class IntBitfieldDeserializer(private val type: JavaType) : JsonDeserializer<Int
 	override fun deserialize(p: JsonParser, ctxt: DeserializationContext): IntBitfield<*> {
 		val flags = ctxt.readValue(p, Int::class.java)
 
-		return type.rawClass.enumConstants.asList()
+		val enumConstants = type.rawClass.enumConstants ?: throw IllegalArgumentException("${type.rawClass} needs to be an enum!")
+
+		return enumConstants.asList()
 			.map { it as IntBitflag }
 			.filter { flags and it.value == it.value }
 			.let { IntBitfield(it) }
 	}
 
 	override fun createContextual(ctxt: DeserializationContext, property: BeanProperty): JsonDeserializer<*> {
-		return IntBitfieldDeserializer(property.type.containedType(0))
+		var containedType = property.type.containedType(0)
+		if (containedType.rawClass.isAssignableFrom(IntBitfield::class.java)) { // Optional<IntBitfield<*>> can trigger this
+			containedType = containedType.containedType(0)
+		}
+
+		return IntBitfieldDeserializer(containedType)
 	}
 
 }
@@ -70,7 +77,9 @@ class StringBitfieldDeserializer(private val type: JavaType) : JsonDeserializer<
 	override fun deserialize(p: JsonParser, ctxt: DeserializationContext): StringBitfield<*> {
 		val flags = ctxt.readValue(p, String::class.java).toBigInteger()
 
-		return type.rawClass.enumConstants.asList()
+		val enumConstants = type.rawClass.enumConstants ?: throw IllegalArgumentException("${type.rawClass} needs to be an enum!")
+
+		return enumConstants.asList()
 			.map { it as StringBitflag }
 			.filter {
 				val value = it.value.toBigInteger()
@@ -80,7 +89,12 @@ class StringBitfieldDeserializer(private val type: JavaType) : JsonDeserializer<
 	}
 
 	override fun createContextual(ctxt: DeserializationContext, property: BeanProperty): JsonDeserializer<*> {
-		return StringBitfieldDeserializer(property.type.containedType(0))
+		var containedType = property.type.containedType(0)
+		if (containedType.rawClass.isAssignableFrom(StringBitfield::class.java)) { // Optional<StringBitfield<*>> can trigger this
+			containedType = containedType.containedType(0)
+		}
+
+		return StringBitfieldDeserializer(containedType)
 	}
 
 }
