@@ -2,6 +2,7 @@
 
 package dev.capybaralabs.shipa.discord.client
 
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.capybaralabs.shipa.ShipaMetrics
 import dev.capybaralabs.shipa.discord.client.ratelimit.Bucket
@@ -128,7 +129,11 @@ class RestService(
 			val responseTimeSeconds: Double = responseTimeNanos / Collector.NANOSECONDS_PER_SECOND
 
 			// https://discord.com/developers/docs/reference#error-messages
-			val tree = mapper.readTree(e.responseBodyAsString)
+			val tree = try {
+				mapper.readTree(e.responseBodyAsString)
+			} catch (e: JsonProcessingException) {
+				throw hardRestFail(e, method, uri)
+			}
 			val errorCode = tree.get("code")?.asInt(-1) ?: -1
 
 			metrics.discordRestRequests
@@ -142,10 +147,14 @@ class RestService(
 
 			throw e
 		} catch (e: RestClientException) {
-			metrics.discordRestHardFailures.labels(method, uri).inc()
-			logger().warn("Failed request to: $method $uri", e)
-			throw e
+			throw hardRestFail(e, method, uri)
 		}
+	}
+
+	private fun hardRestFail(e: Exception, method: String, uri: String): Exception {
+		metrics.discordRestHardFailures.labels(method, uri).inc()
+		logger().warn("Failed request to: $method $uri", e)
+		return e
 	}
 
 	private fun updateBucket(bucket: Bucket, responseHeaders: HttpHeaders) {
