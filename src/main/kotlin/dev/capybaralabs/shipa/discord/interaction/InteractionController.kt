@@ -9,6 +9,8 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
 import io.prometheus.client.Summary
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.servlet.http.HttpServletRequest
 import kotlinx.coroutines.CompletableDeferred
@@ -40,47 +42,48 @@ internal class InteractionController(
 	private val log = LoggerFactory.getLogger(InteractionController::class.java)
 
 	@PostMapping
-	fun post(req: HttpServletRequest, @RequestBody rawBody: String): ResponseEntity<InteractionResponse> {
+	fun post(req: HttpServletRequest, @RequestBody rawBody: String): CompletionStage<ResponseEntity<InteractionResponse>> {
 		metrics.interactionHttpResponseTime.startTimer().use {
 			return doPost(req, rawBody)
 		}
 	}
 
-	private fun doPost(req: HttpServletRequest, rawBody: String): ResponseEntity<InteractionResponse> {
+	private fun doPost(req: HttpServletRequest, rawBody: String): CompletionStage<ResponseEntity<InteractionResponse>> {
 		val totalTimer = metrics.interactionTotalTime.startTimer()
 		val signature: String? = req.getHeader(HEADER_SIGNATURE)
 		val timestamp: String? = req.getHeader(HEADER_TIMESTAMP)
 		if (signature == null || timestamp == null) {
-			return ResponseEntity.badRequest().build()
+			return CompletableFuture.completedStage(ResponseEntity.badRequest().build())
 		}
 
 		if (!interactionValidator.validateSignature(signature, timestamp, rawBody)) {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+			return CompletableFuture.completedStage(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build())
 		}
 
 		val interaction = mapper.readValue(rawBody, UntypedInteractionObject::class.java).typed()
 		val result = CompletableDeferred<InteractionResponse>()
+		val resultSent = CompletableFuture<Void>().orTimeout(10, SECONDS)
+		val initialResponse = InitialResponse(result, resultSent)
+		req.setAttribute(CompletionInterceptor.ATTRIBUTE, resultSent)
 
-		interactionScope.launchInteractionProcessing(interaction, result, totalTimer)
+		interactionScope.launchInteractionProcessing(interaction, initialResponse, totalTimer)
 		return result.asCompletableFuture()
 			.thenApply { ResponseEntity.ok().body(it) }
 			.orTimeout(3, SECONDS)
-			.join()
-
 	}
 
-	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, result: CompletableDeferred<InteractionResponse>, totalTimer: Summary.Timer) =
+	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, initialResponse: InitialResponse, totalTimer: Summary.Timer) =
 		launch(CoroutineExceptionHandler { _, t -> log.error("Unhandled exception in coroutine", t) }) {
 			log.debug("Launching interaction processing coroutine!")
 
 			try {
 				when (interaction) {
-					is InteractionObject.Ping -> result.complete(InteractionResponse.Pong)
-					is InteractionWithData -> applicationCommandService.onInteraction(interaction, result)
+					is InteractionObject.Ping -> initialResponse.complete(InteractionResponse.Pong)
+					is InteractionWithData -> applicationCommandService.onInteraction(interaction, initialResponse)
 				}
 			} catch (t: Throwable) {
 				log.error("Uncaught error processing the interaction", t)
-				result.completeExceptionally(t)
+				initialResponse.completeExceptionally(t)
 			} finally {
 				totalTimer.observeDuration()
 			}

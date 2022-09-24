@@ -1,17 +1,16 @@
 package dev.capybaralabs.shipa.discord.interaction.command
 
 import dev.capybaralabs.shipa.ShipaMetrics
+import dev.capybaralabs.shipa.discord.interaction.InitialResponse
 import dev.capybaralabs.shipa.discord.interaction.InteractionRepository
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionService
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.logger
-import kotlinx.coroutines.CompletableDeferred
 import org.springframework.stereotype.Service
 
 interface ApplicationCommandService {
 
-	suspend fun onInteraction(interaction: InteractionWithData, result: CompletableDeferred<InteractionResponse>)
+	suspend fun onInteraction(interaction: InteractionWithData, initialResponse: InitialResponse)
 }
 
 
@@ -23,7 +22,7 @@ private class ApplicationCommandServiceImpl(
 	private val unifiedInteractionService: UnifiedInteractionService,
 ) : ApplicationCommandService {
 
-	override suspend fun onInteraction(interaction: InteractionWithData, result: CompletableDeferred<InteractionResponse>) {
+	override suspend fun onInteraction(interaction: InteractionWithData, initialResponse: InitialResponse) {
 		interactionRepository.save(interaction)
 
 		val command = when (interaction) {
@@ -38,7 +37,7 @@ private class ApplicationCommandServiceImpl(
 			return
 		}
 
-		val stateHolder = unifiedInteractionService.create(interaction, command.autoAckTactic(), result)
+		val stateHolder = unifiedInteractionService.create(interaction, command.autoAckTactic(), initialResponse)
 		metrics.commandProcessTime.labels(command.name(), interaction.type.name).startTimer().use {
 			command.onInteraction(stateHolder)
 		}

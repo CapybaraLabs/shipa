@@ -6,6 +6,7 @@ import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommandType.C
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionData.ApplicationCommandData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.ApplicationCommand
 import dev.capybaralabs.shipa.discord.model.DiscordLocale.GREEK
+import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -31,7 +32,7 @@ internal class ApplicationCommandServiceTest : ApplicationTest() {
 
 			assertThat(repo.find(42)).isNull()
 
-			service.onInteraction(interaction, CompletableDeferred())
+			service.onInteraction(interaction, InitialResponse(CompletableDeferred(), CompletableFuture()))
 
 			assertThat(repo.find(42))
 				.isNotNull

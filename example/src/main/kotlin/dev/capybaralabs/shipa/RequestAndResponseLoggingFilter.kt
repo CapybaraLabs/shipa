@@ -44,12 +44,16 @@ class RequestAndResponseLoggingFilter(private val objectMapper: ObjectMapper) : 
 	)
 
 	override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
-		if (isAsyncDispatch(request) || !logger.isInfoEnabled) {
+		if (!logger.isInfoEnabled) {
 			filterChain.doFilter(request, response)
 			return
 		}
 
 		doFilterWrapped(wrapRequest(request), wrapResponse(response), filterChain)
+	}
+
+	override fun shouldNotFilterAsyncDispatch(): Boolean {
+		return false
 	}
 
 	private fun doFilterWrapped(request: ContentCachingRequestWrapper, response: ContentCachingResponseWrapper, filterChain: FilterChain) {

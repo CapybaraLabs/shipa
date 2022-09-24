@@ -200,9 +200,9 @@ internal class UnifiedInteractionService(
 		return actors.getIfPresent(interaction.id)
 	}
 
-	suspend fun create(interaction: InteractionWithData, autoAckTactic: AutoAckTactic, result: CompletableDeferred<InteractionResponse>): InteractionStateHolder {
+	suspend fun create(interaction: InteractionWithData, autoAckTactic: AutoAckTactic, initialResponse: InitialResponse): InteractionStateHolder {
 
-		val state = UnifiedInteractionState(interaction, result, restService)
+		val state = UnifiedInteractionState(interaction, initialResponse, restService)
 		val actor = interactionScope.unifiedInteractionActor(state)
 		val stateHolder = InteractionStateHolderImpl(actor, interactionScope, interaction, autoAckTactic)
 		actors.put(interaction.id, stateHolder)
@@ -354,7 +354,7 @@ private class InteractionStateHolderImpl(
 
 private class UnifiedInteractionState(
 	val interaction: InteractionWithData,
-	private val initialResponse: CompletableDeferred<InteractionResponse>,
+	private val initialResponse: InitialResponse,
 	private val restService: InteractionRestService,
 ) {
 	fun ack(ephemeral: Boolean) {
@@ -384,6 +384,7 @@ private class UnifiedInteractionState(
 			return Result.Completed
 		}
 
+		initialResponse.awaitSent()
 		return Result.Edited(restService.editOriginalResponse(interaction.token, message))
 	}
 
@@ -398,6 +399,7 @@ private class UnifiedInteractionState(
 			return Result.Completed
 		}
 
+		initialResponse.awaitSent()
 		return Result.FollowedUp(restService.createFollowupMessage(interaction.token, message))
 	}
 
@@ -410,6 +412,7 @@ private class UnifiedInteractionState(
 			}
 		}
 
+		initialResponse.awaitSent()
 		return Result.FollowedUp(restService.createFollowupMessage(interaction.token, message))
 	}
 
@@ -418,6 +421,7 @@ private class UnifiedInteractionState(
 			throw IllegalStateException("Can't fetch on un-acked interaction") // but maybe message components or modals can?
 		}
 
+		initialResponse.awaitSent()
 		val fetched = if (messageId != null) {
 			restService.fetchFollowupMessage(interaction.token, messageId)
 		} else {
@@ -430,6 +434,7 @@ private class UnifiedInteractionState(
 		if (!initialResponse.isCompleted) {
 			throw IllegalStateException("Can't edit on un-acked interaction") // but maybe message components or modals can?
 		}
+		initialResponse.awaitSent()
 		val edited = if (messageId != null) {
 			restService.editFollowupMessage(interaction.token, message, messageId)
 		} else {
@@ -444,6 +449,7 @@ private class UnifiedInteractionState(
 			throw IllegalStateException("Can't delete on un-acked interaction") // but maybe message components or modals can?
 		}
 
+		initialResponse.awaitSent()
 		if (messageId != null) {
 			restService.deleteFollowupMessage(interaction.token, messageId)
 		} else {
