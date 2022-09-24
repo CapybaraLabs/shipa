@@ -1,6 +1,5 @@
-package dev.capybaralabs.shipa.discord
+package dev.capybaralabs.shipa
 
-import dev.capybaralabs.shipa.logger
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.time.Instant
