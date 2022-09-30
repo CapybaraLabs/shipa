@@ -62,11 +62,11 @@ class RequestAndResponseLoggingFilter(private val objectMapper: ObjectMapper) : 
 			beforeRequest(request, msg)
 			filterChain.doFilter(request, response)
 		} catch (e: Exception) {
-			logger().error("LOL", e)
+			logger.error("LOL", e)
 			throw e
 		} finally {
 			afterRequest(request, response, msg)
-			logger().info(msg.toString())
+			logger.info(msg.toString())
 			response.copyBodyToResponse()
 		}
 	}
