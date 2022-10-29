@@ -130,7 +130,7 @@ tasks.register("codeCoverageReport", JacocoReport) {
 	}
 }
 
-tasks.withType(org.sonarqube.gradle.SonarQubeTask) {
+tasks.withType(org.sonarqube.gradle.SonarTask) {
 	dependsOn codeCoverageReport
 }
 sonarqube {
