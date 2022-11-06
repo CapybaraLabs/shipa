@@ -106,7 +106,7 @@ class RestService(
 	}
 
 	private fun <R> instrument(request: RequestEntity<*>, block: () -> ResponseEntity<R>): ResponseEntity<R> {
-		val method = request.method?.name ?: "WTF"
+		val method = request.method?.name() ?: "WTF"
 		val uri = if (request is UriTemplateRequestEntity) request.uriTemplate else "Not Template"
 
 		val started = System.nanoTime()
@@ -117,11 +117,11 @@ class RestService(
 			val responseTimeSeconds: Double = responseTimeNanos / Collector.NANOSECONDS_PER_SECOND
 
 			metrics.discordRestRequests
-				.labels(method, uri, "${result.statusCodeValue}", "")
+				.labels(method, uri, "${result.statusCode.value()}", "")
 				.observe(responseTimeSeconds)
 
 			val responseTimeMillis = (responseTimeSeconds * 1000).toInt()
-			logger().debug("$method $uri ${responseTimeMillis}ms ${result.statusCodeValue}")
+			logger().debug("$method $uri ${responseTimeMillis}ms ${result.statusCode.value()}")
 
 			return result
 		} catch (e: RestClientResponseException) {
@@ -137,13 +137,13 @@ class RestService(
 			val errorCode = tree.get("code")?.asInt(-1) ?: -1
 
 			metrics.discordRestRequests
-				.labels(method, uri, "${e.rawStatusCode}", "$errorCode")
+				.labels(method, uri, "${e.statusCode.value()}", "$errorCode")
 				.observe(responseTimeSeconds)
 
 			val message = tree.get("message")?.asText()
 			val errors = tree.get("errors")?.asText()
 			val responseTimeMillis = (responseTimeSeconds * 1000).toInt()
-			logger().debug("Encountered error response: $method $uri ${responseTimeMillis}ms ${e.rawStatusCode} $errorCode $message $errors")
+			logger().debug("Encountered error response: $method $uri ${responseTimeMillis}ms ${e.statusCode.value()} $errorCode $message $errors")
 
 			throw e
 		} catch (e: RestClientException) {

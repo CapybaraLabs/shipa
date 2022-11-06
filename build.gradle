@@ -41,8 +41,8 @@ allprojects {
 	}
 
 	repositories {
-		// Use Maven Central for resolving dependencies.
 		mavenCentral()
+		maven { url "https://repo.spring.io/milestone" }
 	}
 }
 
@@ -100,7 +100,7 @@ tasks.named("dependencyUpdates").configure {
 static def properReleasesOnly() {
 	return { rules ->
 		rules.all { ComponentSelection selection ->
-			if (isNonStable(selection.candidate.version) && !isNonStable(selection.currentVersion)) {
+			if (isNonStable(selection.candidate.version) && (selection.hasProperty("currentVersion") && !isNonStable(selection.currentVersion))) {
 				reject("Release candidate")
 			}
 		}
