@@ -24,7 +24,7 @@ class DiscordClientConfiguration {
 	@Bean
 	fun restTemplate(properties: DiscordProperties, converter: MappingJackson2HttpMessageConverter): RestTemplate {
 		var builder = RestTemplateBuilder()
-			.rootUri("https://discord.com/api/v10/")
+			.rootUri(properties.discordApiRootUrl)
 			.messageConverters(converter)
 			.additionalInterceptors(
 				ClientHttpRequestInterceptor { req, body, exec ->

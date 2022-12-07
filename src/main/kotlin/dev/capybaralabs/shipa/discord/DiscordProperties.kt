@@ -7,4 +7,5 @@ data class DiscordProperties(
 	var publicKey: String = "",
 	var applicationId: Long = 0,
 	var botToken: String = "",
+	var discordApiRootUrl: String = "https://discord.com/api/v10/",
 )
