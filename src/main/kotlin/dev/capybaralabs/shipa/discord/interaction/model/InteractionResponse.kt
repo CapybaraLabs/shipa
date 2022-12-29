@@ -99,10 +99,25 @@ sealed interface InteractionCallback {
 		val choices: List<Choice>,
 	) : InteractionCallback {
 
-		data class Choice(
-			val name: String,
-			val value: String, // or Int or Double
-		)
+		interface Choice {
+			val name: String
+			val value: Any
+
+			data class StringChoice(
+				override val name: String,
+				override val value: String,
+			) : Choice
+
+			data class IntChoice(
+				override val name: String,
+				override val value: Int,
+			) : Choice
+
+			data class DoubleChoice(
+				override val name: String,
+				override val value: Double,
+			) : Choice
+		}
 	}
 
 	/**

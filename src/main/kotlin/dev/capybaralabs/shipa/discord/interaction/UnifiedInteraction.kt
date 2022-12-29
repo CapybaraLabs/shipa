@@ -8,6 +8,7 @@ import dev.capybaralabs.shipa.discord.interaction.AutoAckTactic.ACK_EPHEMERAL
 import dev.capybaralabs.shipa.discord.interaction.AutoAckTactic.DO_NOTHING
 import dev.capybaralabs.shipa.discord.interaction.InteractionResponseActionResult
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Ack
+import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Autocomplete
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.CompleteOrEdit
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.CompleteOrFollowup
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Delete
@@ -15,6 +16,7 @@ import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Edit
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Fetch
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Followup
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Autocomplete.Choice
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Flags
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.MessageComponent
@@ -54,7 +56,7 @@ val INTERACTION_TIMEOUT = 15.minutes
 
 /**
  * This class does all at once
- * - define the public API for end users for ALL interaction types TODO modal, autocomplete
+ * - define the public API for end users for ALL interaction types TODO modal
  * - state protection, via single coroutine concurrency (actor used in impl)
  * - timeout & auto-ack behaviour
  */
@@ -118,6 +120,11 @@ interface InteractionStateHolder {
 	 * @throws IllegalStateException if this interaction has not been acked yet
 	 */
 	fun deleteFollowup(messageId: Long): Deferred<Result.Deleted>
+
+	/**
+	 * Respond to an autocomplete interaction with a bunch of choices
+	 */
+	fun autocomplete(choices: List<Choice>): Deferred<Result.Completed>
 }
 
 enum class AutoAckTactic {
@@ -183,6 +190,11 @@ private sealed interface UnifiedInteractionMsg<E : Result> {
 		val messageId: Long?,
 		override val response: CompletableDeferred<Result.Deleted>,
 	) : UnifiedInteractionMsg<Result.Deleted>
+
+	data class Autocomplete(
+		val choices: List<Choice>,
+		override val response: CompletableDeferred<Result.Completed>,
+	) : UnifiedInteractionMsg<Result.Completed>
 }
 
 
@@ -222,6 +234,7 @@ internal class UnifiedInteractionService(
 						is Followup -> msg.response.complete(state.followup(msg.message, msg.autoAck))
 						is Fetch -> msg.response.complete(state.fetch(msg.messageId))
 						is Delete -> msg.response.complete(state.delete(msg.messageId))
+						is Autocomplete -> state.autocomplete(msg.choices).let { msg.response.complete(Result.Completed) }
 					}
 				}
 			} catch (t: TimeoutCancellationException) {
@@ -349,6 +362,12 @@ private class InteractionStateHolderImpl(
 		send(Delete(messageId, response))
 		return response
 	}
+
+	override fun autocomplete(choices: List<Choice>): Deferred<Result.Completed> {
+		val response = CompletableDeferred<Result.Completed>()
+		send(Autocomplete(choices, response))
+		return response
+	}
 }
 
 
@@ -457,4 +476,13 @@ private class UnifiedInteractionState(
 		}
 		return Result.Deleted
 	}
+
+	fun autocomplete(choices: List<Choice>) {
+		if (initialResponse.isCompleted) {
+			return
+		}
+
+		initialResponse.complete(InteractionResponse.Autocomplete(InteractionCallback.Autocomplete(choices)))
+	}
+
 }

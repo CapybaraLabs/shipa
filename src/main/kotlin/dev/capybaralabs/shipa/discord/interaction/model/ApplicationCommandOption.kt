@@ -20,8 +20,23 @@ data class ApplicationCommandOption(
 	val autocomplete: Boolean? = null,
 )
 
+interface ApplicationCommandOptionChoice {
+	val name: String
+	val value: Any
 
-data class ApplicationCommandOptionChoice(
-	val name: String,
-	val value: String, // or Int or Double
-)
+	data class StringChoice(
+		override val name: String,
+		override val value: String,
+	) : ApplicationCommandOptionChoice
+
+	data class IntChoice(
+		override val name: String,
+		override val value: Int,
+	) : ApplicationCommandOptionChoice
+
+	data class DoubleChoice(
+		override val name: String,
+		override val value: Double,
+	) : ApplicationCommandOptionChoice
+
+}

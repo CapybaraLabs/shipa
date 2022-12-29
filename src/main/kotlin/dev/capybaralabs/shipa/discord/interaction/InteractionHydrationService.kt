@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service
 /**
  * Create interaction state from interactions saved in the repo. Caution: The state is likely to be wrong,
  * and divert further due to concurrent usage. Callers need to ensure the correct operations are performed upon the state.
- * Sending new messages and editing the original message should be fine mostly, hence they are exposed.
  */
 interface InteractionHydrationService {
 
