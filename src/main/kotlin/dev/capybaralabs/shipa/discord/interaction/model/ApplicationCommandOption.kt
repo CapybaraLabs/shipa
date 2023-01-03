@@ -9,7 +9,7 @@ data class ApplicationCommandOption(
 	val type: ApplicationCommandOptionType,
 	val name: String,
 	val description: String,
-	val required: Boolean?,
+	val required: Boolean? = null, // defaults to false on Discord's end
 	val choices: List<ApplicationCommandOptionChoice>? = null,
 	val options: List<ApplicationCommandOption>? = null,
 	val channelTypes: List<ChannelType>? = null,
