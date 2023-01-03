@@ -37,7 +37,6 @@ data class PartialMember(
 	val communicationDisabledUntil: Optional<Instant>?,
 ) {
 
-	@OptIn(ExperimentalStdlibApi::class)
 	fun avatarUrl(guildId: Long, userId: Long): String? {
 		return avatar?.getOrNull()?.let { avatarHash ->
 			val ext = if (avatarHash.startsWith("a_")) "gif" else "png"

@@ -28,7 +28,6 @@ data class User(
 		return "<@$id>"
 	}
 
-	@OptIn(ExperimentalStdlibApi::class)
 	fun avatarUrl(): String {
 		return avatar.getOrNull()?.let { avatarHash ->
 			val ext = if (avatarHash.startsWith("a_")) "gif" else "png"

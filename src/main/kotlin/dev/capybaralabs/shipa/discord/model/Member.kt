@@ -36,7 +36,6 @@ class InteractionMember(
 	communicationDisabledUntil: Optional<Instant>?,
 ) : Member(user, nick, avatar, roles, joinedAt, premiumSince, deaf, mute, pending, permissions, communicationDisabledUntil) {
 
-	@OptIn(ExperimentalStdlibApi::class)
 	fun avatarUrl(guildId: Long): String {
 		return avatar?.getOrNull()?.let { avatarHash ->
 			val ext = if (avatarHash.startsWith("a_")) "gif" else "png"
