@@ -96,29 +96,8 @@ sealed interface InteractionCallback {
 	 * [Discord Interaction Response Callback Data Autocomplete](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-autocomplete)
 	 */
 	data class Autocomplete(
-		val choices: List<Choice>,
-	) : InteractionCallback {
-
-		interface Choice {
-			val name: String
-			val value: Any
-
-			data class StringChoice(
-				override val name: String,
-				override val value: String,
-			) : Choice
-
-			data class IntChoice(
-				override val name: String,
-				override val value: Int,
-			) : Choice
-
-			data class DoubleChoice(
-				override val name: String,
-				override val value: Double,
-			) : Choice
-		}
-	}
+		val choices: List<OptionChoice>,
+	) : InteractionCallback
 
 	/**
 	 * [Discord Interaction Response Callback Data Modal](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-modal)

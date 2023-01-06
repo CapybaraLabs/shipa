@@ -16,11 +16,11 @@ import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Edit
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Fetch
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Followup
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Autocomplete.Choice
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Flags
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.MessageComponent
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
+import dev.capybaralabs.shipa.discord.interaction.model.OptionChoice
 import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.Message
 import dev.capybaralabs.shipa.discord.model.MessageFlag.EPHEMERAL
@@ -124,7 +124,7 @@ interface InteractionStateHolder {
 	/**
 	 * Respond to an autocomplete interaction with a bunch of choices
 	 */
-	fun autocomplete(choices: List<Choice>): Deferred<Result.Completed>
+	fun autocomplete(choices: List<OptionChoice>): Deferred<Result.Completed>
 }
 
 enum class AutoAckTactic {
@@ -192,7 +192,7 @@ private sealed interface UnifiedInteractionMsg<E : Result> {
 	) : UnifiedInteractionMsg<Result.Deleted>
 
 	data class Autocomplete(
-		val choices: List<Choice>,
+		val choices: List<OptionChoice>,
 		override val response: CompletableDeferred<Result.Completed>,
 	) : UnifiedInteractionMsg<Result.Completed>
 }
@@ -363,7 +363,7 @@ private class InteractionStateHolderImpl(
 		return response
 	}
 
-	override fun autocomplete(choices: List<Choice>): Deferred<Result.Completed> {
+	override fun autocomplete(choices: List<OptionChoice>): Deferred<Result.Completed> {
 		val response = CompletableDeferred<Result.Completed>()
 		send(Autocomplete(choices, response))
 		return response
@@ -477,7 +477,7 @@ private class UnifiedInteractionState(
 		return Result.Deleted
 	}
 
-	fun autocomplete(choices: List<Choice>) {
+	fun autocomplete(choices: List<OptionChoice>) {
 		if (initialResponse.isCompleted) {
 			return
 		}

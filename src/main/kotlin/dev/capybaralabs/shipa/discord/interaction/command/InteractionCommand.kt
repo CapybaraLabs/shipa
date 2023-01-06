@@ -3,9 +3,9 @@ package dev.capybaralabs.shipa.discord.interaction.command
 import dev.capybaralabs.shipa.discord.interaction.AutoAckTactic
 import dev.capybaralabs.shipa.discord.interaction.AutoAckTactic.ACK_EPHEMERAL
 import dev.capybaralabs.shipa.discord.interaction.InteractionStateHolder
-import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Autocomplete.Choice.StringChoice
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Message
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.Autocomplete
+import dev.capybaralabs.shipa.discord.interaction.model.OptionChoice.StringChoice
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 
 interface InteractionCommand {
