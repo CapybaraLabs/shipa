@@ -25,7 +25,6 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.RequestEntity
 import org.springframework.http.RequestEntity.UriTemplateRequestEntity
 import org.springframework.http.ResponseEntity
-import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException.TooManyRequests
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
@@ -41,7 +40,6 @@ const val HEADER_SCOPE = "X-RateLimit-Scope"
 const val HEADER_RETRY_AFTER = "Retry-After"
 
 
-@Service
 class RestService(
 	private val restTemplate: RestTemplate,
 	private val bucketService: BucketService,

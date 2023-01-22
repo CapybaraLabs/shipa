@@ -1,6 +1,8 @@
 package dev.capybaralabs.shipa.discord.client
 
+import dev.capybaralabs.shipa.ShipaMetrics
 import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.client.ratelimit.BucketService
 import dev.capybaralabs.shipa.logger
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -19,10 +21,19 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.client.RestTemplate
 
 @Configuration
-class DiscordClientConfiguration {
+class DiscordClientConfiguration(
+	private val properties: DiscordProperties,
+	private val converter: MappingJackson2HttpMessageConverter,
+	private val bucketService: BucketService,
+	private val metrics: ShipaMetrics,
+) {
 
 	@Bean
-	fun restTemplate(properties: DiscordProperties, converter: MappingJackson2HttpMessageConverter): RestTemplate {
+	fun restService(): RestService {
+		return RestService(restTemplate(), bucketService, metrics)
+	}
+
+	private fun restTemplate(): RestTemplate {
 		var builder = RestTemplateBuilder()
 			.rootUri(properties.discordApiRootUrl)
 			.messageConverters(converter)
