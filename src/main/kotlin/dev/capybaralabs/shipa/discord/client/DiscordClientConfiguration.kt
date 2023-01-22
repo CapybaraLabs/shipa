@@ -26,6 +26,7 @@ class DiscordClientConfiguration(
 	private val converter: MappingJackson2HttpMessageConverter,
 	private val bucketService: BucketService,
 	private val metrics: ShipaMetrics,
+	private val restTemplateBuilder: RestTemplateBuilder,
 ) {
 
 	@Bean
@@ -34,7 +35,7 @@ class DiscordClientConfiguration(
 	}
 
 	private fun restTemplate(): RestTemplate {
-		var builder = RestTemplateBuilder()
+		var builder = restTemplateBuilder
 			.rootUri(properties.discordApiRootUrl)
 			.messageConverters(converter)
 			.additionalInterceptors(
