@@ -7,6 +7,7 @@ import dev.capybaralabs.shipa.discord.model.AllowedMentions
 import dev.capybaralabs.shipa.discord.model.Channel
 import dev.capybaralabs.shipa.discord.model.Embed
 import dev.capybaralabs.shipa.discord.model.IntBitfield
+import dev.capybaralabs.shipa.discord.model.Invite
 import dev.capybaralabs.shipa.discord.model.Message
 import dev.capybaralabs.shipa.discord.model.MessageFlag
 import java.util.Optional
@@ -107,5 +108,26 @@ class DiscordChannelRestService(
 //		val attachments: List<PartialAttachment>? = null,
 	)
 
+
+	// https://discord.com/developers/docs/resources/channel#create-channel-invite
+	suspend fun createInvite(channelId: Long, reason: String? = null, createRequest: CreateInvite? = null): Invite {
+		val builder = RequestEntity.post("/channels/{channelId}/invites", channelId)
+		reason?.let { builder.header("X-Audit-Log-Reason", it) }
+
+		return discordRestService.exchange<Invite>(
+			"$applicationId-$channelId",
+			builder.body(createRequest ?: CreateInvite()),
+		).body!!
+	}
+
+	data class CreateInvite(
+		val maxAge: Int? = null,
+		val maxUses: Int? = null,
+		val temporary: Boolean? = null,
+		val unique: Boolean? = null,
+		val targetType: Int? = null,
+		val targetUserId: Long? = null,
+		val targetApplicationId: Long? = null,
+	)
 
 }
