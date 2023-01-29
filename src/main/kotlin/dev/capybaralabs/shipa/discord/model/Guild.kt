@@ -25,7 +25,7 @@ data class Guild(
 	val explicitContentFilter: ExplicitContentFilterLevel,
 	val roles: List<Role>,
 	val emojis: List<Emoji>,
-	val features: List<GuildFeature>,
+	val features: List<String>, // don't use a enum, these change frequently and many are undocumented
 	val mfaLevel: MfaLevel?,
 	val applicationId: Optional<Long>,
 	val systemChannelId: Optional<Long>,
@@ -155,4 +155,7 @@ enum class GuildFeature {
 	THREE_DAY_THREAD_ARCHIVE,
 	COMMUNITY_EXP_LARGE_UNGATED,
 	NEW_THREAD_PERMISSIONS,
+	TEXT_IN_VOICE_ENABLED,
+	PRIVATE_THREADS,
+	COMMUNITY_EXP_LARGE_GATED,
 }

@@ -12,7 +12,7 @@ data class GuildPreview(
 	val splash: Optional<String>,
 	val discoverySplash: Optional<String>,
 	val emojis: List<Emoji>,
-	val features: List<GuildFeature>,
+	val features: List<String>,
 	val approximateMemberCount: Int,
 	val approximatePresenceCount: Int,
 	val description: Optional<String>,

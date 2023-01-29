@@ -6,7 +6,6 @@ import dev.capybaralabs.shipa.discord.model.DefaultMessageNotificationLevel
 import dev.capybaralabs.shipa.discord.model.DiscordLocale
 import dev.capybaralabs.shipa.discord.model.ExplicitContentFilterLevel
 import dev.capybaralabs.shipa.discord.model.Guild
-import dev.capybaralabs.shipa.discord.model.GuildFeature
 import dev.capybaralabs.shipa.discord.model.GuildPreview
 import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.Member
@@ -53,7 +52,7 @@ class DiscordGuildRestService(
 		val rulesChannelId: Optional<Long>? = null,
 		val publicUpdatesChannelId: Optional<Long>? = null,
 		val preferredLocale: Optional<DiscordLocale>? = null,
-		val features: List<GuildFeature>? = null,
+		val features: List<String>? = null,
 		val description: Optional<String>? = null,
 		val premiumProgressBarEnabled: Boolean? = null,
 	)
