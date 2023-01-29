@@ -4,6 +4,8 @@ import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.model.Channel
 import dev.capybaralabs.shipa.discord.model.User
+import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 import org.springframework.http.RequestEntity
 
 
@@ -46,5 +48,18 @@ class DiscordUserRestService(
 		).body!!
 	}
 
+	// https://discord.com/developers/docs/resources/user#modify-current-user
+	suspend fun modifyCurrentUser(username: String? = null, avatar: Optional<String>? = null): User {
+		val request = mutableMapOf<String, String?>()
+		username?.let { request.put("username", it) }
+		avatar?.let { request.put("avatar", it.getOrNull()) }
+
+		return discordRestService.exchange<User>(
+			"$applicationId",
+			RequestEntity
+				.patch("/users/@me")
+				.body(request)
+		).body!!
+	}
 
 }

@@ -2,9 +2,17 @@ package dev.capybaralabs.shipa.discord.client.entity
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
+import dev.capybaralabs.shipa.discord.model.DefaultMessageNotificationLevel
+import dev.capybaralabs.shipa.discord.model.DiscordLocale
+import dev.capybaralabs.shipa.discord.model.ExplicitContentFilterLevel
 import dev.capybaralabs.shipa.discord.model.Guild
+import dev.capybaralabs.shipa.discord.model.GuildFeature
 import dev.capybaralabs.shipa.discord.model.GuildPreview
+import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.Member
+import dev.capybaralabs.shipa.discord.model.SystemChannelFlag
+import dev.capybaralabs.shipa.discord.model.VerificationLevel
+import java.util.Optional
 import org.springframework.http.RequestEntity
 import org.springframework.web.util.UriComponentsBuilder
 
@@ -15,6 +23,40 @@ class DiscordGuildRestService(
 	properties: DiscordProperties,
 	discordRestService: DiscordRestService,
 ) : BaseDiscordEntityRestService(properties, discordRestService) {
+
+	// https://discord.com/developers/docs/resources/guild#modify-guild
+	suspend fun modifyGuild(guildId: Long, reason: String? = null, modifyRequest: ModifyGuild): Guild {
+		val builder = RequestEntity.patch("/guilds/{guildId}", guildId)
+		reason?.let { builder.header("X-Audit-Log-Reason", it) }
+
+
+		return discordRestService.exchange<Guild>(
+			"$applicationId-$guildId",
+			builder.body(modifyRequest),
+		).body!!
+	}
+
+	data class ModifyGuild(
+		val name: String? = null,
+		val verificationLevel: Optional<VerificationLevel>? = null,
+		val defaultMessageNotifications: Optional<DefaultMessageNotificationLevel>? = null,
+		val explicitContentFilter: Optional<ExplicitContentFilterLevel>? = null,
+		val afkChannelId: Optional<Long>? = null,
+		val afkTimeout: Long? = null, // seconds
+		val icon: Optional<String>? = null,
+		val ownerId: Long? = null,
+		val splash: Optional<String>? = null,
+		val discoverySplash: Optional<String>? = null,
+		val banner: Optional<String>? = null,
+		val systemChannelId: Optional<Long>? = null,
+		val systemChannelFlags: IntBitfield<SystemChannelFlag>? = null,
+		val rulesChannelId: Optional<Long>? = null,
+		val publicUpdatesChannelId: Optional<Long>? = null,
+		val preferredLocale: Optional<DiscordLocale>? = null,
+		val features: List<GuildFeature>? = null,
+		val description: Optional<String>? = null,
+		val premiumProgressBarEnabled: Boolean? = null,
+	)
 
 	// https://discord.com/developers/docs/resources/guild#get-guild
 	suspend fun fetchGuild(guildId: Long, withCounts: Boolean? = null): Guild {
