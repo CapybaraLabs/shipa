@@ -11,7 +11,7 @@ import java.util.Optional
 data class Message(
 	val id: Long,
 	val channelId: Long,
-	//	author
+	val author: User,
 	val content: String,
 	val timestamp: Instant,
 	val editedTimestamp: Optional<Instant>,
