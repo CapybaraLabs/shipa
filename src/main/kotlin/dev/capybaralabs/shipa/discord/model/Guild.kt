@@ -16,7 +16,7 @@ data class Guild(
 	val owner: Boolean?,
 	val ownerId: Long,
 	val permissions: StringBitfield<Permission>?,
-	val afkChannelId: Optional<Int>,
+	val afkChannelId: Optional<Long>,
 	val afkTimeout: Int,
 	val widgetEnabled: Boolean?,
 	val widgetChannelId: Optional<Long>?,
