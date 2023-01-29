@@ -9,14 +9,14 @@ import org.springframework.stereotype.Service
 @Service
 class DiscordEntityRestService(
 	properties: DiscordProperties,
-	private val restService: RestService,
+	private val discordRestService: DiscordRestService,
 ) {
 	private val applicationId = properties.applicationId
 
 
 	// https://discord.com/developers/docs/resources/channel#get-channel
 	suspend fun fetchChannel(channelId: Long): Channel {
-		return restService.exchange<Channel>(
+		return discordRestService.exchange<Channel>(
 			"$applicationId-$channelId",
 			RequestEntity
 				.get("/channels/{channelId}", channelId)
@@ -26,7 +26,7 @@ class DiscordEntityRestService(
 
 	// https://discord.com/developers/docs/resources/guild#get-guild
 	suspend fun fetchGuild(guildId: Long): Guild {
-		return restService.exchange<Guild>(
+		return discordRestService.exchange<Guild>(
 			"$applicationId-$guildId",
 			RequestEntity
 				.get("/guilds/{guildId}", guildId)

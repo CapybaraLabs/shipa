@@ -40,7 +40,7 @@ const val HEADER_SCOPE = "X-RateLimit-Scope"
 const val HEADER_RETRY_AFTER = "Retry-After"
 
 
-class RestService(
+class DiscordRestService(
 	private val restTemplate: RestTemplate,
 	private val bucketService: BucketService,
 	private val metrics: ShipaMetrics,

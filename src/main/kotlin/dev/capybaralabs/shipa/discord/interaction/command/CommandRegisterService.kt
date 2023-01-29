@@ -1,7 +1,7 @@
 package dev.capybaralabs.shipa.discord.interaction.command
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
-import dev.capybaralabs.shipa.discord.client.RestService
+import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommand
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand.GlobalCommand
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
 @Service
 class CommandRegisterService(
 	properties: DiscordProperties,
-	private val restService: RestService,
+	private val discordRestService: DiscordRestService,
 	private val environment: Environment,
 ) {
 
@@ -47,7 +47,7 @@ class CommandRegisterService(
 	suspend fun bulkOverwriteGlobally(commands: List<GlobalCommand>): List<ApplicationCommand> {
 		if (isTestEnvironment() || commands.isEmpty()) return listOf()
 
-		return restService.exchange<List<ApplicationCommand>>(
+		return discordRestService.exchange<List<ApplicationCommand>>(
 			"$applicationId",
 			RequestEntity
 				.put("/applications/{applicationId}/commands", applicationId)
@@ -58,7 +58,7 @@ class CommandRegisterService(
 	suspend fun bulkOverwriteGuild(guildId: Long, commands: List<GuildCommand>): List<ApplicationCommand> {
 		if (isTestEnvironment() || commands.isEmpty()) return listOf()
 
-		return restService.exchange<List<ApplicationCommand>>(
+		return discordRestService.exchange<List<ApplicationCommand>>(
 			"$applicationId-$guildId",
 			RequestEntity
 				.put("/applications/{applicationId}/guilds/{guildId}/commands", applicationId, guildId)
@@ -79,7 +79,7 @@ class CommandRegisterService(
 	suspend fun registerGlobally(command: GlobalCommand) {
 		if (isTestEnvironment()) return
 
-		restService.exchange<Void>(
+		discordRestService.exchange<Void>(
 			"$applicationId",
 			RequestEntity
 				.post("/applications/{applicationId}/commands", applicationId)
@@ -91,7 +91,7 @@ class CommandRegisterService(
 	suspend fun registerInGuild(command: GuildCommand, guildId: Long) {
 		if (isTestEnvironment()) return
 
-		restService.exchange<Void>(
+		discordRestService.exchange<Void>(
 			"$applicationId-$guildId",
 			RequestEntity
 				.post("/applications/{applicationId}/guilds/{guildId}/commands", applicationId, guildId)
@@ -110,7 +110,7 @@ class CommandRegisterService(
 	suspend fun deleteGlobalCommand(commandId: Long) {
 		if (isTestEnvironment()) return
 
-		restService.exchange<Void>(
+		discordRestService.exchange<Void>(
 			"$applicationId",
 			RequestEntity
 				.delete("/applications/{applicationId}/commands/{commandId}", applicationId, commandId)
@@ -121,7 +121,7 @@ class CommandRegisterService(
 	suspend fun deleteGuildCommand(commandId: Long, guildId: Long) {
 		if (isTestEnvironment()) return
 
-		restService.exchange<Void>(
+		discordRestService.exchange<Void>(
 			"$applicationId-$guildId",
 			RequestEntity
 				.delete("/applications/{applicationId}/guilds/{guildId}/commands/{commandId}", applicationId, guildId, commandId)

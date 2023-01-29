@@ -30,8 +30,8 @@ class DiscordClientConfiguration(
 ) {
 
 	@Bean
-	fun restService(): RestService {
-		return RestService(restTemplate(), bucketService, metrics)
+	fun discordRestService(): DiscordRestService {
+		return DiscordRestService(restTemplate(), bucketService, metrics)
 	}
 
 	private fun restTemplate(): RestTemplate {
