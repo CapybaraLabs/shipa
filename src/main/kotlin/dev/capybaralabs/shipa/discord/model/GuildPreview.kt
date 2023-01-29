@@ -11,7 +11,7 @@ data class GuildPreview(
 	val icon: Optional<String>,
 	val splash: Optional<String>,
 	val discoverySplash: Optional<String>,
-//	val emojis: List<Emoji>,
+	val emojis: List<Emoji>,
 	val features: List<GuildFeature>,
 	val approximateMemberCount: Int,
 	val approximatePresenceCount: Int,

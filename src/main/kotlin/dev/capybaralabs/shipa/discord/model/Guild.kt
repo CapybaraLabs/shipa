@@ -24,7 +24,7 @@ data class Guild(
 	val defaultMessageNotifications: DefaultMessageNotificationLevel,
 	val explicitContentFilter: ExplicitContentFilterLevel,
 	val roles: List<Role>,
-//	val emojis: List<Emoji>,
+	val emojis: List<Emoji>,
 	val features: List<GuildFeature>,
 	val mfaLevel: MfaLevel?,
 	val applicationId: Optional<Long>,

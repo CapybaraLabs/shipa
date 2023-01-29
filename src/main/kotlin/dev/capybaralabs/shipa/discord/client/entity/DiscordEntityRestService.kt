@@ -12,6 +12,7 @@ class DiscordEntityRestService(
 
 	val application = DiscordApplicationRestService(properties, discordRestService)
 	val channel = DiscordChannelRestService(properties, discordRestService)
+	val emoji = DiscordEmojiRestService(properties, discordRestService)
 	val guild = DiscordGuildRestService(properties, discordRestService)
 	val user = DiscordUserRestService(properties, discordRestService)
 
