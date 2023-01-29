@@ -7,7 +7,7 @@ import org.springframework.http.RequestEntity
 import org.springframework.stereotype.Service
 
 @Service
-class DiscordRestService(
+class DiscordEntityRestService(
 	properties: DiscordProperties,
 	private val restService: RestService,
 ) {
