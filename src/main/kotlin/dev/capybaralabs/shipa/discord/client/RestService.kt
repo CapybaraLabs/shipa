@@ -81,14 +81,19 @@ class RestService(
 						response = withContext(restDispatcher) {
 							instrument(request) { restTemplate.exchange(request, type) }
 						}
-					} catch (e: TooManyRequests) {
-						logger().info("Hit ratelimit on bucket $bucketKey: ${e.message}")
-						val resetAfter = e.responseHeaders?.let {
+					} catch (discordClientException: DiscordClientException) {
+						val cause = discordClientException.cause
+						if (cause !is TooManyRequests) {
+							throw discordClientException
+						}
+
+						logger().info("Hit ratelimit on bucket $bucketKey: ${cause.message}")
+						val resetAfter = cause.responseHeaders?.let {
 							updateBucket(bucket, it)
 							resetAfter(it)
 						}
 						if (resetAfter == null) {
-							logger().warn("Hit ratelimit on bucket $bucketKey but no known wait time. Backing off.", e)
+							logger().warn("Hit ratelimit on bucket $bucketKey but no known wait time. Backing off.", cause)
 							delay(1.seconds) // shrug
 						}
 						continue
@@ -143,7 +148,7 @@ class RestService(
 			val responseTimeMillis = (responseTimeSeconds * 1000).toInt()
 			logger().debug("Encountered error response: $method $uri ${responseTimeMillis}ms ${e.statusCode.value()} $errorCode $message $errors")
 
-			throw e
+			throw DiscordClientException(JsonErrorCode.parse(errorCode), message, errors, e)
 		} catch (e: RestClientException) {
 			throw hardRestFail(e, method, uri)
 		}
