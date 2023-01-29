@@ -9,7 +9,7 @@ import kotlin.jvm.optionals.getOrNull
  * [Discord Member](https://discord.com/developers/docs/resources/guild#guild-member-object)
  */
 open class Member(
-	open val user: User?,
+	open val user: User,  // only nullable in gateway events
 	val nick: Optional<String>?,
 	val avatar: Optional<String>?,
 	val roles: List<Long>,
@@ -23,7 +23,7 @@ open class Member(
 )
 
 class InteractionMember(
-	override val user: User, // only nullable in gateway events
+	user: User,
 	nick: Optional<String>?,
 	avatar: Optional<String>?,
 	roles: List<Long>,
