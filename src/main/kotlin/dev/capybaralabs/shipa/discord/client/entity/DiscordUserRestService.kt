@@ -2,6 +2,7 @@ package dev.capybaralabs.shipa.discord.client.entity
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
+import dev.capybaralabs.shipa.discord.model.Channel
 import dev.capybaralabs.shipa.discord.model.User
 import org.springframework.http.RequestEntity
 
@@ -33,5 +34,17 @@ class DiscordUserRestService(
 				.build()
 		).body!!
 	}
+
+
+	// https://discord.com/developers/docs/resources/user#create-dm
+	suspend fun createDm(recipientId: Long): Channel {
+		return discordRestService.exchange<Channel>(
+			"$applicationId",
+			RequestEntity
+				.post("/users/@me/channels")
+				.body(mapOf("recipient_id" to recipientId))
+		).body!!
+	}
+
 
 }

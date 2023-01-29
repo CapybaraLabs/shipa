@@ -66,4 +66,30 @@ class DiscordGuildRestService(
 		).body!!
 	}
 
+	// https://discord.com/developers/docs/resources/guild#remove-guild-member
+	suspend fun removeGuildMember(guildId: Long, userId: Long, reason: String? = null) {
+		val builder = RequestEntity.delete("/guilds/{guildId}/members/{userId}", guildId, userId)
+		reason?.let { builder.header("X-Audit-Log-Reason", it) }
+
+		discordRestService.exchange<Unit>(
+			"$applicationId-$guildId",
+			builder.build()
+		)
+	}
+
+	// https://discord.com/developers/docs/resources/guild#create-guild-ban
+	suspend fun createBan(guildId: Long, userId: Long, reason: String? = null, deleteMessageSeconds: Int? = null) {
+		val builder = RequestEntity.put("/guilds/{guildId}/bans/{userId}", guildId, userId)
+		reason?.let { builder.header("X-Audit-Log-Reason", it) }
+
+		val request = deleteMessageSeconds?.let {
+			builder.body(mapOf("delete_message_seconds" to deleteMessageSeconds))
+		} ?: builder.build()
+
+		discordRestService.exchange<Unit>(
+			"$applicationId-$guildId",
+			request
+		)
+	}
+
 }
