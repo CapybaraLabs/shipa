@@ -1,32 +1,20 @@
-package dev.capybaralabs.shipa.discord.client
+package dev.capybaralabs.shipa.discord.client.entity
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
-import dev.capybaralabs.shipa.discord.model.Channel
+import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.model.Guild
 import dev.capybaralabs.shipa.discord.model.GuildPreview
 import dev.capybaralabs.shipa.discord.model.Member
-import dev.capybaralabs.shipa.discord.model.User
 import org.springframework.http.RequestEntity
-import org.springframework.stereotype.Service
 import org.springframework.web.util.UriComponentsBuilder
 
-@Service
-class DiscordEntityRestService(
+/**
+ * Rest Client for the [Discord Guild Resource](https://discord.com/developers/docs/resources/guild)
+ */
+class DiscordGuildRestService(
 	properties: DiscordProperties,
-	private val discordRestService: DiscordRestService,
-) {
-	private val applicationId = properties.applicationId
-
-
-	// https://discord.com/developers/docs/resources/channel#get-channel
-	suspend fun fetchChannel(channelId: Long): Channel {
-		return discordRestService.exchange<Channel>(
-			"$applicationId-$channelId",
-			RequestEntity
-				.get("/channels/{channelId}", channelId)
-				.build()
-		).body!!
-	}
+	discordRestService: DiscordRestService,
+) : BaseDiscordEntityRestService(properties, discordRestService) {
 
 	// https://discord.com/developers/docs/resources/guild#get-guild
 	suspend fun fetchGuild(guildId: Long, withCounts: Boolean? = null): Guild {
@@ -63,7 +51,7 @@ class DiscordEntityRestService(
 	}
 
 	// https://discord.com/developers/docs/resources/guild#list-guild-members
-	suspend fun fetchGuildMembers(guildId: Long, limit: Int? = null, after: Long? = null): List<Member> {
+	suspend fun listGuildMembers(guildId: Long, limit: Int? = null, after: Long? = null): List<Member> {
 		val uriBuilder = UriComponentsBuilder
 			.fromUriString("/guilds/{guildId}/members")
 
@@ -77,16 +65,5 @@ class DiscordEntityRestService(
 				.build()
 		).body!!
 	}
-
-	// https://discord.com/developers/docs/resources/user#get-user
-	suspend fun fetchUser(userId: Long): User {
-		return discordRestService.exchange<User>(
-			"$applicationId",
-			RequestEntity
-				.get("/users/{userId}", userId)
-				.build()
-		).body!!
-	}
-
 
 }
