@@ -10,8 +10,9 @@ class DiscordEntityRestService(
 	discordRestService: DiscordRestService,
 ) {
 
-	val channel: DiscordChannelRestService = DiscordChannelRestService(properties, discordRestService)
-	val guild: DiscordGuildRestService = DiscordGuildRestService(properties, discordRestService)
-	val user: DiscordUserRestService = DiscordUserRestService(properties, discordRestService)
+	val application = DiscordApplicationRestService(properties, discordRestService)
+	val channel = DiscordChannelRestService(properties, discordRestService)
+	val guild = DiscordGuildRestService(properties, discordRestService)
+	val user = DiscordUserRestService(properties, discordRestService)
 
 }
