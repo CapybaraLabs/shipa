@@ -1,13 +1,13 @@
 # Shipa [![Release](https://jitpack.io/v/dev.capybaralabs/shipa.svg?style=flat-square)](https://jitpack.io/#dev.capybaralabs/shipa) [![Coverage](https://img.shields.io/sonar/coverage/dev.capybaralabs.shipa?server=https%3A%2F%2Fsonarcloud.io&style=flat-square)](https://sonarcloud.io/summary/overall?id=dev.capybaralabs.shipa)
 
-This is a discord interaction lib that fits CapybaraLabs' needs. It is named
+This is a discord interaction and rest client lib that fits CapybaraLabs' needs. It is named
 after [a beer](https://www.kehrwieder.beer/12/speaking-bottle/detail/15/shipa.html) which the original author was drinking when
 creating the repository.
 
 ## Usage
 
-This lib is in early development, and not ready for production. Only a subset of features has been implemented and
-tested.
+Not all features of the Discord API have been implemented and tested. Some abstractions and ABIs could be better.
+Other than that however, this lib is suited for production use.
 
 ### Gradle
 
