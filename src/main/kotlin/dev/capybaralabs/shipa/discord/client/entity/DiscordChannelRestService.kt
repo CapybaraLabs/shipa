@@ -112,7 +112,7 @@ class DiscordChannelRestService(
 	// https://discord.com/developers/docs/resources/channel#create-channel-invite
 	suspend fun createInvite(channelId: Long, reason: String? = null, createRequest: CreateInvite? = null): Invite {
 		val builder = RequestEntity.post("/channels/{channelId}/invites", channelId)
-		reason?.let { builder.header("X-Audit-Log-Reason", it) }
+		reason?.let { builder.header("X-Audit-Log-Reason", it.toAscii()) }
 
 		return discordRestService.exchange<Invite>(
 			"$applicationId-$channelId",

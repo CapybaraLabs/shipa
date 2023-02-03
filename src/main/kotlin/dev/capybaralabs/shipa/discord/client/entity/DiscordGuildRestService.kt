@@ -26,7 +26,7 @@ class DiscordGuildRestService(
 	// https://discord.com/developers/docs/resources/guild#modify-guild
 	suspend fun modifyGuild(guildId: Long, reason: String? = null, modifyRequest: ModifyGuild): Guild {
 		val builder = RequestEntity.patch("/guilds/{guildId}", guildId)
-		reason?.let { builder.header("X-Audit-Log-Reason", it) }
+		reason?.let { builder.header("X-Audit-Log-Reason", it.toAscii()) }
 
 
 		return discordRestService.exchange<Guild>(
@@ -110,7 +110,7 @@ class DiscordGuildRestService(
 	// https://discord.com/developers/docs/resources/guild#remove-guild-member
 	suspend fun removeGuildMember(guildId: Long, userId: Long, reason: String? = null) {
 		val builder = RequestEntity.delete("/guilds/{guildId}/members/{userId}", guildId, userId)
-		reason?.let { builder.header("X-Audit-Log-Reason", it) }
+		reason?.let { builder.header("X-Audit-Log-Reason", it.toAscii()) }
 
 		discordRestService.exchange<Unit>(
 			"$applicationId-$guildId",
@@ -121,7 +121,7 @@ class DiscordGuildRestService(
 	// https://discord.com/developers/docs/resources/guild#create-guild-ban
 	suspend fun createBan(guildId: Long, userId: Long, reason: String? = null, deleteMessageSeconds: Int? = null) {
 		val builder = RequestEntity.put("/guilds/{guildId}/bans/{userId}", guildId, userId)
-		reason?.let { builder.header("X-Audit-Log-Reason", it) }
+		reason?.let { builder.header("X-Audit-Log-Reason", it.toAscii()) }
 
 		val request = deleteMessageSeconds?.let {
 			builder.body(mapOf("delete_message_seconds" to deleteMessageSeconds))
