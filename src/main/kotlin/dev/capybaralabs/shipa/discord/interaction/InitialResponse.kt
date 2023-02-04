@@ -9,7 +9,7 @@ class InitialResponse(
 	// Complete with the initial result that we should respond to the Discord's interaction webhook.
 	private val result: CompletableDeferred<InteractionResponse>,
 	// Best effort estimation whether we already responded to Discord's interaction webhook. await on it before sending rest requests to minimize Unknown Webhook errors.
-	private val resultSent: CompletableFuture<Void>,
+	private val resultSent: CompletableFuture<Unit>,
 ) {
 
 	fun complete(value: InteractionResponse) {

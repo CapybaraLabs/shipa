@@ -13,9 +13,12 @@ import jakarta.servlet.http.HttpServletRequest
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit.SECONDS
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
@@ -62,8 +65,16 @@ internal class InteractionController(
 
 		val interaction = mapper.readValue(rawBody, UntypedInteractionObject::class.java).typed()
 		val result = CompletableDeferred<InteractionResponse>()
-		val resultSent = CompletableFuture<Void>().orTimeout(10, SECONDS)
-		val initialResponse = InitialResponse(result, resultSent)
+		val resultSent = CompletableFuture<Unit>().orTimeout(10, SECONDS)
+
+		val initialResponse = InitialResponse(
+			result,
+			resultSent
+				.thenCompose {
+					// give Discord some time to process our response before we start sending followup requests
+					interactionScope.async { delay(200.milliseconds) }.asCompletableFuture()
+				}
+		)
 		req.setAttribute(CompletionInterceptor.ATTRIBUTE, resultSent)
 
 		interactionScope.launchInteractionProcessing(interaction, initialResponse, totalTimer)

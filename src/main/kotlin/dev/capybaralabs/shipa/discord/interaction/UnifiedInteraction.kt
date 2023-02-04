@@ -266,7 +266,7 @@ private class InteractionStateHolderImpl(
 ) : InteractionStateHolder {
 
 	companion object {
-		private val AUTO_ACK_DELAY = 2_800.milliseconds
+		private val AUTO_ACK_DELAY = 2_000.milliseconds
 		private val REMAINING_INTERACTION_TIMEOUT_DELAY = INTERACTION_TIMEOUT.minus(AUTO_ACK_DELAY)
 	}
 
