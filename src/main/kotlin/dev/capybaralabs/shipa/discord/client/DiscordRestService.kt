@@ -77,6 +77,7 @@ class DiscordRestService(
 					}
 
 					val response: ResponseEntity<R>
+					val uri = uri(request)
 					try {
 						response = withContext(restDispatcher) {
 							instrument(request) { restTemplate.exchange(request, type) }
@@ -89,7 +90,7 @@ class DiscordRestService(
 
 						logger().info("Hit ratelimit on bucket {}: {}", bucketKey, cause.message)
 						val resetAfter = cause.responseHeaders?.let {
-							updateBucket(bucket, it)
+							updateBucket(bucket, it, uri)
 							resetAfter(it)
 						}
 						if (resetAfter == null) {
@@ -99,7 +100,7 @@ class DiscordRestService(
 						continue
 					}
 
-					updateBucket(bucket, response.headers)
+					updateBucket(bucket, response.headers, uri)
 					return response
 				}
 			} finally {
@@ -108,9 +109,13 @@ class DiscordRestService(
 		}
 	}
 
+	private fun uri(request: RequestEntity<*>): String {
+		return if (request is UriTemplateRequestEntity) request.uriTemplate else "Not Template"
+	}
+
 	private fun <R> instrument(request: RequestEntity<*>, block: () -> ResponseEntity<R>): ResponseEntity<R> {
 		val method = request.method?.name() ?: "WTF"
-		val uri = if (request is UriTemplateRequestEntity) request.uriTemplate else "Not Template"
+		val uri = uri(request)
 
 		val started = System.nanoTime()
 		try {
@@ -160,7 +165,7 @@ class DiscordRestService(
 		return e
 	}
 
-	private fun updateBucket(bucket: Bucket, responseHeaders: HttpHeaders) {
+	private fun updateBucket(bucket: Bucket, responseHeaders: HttpHeaders, uri: String) {
 		val limit = responseHeaders.getFirst(HEADER_LIMIT)?.toInt()
 		val remaining = responseHeaders.getFirst(HEADER_REMAINING)?.toInt()
 		val resetAfter = resetAfter(responseHeaders)
@@ -170,22 +175,30 @@ class DiscordRestService(
 		if (resetAfter != null) bucket.nextReset = Instant.now().plus(resetAfter)
 
 
-		val name = discordBucketName(responseHeaders)
+		val name = discordBucketName(responseHeaders, uri)
 		logger().debug("Got Bucket {} with {} {} {}", name, limit, remaining, resetAfter)
 		if (bucket.discordName != null && bucket.discordName != name) {
 			logger().warn(
-				"Got different discord bucket names {} -> {}. Could indicate a problem with bucket key determination.",
-				bucket.discordName, name
+				"Got different discord bucket names {} -> {} on route {}. Could indicate a problem with bucket key determination.",
+				bucket.discordName, name, uri,
 			)
 		}
 		bucket.discordName = name
 	}
 
-	private fun discordBucketName(responseHeaders: HttpHeaders): String {
+	private fun discordBucketName(responseHeaders: HttpHeaders, uri: String): String {
 		val isGlobal = responseHeaders.getFirst(HEADER_GLOBAL) == "true"
 			|| responseHeaders.getFirst(HEADER_SCOPE) == "global"
 
-		return if (isGlobal) "global" else responseHeaders.getFirst(HEADER_BUCKET) ?: "unknown"
+		if (isGlobal) {
+			return "global"
+		}
+		val header = responseHeaders.getFirst(HEADER_BUCKET)
+		if (header != null) {
+			return header
+		}
+		logger().warn("Unknown bucket header on request: {}", uri)
+		return "unknown"
 	}
 
 	private fun resetAfter(responseHeaders: HttpHeaders): Duration? {
