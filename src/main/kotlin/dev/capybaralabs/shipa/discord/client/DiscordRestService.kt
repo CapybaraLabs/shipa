@@ -87,13 +87,13 @@ class DiscordRestService(
 							throw discordClientException
 						}
 
-						logger().info("Hit ratelimit on bucket $bucketKey: ${cause.message}")
+						logger().info("Hit ratelimit on bucket {}: {}", bucketKey, cause.message)
 						val resetAfter = cause.responseHeaders?.let {
 							updateBucket(bucket, it)
 							resetAfter(it)
 						}
 						if (resetAfter == null) {
-							logger().warn("Hit ratelimit on bucket $bucketKey but no known wait time. Backing off.", cause)
+							logger().warn("Hit ratelimit on bucket {} but no known wait time. Backing off.", bucketKey, cause)
 							delay(1.seconds) // shrug
 						}
 						continue
@@ -124,7 +124,7 @@ class DiscordRestService(
 				.observe(responseTimeSeconds)
 
 			val responseTimeMillis = (responseTimeSeconds * 1000).toInt()
-			logger().debug("$method $uri ${responseTimeMillis}ms ${result.statusCode.value()}")
+			logger().debug("{} {} {}ms {}", method, uri, responseTimeMillis, result.statusCode.value())
 
 			return result
 		} catch (e: RestClientResponseException) {
@@ -146,7 +146,7 @@ class DiscordRestService(
 			val message = tree.get("message")?.asText()
 			val errors = tree.get("errors")?.asText()
 			val responseTimeMillis = (responseTimeSeconds * 1000).toInt()
-			logger().debug("Encountered error response: $method $uri ${responseTimeMillis}ms ${e.statusCode.value()} $errorCode $message $errors")
+			logger().debug("Encountered error response: {} {} {}ms {} {} {} {}", method, uri, responseTimeMillis, e.statusCode.value(), errorCode, message, errors)
 
 			throw DiscordClientException(JsonErrorCode.parse(errorCode), message, errors, e)
 		} catch (e: RestClientException) {
@@ -156,7 +156,7 @@ class DiscordRestService(
 
 	private fun hardRestFail(e: Exception, method: String, uri: String): Exception {
 		metrics.discordRestHardFailures.labels(method, uri).inc()
-		logger().warn("Failed request to: $method $uri", e)
+		logger().warn("Failed request to: {} {}", method, uri, e)
 		return e
 	}
 
@@ -171,9 +171,12 @@ class DiscordRestService(
 
 
 		val name = discordBucketName(responseHeaders)
-		logger().debug("Got Bucket $name with $limit $remaining $resetAfter")
+		logger().debug("Got Bucket {} with {} {} {}", name, limit, remaining, resetAfter)
 		if (bucket.discordName != null && bucket.discordName != name) {
-			logger().warn("Got different discord bucket names ${bucket.discordName} -> $name. Could indicate a problem with bucket key determination.")
+			logger().warn(
+				"Got different discord bucket names {} -> {}. Could indicate a problem with bucket key determination.",
+				bucket.discordName, name
+			)
 		}
 		bucket.discordName = name
 	}

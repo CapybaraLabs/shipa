@@ -282,7 +282,7 @@ private class InteractionStateHolderImpl(
 			delay(REMAINING_INTERACTION_TIMEOUT_DELAY)
 			actor.close()
 		}.invokeOnCompletion {
-			logger().debug("Closed actor for interaction ${interaction.id}")
+			logger().debug("Closed actor for interaction {}", interaction.id)
 		}
 	}
 
