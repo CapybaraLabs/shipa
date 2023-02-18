@@ -60,8 +60,9 @@ class DiscordChannelRestService(
 
 	// https://discord.com/developers/docs/resources/channel#get-channel-messages
 	suspend fun fetchMessages(channelId: Long, around: Long? = null, before: Long? = null, after: Long? = null, limit: Int? = null): List<Message> {
+		val uriTemplate = "/channels/{channelId}/messages"
 		val uriBuilder = UriComponentsBuilder
-			.fromUriString("/channels/{channelId}/messages")
+			.fromUriString(uriTemplate)
 
 		around?.let { uriBuilder.queryParam("around", it) }
 		before?.let { uriBuilder.queryParam("before", it) }
@@ -72,7 +73,8 @@ class DiscordChannelRestService(
 			"$applicationId-$channelId",
 			RequestEntity
 				.get(uriBuilder.buildAndExpand(channelId).toUriString())
-				.build()
+				.build(),
+			uriTemplate,
 		).body!!
 	}
 

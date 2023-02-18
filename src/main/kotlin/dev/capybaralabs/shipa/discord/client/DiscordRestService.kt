@@ -61,12 +61,24 @@ class DiscordRestService(
 	 *  - webhookId + token
 	 *
 	 * The applicationId should also be included, especially in case multiple applications are used.
+	 *
+	 * If the RequestEntity was constructed using a complex URI builder, provide a generic URI template to overide it
+	 * for tracking, otherwise logs and metrics will contain concrete parameters, leading to high cardinality.
 	 */
-	final suspend inline fun <reified R> exchange(bucketKey: String, request: RequestEntity<*>): ResponseEntity<R> {
-		return exchange(bucketKey, request, object : ParameterizedTypeReference<R>() {})
+	suspend inline fun <reified R> exchange(
+		bucketKey: String,
+		request: RequestEntity<*>,
+		uriTemplateOverride: String? = null,
+	): ResponseEntity<R> {
+		return exchange(bucketKey, request, object : ParameterizedTypeReference<R>() {}, uriTemplateOverride)
 	}
 
-	suspend fun <R> exchange(bucketKey: String, request: RequestEntity<*>, type: ParameterizedTypeReference<R>): ResponseEntity<R> {
+	suspend fun <R> exchange(
+		bucketKey: String,
+		request: RequestEntity<*>,
+		type: ParameterizedTypeReference<R>,
+		uriTemplateOverride: String? = null,
+	): ResponseEntity<R> {
 		val bucket = bucketService.bucket(bucketKey)
 		bucket.mutex.withLock {
 			try {
@@ -77,10 +89,10 @@ class DiscordRestService(
 					}
 
 					val response: ResponseEntity<R>
-					val uri = uri(request)
+					val uriTemplate = uriTemplateOverride ?: detectUriTemplate(request)
 					try {
 						response = withContext(restDispatcher) {
-							instrument(request) { restTemplate.exchange(request, type) }
+							instrument(request, uriTemplate) { restTemplate.exchange(request, type) }
 						}
 					} catch (discordClientException: DiscordClientException) {
 						val cause = discordClientException.cause
@@ -90,7 +102,7 @@ class DiscordRestService(
 
 						logger().info("Hit ratelimit on bucket {}: {}", bucketKey, cause.message)
 						val resetAfter = cause.responseHeaders?.let {
-							updateBucket(bucket, it, uri)
+							updateBucket(bucket, it, uriTemplate)
 							resetAfter(it)
 						}
 						if (resetAfter == null) {
@@ -100,7 +112,7 @@ class DiscordRestService(
 						continue
 					}
 
-					updateBucket(bucket, response.headers, uri)
+					updateBucket(bucket, response.headers, uriTemplate)
 					return response
 				}
 			} finally {
@@ -109,13 +121,12 @@ class DiscordRestService(
 		}
 	}
 
-	private fun uri(request: RequestEntity<*>): String {
+	private fun detectUriTemplate(request: RequestEntity<*>): String {
 		return if (request is UriTemplateRequestEntity) request.uriTemplate else "Not Template"
 	}
 
-	private fun <R> instrument(request: RequestEntity<*>, block: () -> ResponseEntity<R>): ResponseEntity<R> {
+	private fun <R> instrument(request: RequestEntity<*>, uriTemplate: String, block: () -> ResponseEntity<R>): ResponseEntity<R> {
 		val method = request.method?.name() ?: "WTF"
-		val uri = uri(request)
 
 		val started = System.nanoTime()
 		try {
@@ -125,11 +136,11 @@ class DiscordRestService(
 			val responseTimeSeconds: Double = responseTimeNanos / Collector.NANOSECONDS_PER_SECOND
 
 			metrics.discordRestRequests
-				.labels(method, uri, "${result.statusCode.value()}", "")
+				.labels(method, uriTemplate, "${result.statusCode.value()}", "")
 				.observe(responseTimeSeconds)
 
 			val responseTimeMillis = (responseTimeSeconds * 1000).toInt()
-			logger().debug("{} {} {}ms {}", method, uri, responseTimeMillis, result.statusCode.value())
+			logger().debug("{} {} {}ms {}", method, uriTemplate, responseTimeMillis, result.statusCode.value())
 
 			return result
 		} catch (e: RestClientResponseException) {
@@ -140,32 +151,32 @@ class DiscordRestService(
 			val tree = try {
 				mapper.readTree(e.responseBodyAsString)
 			} catch (e: JsonProcessingException) {
-				throw hardRestFail(e, method, uri)
+				throw hardRestFail(e, method, uriTemplate)
 			}
 			val errorCode = tree.get("code")?.asInt(-1) ?: -1
 
 			metrics.discordRestRequests
-				.labels(method, uri, "${e.statusCode.value()}", "$errorCode")
+				.labels(method, uriTemplate, "${e.statusCode.value()}", "$errorCode")
 				.observe(responseTimeSeconds)
 
 			val message = tree.get("message")?.asText()
 			val errors = tree.get("errors")?.asText()
 			val responseTimeMillis = (responseTimeSeconds * 1000).toInt()
-			logger().debug("Encountered error response: {} {} {}ms {} {} {} {}", method, uri, responseTimeMillis, e.statusCode.value(), errorCode, message, errors)
+			logger().debug("Encountered error response: {} {} {}ms {} {} {} {}", method, uriTemplate, responseTimeMillis, e.statusCode.value(), errorCode, message, errors)
 
 			throw DiscordClientException(JsonErrorCode.parse(errorCode), message, errors, e)
 		} catch (e: RestClientException) {
-			throw hardRestFail(e, method, uri)
+			throw hardRestFail(e, method, uriTemplate)
 		}
 	}
 
-	private fun hardRestFail(e: Exception, method: String, uri: String): Exception {
-		metrics.discordRestHardFailures.labels(method, uri).inc()
-		logger().warn("Failed request to: {} {}", method, uri, e)
+	private fun hardRestFail(e: Exception, method: String, uriTemplate: String): Exception {
+		metrics.discordRestHardFailures.labels(method, uriTemplate).inc()
+		logger().warn("Failed request to: {} {}", method, uriTemplate, e)
 		return e
 	}
 
-	private fun updateBucket(bucket: Bucket, responseHeaders: HttpHeaders, uri: String) {
+	private fun updateBucket(bucket: Bucket, responseHeaders: HttpHeaders, uriTemplate: String) {
 		val limit = responseHeaders.getFirst(HEADER_LIMIT)?.toInt()
 		val remaining = responseHeaders.getFirst(HEADER_REMAINING)?.toInt()
 		val resetAfter = resetAfter(responseHeaders)
@@ -175,18 +186,18 @@ class DiscordRestService(
 		if (resetAfter != null) bucket.nextReset = Instant.now().plus(resetAfter)
 
 
-		val name = discordBucketName(responseHeaders, uri)
-		logger().debug("Got Bucket {} with {} {} {}", name, limit, remaining, resetAfter)
+		val name = discordBucketName(responseHeaders, uriTemplate)
+		logger().info("Got Bucket {} with {} {} {} on route {}", name, limit, remaining, resetAfter, uriTemplate)
 		if (bucket.discordName != null && bucket.discordName != name) {
 			logger().warn(
 				"Got different discord bucket names {} -> {} on route {}. Could indicate a problem with bucket key determination.",
-				bucket.discordName, name, uri,
+				bucket.discordName, name, uriTemplate,
 			)
 		}
 		bucket.discordName = name
 	}
 
-	private fun discordBucketName(responseHeaders: HttpHeaders, uri: String): String {
+	private fun discordBucketName(responseHeaders: HttpHeaders, uriTemplate: String): String {
 		val isGlobal = responseHeaders.getFirst(HEADER_GLOBAL) == "true"
 			|| responseHeaders.getFirst(HEADER_SCOPE) == "global"
 
@@ -197,7 +208,7 @@ class DiscordRestService(
 		if (header != null) {
 			return header
 		}
-		logger().warn("Unknown bucket header on request: {}", uri)
+		logger().warn("Unknown bucket header on request: {}, headers: {}", uriTemplate, responseHeaders)
 		return "unknown"
 	}
 

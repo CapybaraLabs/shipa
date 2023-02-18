@@ -59,15 +59,17 @@ class DiscordGuildRestService(
 
 	// https://discord.com/developers/docs/resources/guild#get-guild
 	suspend fun fetchGuild(guildId: Long, withCounts: Boolean? = null): Guild {
+		val uriTemplate = "/guilds/{guildId}"
 		val uriBuilder = UriComponentsBuilder
-			.fromUriString("/guilds/{guildId}")
+			.fromUriString(uriTemplate)
 		withCounts?.let { uriBuilder.queryParam("with_counts", it) }
 
 		return discordRestService.exchange<Guild>(
 			"$applicationId-$guildId",
 			RequestEntity
 				.get(uriBuilder.buildAndExpand(guildId).toUriString())
-				.build()
+				.build(),
+			uriTemplate,
 		).body!!
 	}
 
@@ -93,8 +95,9 @@ class DiscordGuildRestService(
 
 	// https://discord.com/developers/docs/resources/guild#list-guild-members
 	suspend fun listGuildMembers(guildId: Long, limit: Int? = null, after: Long? = null): List<Member> {
+		val uriTemplate = "/guilds/{guildId}/members"
 		val uriBuilder = UriComponentsBuilder
-			.fromUriString("/guilds/{guildId}/members")
+			.fromUriString(uriTemplate)
 
 		limit?.let { uriBuilder.queryParam("limit", it) }
 		after?.let { uriBuilder.queryParam("after", it) }
@@ -103,7 +106,8 @@ class DiscordGuildRestService(
 			"$applicationId-$guildId",
 			RequestEntity
 				.get(uriBuilder.buildAndExpand(guildId).toUriString())
-				.build()
+				.build(),
+			uriTemplate,
 		).body!!
 	}
 
