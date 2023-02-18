@@ -52,6 +52,9 @@ data class User(
 		}
 	}
 
+	fun tag(): String {
+		return "$username#$discriminator"
+	}
 }
 
 enum class UserFlag(override val value: Int) : IntBitflag {

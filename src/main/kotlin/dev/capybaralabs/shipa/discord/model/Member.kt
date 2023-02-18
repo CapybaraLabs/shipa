@@ -34,6 +34,14 @@ open class Member(
 			ImageFormatting.imageUrl("/guilds/$guildId/users/${user.id}/avatars/$it", format)
 		}
 	}
+
+	fun mention(): String {
+		return user.asMention()
+	}
+
+	fun displayName(): String {
+		return nick?.getOrNull() ?: user.username
+	}
 }
 
 class InteractionMember(

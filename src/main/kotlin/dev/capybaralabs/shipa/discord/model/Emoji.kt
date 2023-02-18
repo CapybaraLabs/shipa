@@ -10,7 +10,7 @@ import kotlin.jvm.optionals.getOrNull
  */
 data class Emoji(
 	val id: Optional<Long>,
-	val name: Optional<String>,
+	val name: String, // only nullable in reaction emojis which we currently don't support
 	val roles: List<Long>?,
 	val user: User?,
 	val requireColons: Boolean?,
@@ -18,6 +18,11 @@ data class Emoji(
 	val animated: Boolean?,
 	val available: Boolean?,
 ) {
+
+	fun asMention(): String {
+		val id = id.getOrNull() ?: return name
+		return "<${if (animated == true) "a" else ""}:$name:$id>"
+	}
 
 	fun emojiUrl(): String? {
 		return id.getOrNull()?.let {
