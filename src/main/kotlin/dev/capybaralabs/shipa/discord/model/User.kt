@@ -1,5 +1,7 @@
 package dev.capybaralabs.shipa.discord.model
 
+import dev.capybaralabs.shipa.discord.model.ImageFormatting.Format.GIF
+import dev.capybaralabs.shipa.discord.model.ImageFormatting.Format.PNG
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
@@ -28,16 +30,28 @@ data class User(
 		return "<@$id>"
 	}
 
-	fun avatarUrl(): String {
-		return avatar.getOrNull()?.let { avatarHash ->
-			val ext = if (avatarHash.startsWith("a_")) "gif" else "png"
-			"https://cdn.discordapp.com/avatars/${id}/$avatarHash.$ext"
-		} ?: defaultAvatarUrl()
+	fun effectiveAvatarUrl(): String {
+		return avatarUrl() ?: defaultAvatarUrl()
 	}
 
 	private fun defaultAvatarUrl(): String {
-		return "https://cdn.discordapp.com/embed/avatars/${discriminator.toInt() % 5}.png"
+		return ImageFormatting.imageUrl("/embed/avatars/${discriminator.toInt() % 5}", PNG)
 	}
+
+	fun avatarUrl(): String? {
+		return avatar.getOrNull()?.let {
+			val format = if (it.startsWith("a_")) GIF else PNG
+			ImageFormatting.imageUrl("/avatars/$id/$it", format)
+		}
+	}
+
+	fun bannerUrl(): String? {
+		return banner?.getOrNull()?.let {
+			val format = if (it.startsWith("a_")) GIF else PNG
+			ImageFormatting.imageUrl("/banners/$id/$it", format)
+		}
+	}
+
 }
 
 enum class UserFlag(override val value: Int) : IntBitflag {

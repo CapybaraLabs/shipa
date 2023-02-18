@@ -1,6 +1,8 @@
 package dev.capybaralabs.shipa.discord.model
 
+import dev.capybaralabs.shipa.discord.model.ImageFormatting.Format.PNG
 import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * [Discord Application](https://discord.com/developers/docs/resources/application#application-object)
@@ -27,7 +29,20 @@ data class Application(
 //	val installParams: InstallParams?,
 	val customInstallUrl: String?,
 	val roleConnectionVerificationUrl: String?,
-)
+) {
+
+	fun iconUrl(): String? {
+		return icon.getOrNull()?.let {
+			ImageFormatting.imageUrl("/app-icons/$id/$it", PNG)
+		}
+	}
+
+	fun coverUrl(): String? {
+		return coverImage?.let {
+			ImageFormatting.imageUrl("/app-icons/$id/$it", PNG)
+		}
+	}
+}
 
 /**
  * [Application Flags](https://discord.com/developers/docs/resources/application#application-object-application-flags)

@@ -1,7 +1,10 @@
 package dev.capybaralabs.shipa.discord.model
 
 import com.fasterxml.jackson.annotation.JsonValue
+import dev.capybaralabs.shipa.discord.model.ImageFormatting.Format.GIF
+import dev.capybaralabs.shipa.discord.model.ImageFormatting.Format.PNG
 import java.util.Optional
+import kotlin.jvm.optionals.getOrNull
 
 /**
  * [Discord Guild Object](https://discord.com/developers/docs/resources/guild#guild-object)
@@ -47,7 +50,34 @@ data class Guild(
 	val nsfwLevel: GuildNsfwLevel,
 //	val stickers: List<Sticker>,
 	val premiumProgressBarEnabled: Boolean,
-)
+) {
+
+	fun iconUrl(): String? {
+		return icon.getOrNull()?.let {
+			val format = if (it.startsWith("a_")) GIF else PNG
+			ImageFormatting.imageUrl("/icons/$id/$it", format)
+		}
+	}
+
+	fun splashUrl(): String? {
+		return splash.getOrNull()?.let {
+			ImageFormatting.imageUrl("/splashes/$id/$it", PNG)
+		}
+	}
+
+	fun discoverySplashUrl(): String? {
+		return discoverySplash.getOrNull()?.let {
+			ImageFormatting.imageUrl("/splashes/$id/$it", PNG)
+		}
+	}
+
+	fun bannerUrl(): String? {
+		return banner.getOrNull()?.let {
+			val format = if (it.startsWith("a_")) GIF else PNG
+			ImageFormatting.imageUrl("/banners/$id/$it", format)
+		}
+	}
+}
 
 /**
  * [Default Message Notification Level](https://discord.com/developers/docs/resources/guild#guild-object-default-message-notification-level)

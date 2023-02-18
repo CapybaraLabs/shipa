@@ -1,6 +1,9 @@
 package dev.capybaralabs.shipa.discord.interaction.model
 
 import dev.capybaralabs.shipa.discord.model.Attachment
+import dev.capybaralabs.shipa.discord.model.ImageFormatting
+import dev.capybaralabs.shipa.discord.model.ImageFormatting.Format.GIF
+import dev.capybaralabs.shipa.discord.model.ImageFormatting.Format.PNG
 import dev.capybaralabs.shipa.discord.model.Permission
 import dev.capybaralabs.shipa.discord.model.Role
 import dev.capybaralabs.shipa.discord.model.StringBitfield
@@ -38,9 +41,9 @@ data class PartialMember(
 ) {
 
 	fun avatarUrl(guildId: Long, userId: Long): String? {
-		return avatar?.getOrNull()?.let { avatarHash ->
-			val ext = if (avatarHash.startsWith("a_")) "gif" else "png"
-			"https://cdn.discordapp.com/guilds/$guildId/users/${userId}/avatars/$avatarHash.$ext"
+		return avatar?.getOrNull()?.let {
+			val format = if (it.startsWith("a_")) GIF else PNG
+			ImageFormatting.imageUrl("/guilds/$guildId/users/$userId/avatars/$it", format)
 		}
 	}
 
