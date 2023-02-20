@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.capybaralabs.shipa.ShipaMetrics
 import dev.capybaralabs.shipa.discord.client.ratelimit.Bucket
+import dev.capybaralabs.shipa.discord.client.ratelimit.BucketKey
 import dev.capybaralabs.shipa.discord.client.ratelimit.BucketService
 import dev.capybaralabs.shipa.logger
 import io.prometheus.client.Collector
@@ -66,7 +67,7 @@ class DiscordRestService(
 	 * for tracking, otherwise logs and metrics will contain concrete parameters, leading to high cardinality.
 	 */
 	suspend inline fun <reified R> exchange(
-		bucketKey: String,
+		bucketKey: BucketKey,
 		request: RequestEntity<*>,
 		uriTemplateOverride: String? = null,
 	): ResponseEntity<R> {
@@ -74,7 +75,7 @@ class DiscordRestService(
 	}
 
 	suspend fun <R> exchange(
-		bucketKey: String,
+		bucketKey: BucketKey,
 		request: RequestEntity<*>,
 		type: ParameterizedTypeReference<R>,
 		uriTemplateOverride: String? = null,

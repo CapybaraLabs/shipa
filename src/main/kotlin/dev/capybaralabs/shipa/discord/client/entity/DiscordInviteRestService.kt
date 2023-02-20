@@ -2,6 +2,7 @@ package dev.capybaralabs.shipa.discord.client.entity
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
+import dev.capybaralabs.shipa.discord.client.ratelimit.InvitesCode
 import dev.capybaralabs.shipa.discord.model.Invite
 import org.springframework.http.RequestEntity
 
@@ -17,10 +18,10 @@ class DiscordInviteRestService(
 	// https://discord.com/developers/docs/resources/invite#get-invite
 	suspend fun fetchInvite(inviteCode: String): Invite {
 		return discordRestService.exchange<Invite>(
-			"$applicationId",
+			InvitesCode,
 			RequestEntity
 				.get("/invites/{inviteCode}", inviteCode)
-				.build()
+				.build(),
 		).body!!
 	}
 }

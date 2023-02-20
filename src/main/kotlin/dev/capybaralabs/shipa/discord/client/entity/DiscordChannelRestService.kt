@@ -2,6 +2,9 @@ package dev.capybaralabs.shipa.discord.client.entity
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
+import dev.capybaralabs.shipa.discord.client.ratelimit.ChannelsId
+import dev.capybaralabs.shipa.discord.client.ratelimit.ChannelsIdInvites
+import dev.capybaralabs.shipa.discord.client.ratelimit.ChannelsIdMessages
 import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.ActionRow
 import dev.capybaralabs.shipa.discord.model.AllowedMentions
 import dev.capybaralabs.shipa.discord.model.Channel
@@ -25,20 +28,20 @@ class DiscordChannelRestService(
 	// https://discord.com/developers/docs/resources/channel#get-channel
 	suspend fun fetchChannel(channelId: Long): Channel {
 		return discordRestService.exchange<Channel>(
-			"$applicationId-$channelId",
+			ChannelsId(channelId),
 			RequestEntity
 				.get("/channels/{channelId}", channelId)
-				.build()
+				.build(),
 		).body!!
 	}
 
 	// https://discord.com/developers/docs/resources/channel#create-message
 	suspend fun createMessage(channelId: Long, createMessage: CreateMessage): Message {
 		return discordRestService.exchange<Message>(
-			"$applicationId-$channelId",
+			ChannelsIdMessages(channelId),
 			RequestEntity
 				.post("/channels/{channelId}/messages", channelId)
-				.body(createMessage)
+				.body(createMessage),
 		).body!!
 	}
 
@@ -70,7 +73,7 @@ class DiscordChannelRestService(
 		limit?.let { uriBuilder.queryParam("limit", it) }
 
 		return discordRestService.exchange<List<Message>>(
-			"$applicationId-$channelId",
+			ChannelsIdMessages(channelId),
 			RequestEntity
 				.get(uriBuilder.buildAndExpand(channelId).toUriString())
 				.build(),
@@ -81,20 +84,20 @@ class DiscordChannelRestService(
 	// https://discord.com/developers/docs/resources/channel#get-channel-message
 	suspend fun fetchMessage(channelId: Long, messageId: Long): Message {
 		return discordRestService.exchange<Message>(
-			"$applicationId-$channelId",
+			ChannelsIdMessages(channelId),
 			RequestEntity
 				.get("/channels/{channelId}/messages/{messageId}", channelId, messageId)
-				.build()
+				.build(),
 		).body!!
 	}
 
 	// https://discord.com/developers/docs/resources/channel#edit-message
 	suspend fun editMessage(channelId: Long, messageId: Long, editRequest: EditMessage): Message {
 		return discordRestService.exchange<Message>(
-			"$applicationId-$channelId",
+			ChannelsIdMessages(channelId),
 			RequestEntity
 				.patch("/channels/{channelId}/messages/{messageId}", channelId, messageId)
-				.body(editRequest)
+				.body(editRequest),
 		).body!!
 	}
 
@@ -117,7 +120,7 @@ class DiscordChannelRestService(
 		reason?.let { builder.header("X-Audit-Log-Reason", it.toAscii()) }
 
 		return discordRestService.exchange<Invite>(
-			"$applicationId-$channelId",
+			ChannelsIdInvites(channelId),
 			builder.body(createRequest ?: CreateInvite()),
 		).body!!
 	}

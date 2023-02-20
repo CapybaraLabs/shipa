@@ -2,6 +2,10 @@ package dev.capybaralabs.shipa.discord.interaction.command
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
+import dev.capybaralabs.shipa.discord.client.ratelimit.ApplicationsCommands
+import dev.capybaralabs.shipa.discord.client.ratelimit.ApplicationsCommandsId
+import dev.capybaralabs.shipa.discord.client.ratelimit.ApplicationsGuildsCommands
+import dev.capybaralabs.shipa.discord.client.ratelimit.ApplicationsGuildsCommandsId
 import dev.capybaralabs.shipa.discord.interaction.model.ApplicationCommand
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand.GlobalCommand
@@ -48,10 +52,10 @@ class CommandRegisterService(
 		if (isTestEnvironment() || commands.isEmpty()) return listOf()
 
 		return discordRestService.exchange<List<ApplicationCommand>>(
-			"$applicationId",
+			ApplicationsCommands(applicationId),
 			RequestEntity
 				.put("/applications/{applicationId}/commands", applicationId)
-				.body(commands)
+				.body(commands),
 		).body!!
 	}
 
@@ -59,10 +63,10 @@ class CommandRegisterService(
 		if (isTestEnvironment() || commands.isEmpty()) return listOf()
 
 		return discordRestService.exchange<List<ApplicationCommand>>(
-			"$applicationId-$guildId",
+			ApplicationsGuildsCommands(applicationId),
 			RequestEntity
 				.put("/applications/{applicationId}/guilds/{guildId}/commands", applicationId, guildId)
-				.body(commands)
+				.body(commands),
 		).body!!
 	}
 
@@ -80,10 +84,10 @@ class CommandRegisterService(
 		if (isTestEnvironment()) return
 
 		discordRestService.exchange<Void>(
-			"$applicationId",
+			ApplicationsCommands(applicationId),
 			RequestEntity
 				.post("/applications/{applicationId}/commands", applicationId)
-				.body(command)
+				.body(command),
 		)
 	}
 
@@ -92,10 +96,10 @@ class CommandRegisterService(
 		if (isTestEnvironment()) return
 
 		discordRestService.exchange<Void>(
-			"$applicationId-$guildId",
+			ApplicationsGuildsCommands(applicationId),
 			RequestEntity
 				.post("/applications/{applicationId}/guilds/{guildId}/commands", applicationId, guildId)
-				.body(command)
+				.body(command),
 		)
 	}
 
@@ -111,10 +115,10 @@ class CommandRegisterService(
 		if (isTestEnvironment()) return
 
 		discordRestService.exchange<Void>(
-			"$applicationId",
+			ApplicationsCommandsId(applicationId),
 			RequestEntity
 				.delete("/applications/{applicationId}/commands/{commandId}", applicationId, commandId)
-				.build()
+				.build(),
 		)
 	}
 
@@ -122,10 +126,10 @@ class CommandRegisterService(
 		if (isTestEnvironment()) return
 
 		discordRestService.exchange<Void>(
-			"$applicationId-$guildId",
+			ApplicationsGuildsCommandsId(applicationId),
 			RequestEntity
 				.delete("/applications/{applicationId}/guilds/{guildId}/commands/{commandId}", applicationId, guildId, commandId)
-				.build()
+				.build(),
 		)
 	}
 }

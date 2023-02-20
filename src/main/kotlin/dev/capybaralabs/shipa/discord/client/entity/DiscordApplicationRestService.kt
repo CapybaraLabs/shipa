@@ -2,6 +2,7 @@ package dev.capybaralabs.shipa.discord.client.entity
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
+import dev.capybaralabs.shipa.discord.client.ratelimit.OAuthApplicationsMe
 import dev.capybaralabs.shipa.discord.model.Application
 import org.springframework.http.RequestEntity
 
@@ -17,10 +18,10 @@ class DiscordApplicationRestService(
 	// https://discord.com/developers/docs/topics/oauth2#get-current-bot-application-information
 	suspend fun fetchCurrentBotApplicationInfo(): Application {
 		return discordRestService.exchange<Application>(
-			"$applicationId",
+			OAuthApplicationsMe,
 			RequestEntity
 				.get("/oauth2/applications/@me")
-				.build()
+				.build(),
 		).body!!
 	}
 }

@@ -15,24 +15,24 @@ internal class CaffeineBucketService : BucketService {
 
 	private val buckets = Caffeine.newBuilder()
 		.expireAfter(
-			object : Expiry<String, Bucket> {
-				override fun expireAfterCreate(key: String, bucket: Bucket, currentTime: Long): Long =
+			object : Expiry<BucketKey, Bucket> {
+				override fun expireAfterCreate(key: BucketKey, bucket: Bucket, currentTime: Long): Long =
 					oneMinute.toNanos()
 
-				override fun expireAfterUpdate(key: String, bucket: Bucket, currentTime: Long, currentDuration: Long): Long =
+				override fun expireAfterUpdate(key: BucketKey, bucket: Bucket, currentTime: Long, currentDuration: Long): Long =
 					calcExpire(bucket).toNanos()
 
-				override fun expireAfterRead(key: String, bucket: Bucket, currentTime: Long, currentDuration: Long): Long =
+				override fun expireAfterRead(key: BucketKey, bucket: Bucket, currentTime: Long, currentDuration: Long): Long =
 					currentDuration
 			},
 		)
-		.build<String, Bucket>()
+		.build<BucketKey, Bucket>()
 
-	override fun bucket(bucketKey: String): Bucket {
+	override fun bucket(bucketKey: BucketKey): Bucket {
 		return buckets.asMap().computeIfAbsent(bucketKey) { Bucket(it) }
 	}
 
-	override fun update(bucketKey: String, bucket: Bucket) {
+	override fun update(bucketKey: BucketKey, bucket: Bucket) {
 		buckets.put(bucketKey, bucket)
 	}
 
@@ -51,7 +51,7 @@ internal class CaffeineBucketService : BucketService {
 
 }
 
-class Bucket(val name: String) {
+class Bucket(val key: BucketKey) {
 
 	val mutex = Mutex()
 

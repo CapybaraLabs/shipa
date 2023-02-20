@@ -2,6 +2,11 @@ package dev.capybaralabs.shipa.discord.client.entity
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
+import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsId
+import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdBansId
+import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdMembers
+import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdMembersId
+import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdPreview
 import dev.capybaralabs.shipa.discord.model.DefaultMessageNotificationLevel
 import dev.capybaralabs.shipa.discord.model.DiscordLocale
 import dev.capybaralabs.shipa.discord.model.ExplicitContentFilterLevel
@@ -30,7 +35,7 @@ class DiscordGuildRestService(
 
 
 		return discordRestService.exchange<Guild>(
-			"$applicationId-$guildId",
+			GuildsId(guildId),
 			builder.body(modifyRequest),
 		).body!!
 	}
@@ -65,7 +70,7 @@ class DiscordGuildRestService(
 		withCounts?.let { uriBuilder.queryParam("with_counts", it) }
 
 		return discordRestService.exchange<Guild>(
-			"$applicationId-$guildId",
+			GuildsId(guildId),
 			RequestEntity
 				.get(uriBuilder.buildAndExpand(guildId).toUriString())
 				.build(),
@@ -76,20 +81,20 @@ class DiscordGuildRestService(
 	// https://discord.com/developers/docs/resources/guild#get-guild-preview
 	suspend fun fetchGuildPreview(guildId: Long): GuildPreview {
 		return discordRestService.exchange<GuildPreview>(
-			"$applicationId-$guildId",
+			GuildsIdPreview(guildId),
 			RequestEntity
 				.get("/guilds/{guildId}/preview", guildId)
-				.build()
+				.build(),
 		).body!!
 	}
 
 	// https://discord.com/developers/docs/resources/guild#get-guild-member
 	suspend fun fetchGuildMember(guildId: Long, userId: Long): Member {
 		return discordRestService.exchange<Member>(
-			"$applicationId-$guildId",
+			GuildsIdMembersId(guildId),
 			RequestEntity
 				.get("/guilds/{guildId}/members/{userId}", guildId, userId)
-				.build()
+				.build(),
 		).body!!
 	}
 
@@ -103,7 +108,7 @@ class DiscordGuildRestService(
 		after?.let { uriBuilder.queryParam("after", it) }
 
 		return discordRestService.exchange<List<Member>>(
-			"$applicationId-$guildId",
+			GuildsIdMembers(guildId),
 			RequestEntity
 				.get(uriBuilder.buildAndExpand(guildId).toUriString())
 				.build(),
@@ -117,8 +122,8 @@ class DiscordGuildRestService(
 		reason?.let { builder.header("X-Audit-Log-Reason", it.toAscii()) }
 
 		discordRestService.exchange<Unit>(
-			"$applicationId-$guildId",
-			builder.build()
+			GuildsIdMembersId(guildId),
+			builder.build(),
 		)
 	}
 
@@ -132,8 +137,8 @@ class DiscordGuildRestService(
 		} ?: builder.build()
 
 		discordRestService.exchange<Unit>(
-			"$applicationId-$guildId",
-			request
+			GuildsIdBansId(guildId),
+			request,
 		)
 	}
 
