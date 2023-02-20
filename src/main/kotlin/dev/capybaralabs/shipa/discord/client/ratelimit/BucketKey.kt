@@ -227,7 +227,10 @@ object StickerPacks : BucketKey
 // Operating on a sticker.
 object Stickers : BucketKey
 
-// Operating on a sticker.
+// Operating on the current authorization's user.
+object UsersMe : BucketKey
+
+// Operating on a user.
 object UsersId : BucketKey
 
 // Operating on the user's private channels.

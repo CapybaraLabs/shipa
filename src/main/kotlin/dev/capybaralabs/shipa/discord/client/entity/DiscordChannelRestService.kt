@@ -5,6 +5,7 @@ import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.client.ratelimit.ChannelsId
 import dev.capybaralabs.shipa.discord.client.ratelimit.ChannelsIdInvites
 import dev.capybaralabs.shipa.discord.client.ratelimit.ChannelsIdMessages
+import dev.capybaralabs.shipa.discord.client.ratelimit.ChannelsIdMessagesId
 import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.ActionRow
 import dev.capybaralabs.shipa.discord.model.AllowedMentions
 import dev.capybaralabs.shipa.discord.model.Channel
@@ -14,6 +15,7 @@ import dev.capybaralabs.shipa.discord.model.Invite
 import dev.capybaralabs.shipa.discord.model.Message
 import dev.capybaralabs.shipa.discord.model.MessageFlag
 import java.util.Optional
+import org.springframework.http.HttpMethod
 import org.springframework.http.RequestEntity
 import org.springframework.web.util.UriComponentsBuilder
 
@@ -84,7 +86,7 @@ class DiscordChannelRestService(
 	// https://discord.com/developers/docs/resources/channel#get-channel-message
 	suspend fun fetchMessage(channelId: Long, messageId: Long): Message {
 		return discordRestService.exchange<Message>(
-			ChannelsIdMessages(channelId),
+			ChannelsIdMessagesId(HttpMethod.GET, channelId),
 			RequestEntity
 				.get("/channels/{channelId}/messages/{messageId}", channelId, messageId)
 				.build(),
@@ -94,7 +96,7 @@ class DiscordChannelRestService(
 	// https://discord.com/developers/docs/resources/channel#edit-message
 	suspend fun editMessage(channelId: Long, messageId: Long, editRequest: EditMessage): Message {
 		return discordRestService.exchange<Message>(
-			ChannelsIdMessages(channelId),
+			ChannelsIdMessagesId(HttpMethod.PATCH, channelId),
 			RequestEntity
 				.patch("/channels/{channelId}/messages/{messageId}", channelId, messageId)
 				.body(editRequest),
