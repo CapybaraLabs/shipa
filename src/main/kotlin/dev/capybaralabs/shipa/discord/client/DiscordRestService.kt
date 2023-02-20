@@ -188,7 +188,7 @@ class DiscordRestService(
 
 
 		val name = discordBucketName(responseHeaders, uriTemplate)
-		logger().info("Got Bucket {} with {} {} {} on route {}", name, limit, remaining, resetAfter, uriTemplate)
+		logger().debug("Got Bucket {} with {} {} {} on route {}", name, limit, remaining, resetAfter, uriTemplate)
 		if (bucket.discordName != null && bucket.discordName != name) {
 			logger().warn(
 				"Got different discord bucket names {} -> {} on route {}. Could indicate a problem with bucket key determination.",
