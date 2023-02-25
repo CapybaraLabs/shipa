@@ -2,11 +2,13 @@ package dev.capybaralabs.shipa
 
 import dev.capybaralabs.shipa.discord.interaction.InteractionStateHolder
 import dev.capybaralabs.shipa.discord.interaction.command.InteractionCommand
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.FollowupMessage
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Message
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.ApplicationCommand
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.MessageFlag
+import dev.capybaralabs.shipa.discord.model.MessageFlag.EPHEMERAL
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -44,11 +46,11 @@ class CommandConfiguration {
 
 				stateHolder.completeOrEditOriginal(Message("Public")).await()
 
-				val id = stateHolder.followup(Message("Private!", flags = IntBitfield(listOf(MessageFlag.EPHEMERAL)))).await().message.id
+				val id = stateHolder.followup(FollowupMessage(Message("Private!", flags = IntBitfield(listOf(EPHEMERAL))))).await().message.id
 
 				stateHolder.completeOrFollowup(Message("Public2")).await()
 
-				stateHolder.editFollowup(id, Message("Private2")).await()
+				stateHolder.editFollowup(id, FollowupMessage(Message("Private2"))).await()
 			}
 		}
 
