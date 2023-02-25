@@ -117,6 +117,8 @@ enum class VerificationLevel(@JsonValue val value: Int) {
 
 /**
  * [Guild NSFW Level](https://discord.com/developers/docs/resources/guild#guild-object-guild-nsfw-level)
+ *
+ * [Unofficial Description](https://github.com/discord/discord-api-docs/pull/3194/files)
  */
 enum class GuildNsfwLevel(@JsonValue val value: Int) {
 	DEFAULT(0),

@@ -17,3 +17,12 @@ data class Attachment(
 	val width: Optional<Int>?,
 	val ephemeral: Boolean?,
 )
+
+/**
+ * [Create/Edit Discord Attachments](https://discord.com/developers/docs/resources/channel#attachment-object)
+ */
+data class PartialAttachment(
+	val id: Long,
+	val filename: String?,
+	val description: String?,
+)

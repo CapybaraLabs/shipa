@@ -83,7 +83,7 @@ interface InteractionStateHolder {
 	 * Create a followup message. If this interaction has not been acked yet, will auto-ack with the ephemeral settings of the passed message by default.
 	 * @throws IllegalStateException if this interaction has not been acked yet and [autoAck] is set to false.
 	 */
-	fun followup(message: InteractionCallback.Message, autoAck: Boolean = true): Deferred<Result.FollowedUp>
+	fun followup(followup: InteractionCallback.FollowupMessage, autoAck: Boolean = true): Deferred<Result.FollowedUp>
 
 	/**
 	 * Fetch the original message.
@@ -101,13 +101,13 @@ interface InteractionStateHolder {
 	 * Edit the original message.
 	 * @throws IllegalStateException if this interaction has not been acked yet
 	 */
-	fun editOriginal(message: InteractionCallback.Message): Deferred<Result.Edited>
+	fun editOriginal(followup: InteractionCallback.FollowupMessage): Deferred<Result.Edited>
 
 	/**
 	 * Edit a followup message.
 	 * @throws IllegalStateException if this interaction has not been acked yet
 	 */
-	fun editFollowup(messageId: Long, message: InteractionCallback.Message): Deferred<Result.Edited>
+	fun editFollowup(messageId: Long, followup: InteractionCallback.FollowupMessage): Deferred<Result.Edited>
 
 	/**
 	 * Delete the original message.
@@ -171,12 +171,12 @@ private sealed interface UnifiedInteractionMsg<E : Result> {
 
 	data class Edit(
 		val messageId: Long?,
-		val message: InteractionCallback.Message,
+		val followup: InteractionCallback.FollowupMessage,
 		override val response: CompletableDeferred<Result.Edited>,
 	) : UnifiedInteractionMsg<Result.Edited>
 
 	data class Followup(
-		val message: InteractionCallback.Message,
+		val followup: InteractionCallback.FollowupMessage,
 		val autoAck: Boolean,
 		override val response: CompletableDeferred<Result.FollowedUp>,
 	) : UnifiedInteractionMsg<Result.FollowedUp>
@@ -230,8 +230,8 @@ internal class UnifiedInteractionService(
 						is Ack -> state.ack(msg.ephemeral).let { msg.response.complete(Result.Acked) }
 						is CompleteOrEdit -> msg.response.complete(state.completeOrEdit(msg.message))
 						is CompleteOrFollowup -> msg.response.complete(state.completeOrFollowup(msg.message))
-						is Edit -> msg.response.complete(state.edit(msg.messageId, msg.message))
-						is Followup -> msg.response.complete(state.followup(msg.message, msg.autoAck))
+						is Edit -> msg.response.complete(state.edit(msg.messageId, msg.followup))
+						is Followup -> msg.response.complete(state.followup(msg.followup, msg.autoAck))
 						is Fetch -> msg.response.complete(state.fetch(msg.messageId))
 						is Delete -> msg.response.complete(state.delete(msg.messageId))
 						is Autocomplete -> state.autocomplete(msg.choices).let { msg.response.complete(Result.Completed) }
@@ -319,21 +319,21 @@ private class InteractionStateHolderImpl(
 		return response
 	}
 
-	override fun followup(message: InteractionCallback.Message, autoAck: Boolean): Deferred<Result.FollowedUp> {
+	override fun followup(followup: InteractionCallback.FollowupMessage, autoAck: Boolean): Deferred<Result.FollowedUp> {
 		val response = CompletableDeferred<Result.FollowedUp>()
-		send(Followup(message, autoAck, response))
+		send(Followup(followup, autoAck, response))
 		return response
 	}
 
-	override fun editOriginal(message: InteractionCallback.Message): Deferred<Result.Edited> {
+	override fun editOriginal(followup: InteractionCallback.FollowupMessage): Deferred<Result.Edited> {
 		val response = CompletableDeferred<Result.Edited>()
-		send(Edit(null, message, response))
+		send(Edit(null, followup, response))
 		return response
 	}
 
-	override fun editFollowup(messageId: Long, message: InteractionCallback.Message): Deferred<Result.Edited> {
+	override fun editFollowup(messageId: Long, followup: InteractionCallback.FollowupMessage): Deferred<Result.Edited> {
 		val response = CompletableDeferred<Result.Edited>()
-		send(Edit(messageId, message, response))
+		send(Edit(messageId, followup, response))
 		return response
 
 	}
@@ -404,7 +404,8 @@ private class UnifiedInteractionState(
 		}
 
 		initialResponse.awaitSent()
-		return Result.Edited(restService.editOriginalResponse(interaction.token, message))
+		val followup = InteractionCallback.FollowupMessage(message)
+		return Result.Edited(restService.editOriginalResponse(interaction.token, followup))
 	}
 
 	suspend fun completeOrFollowup(message: InteractionCallback.Message): Result.CompletedOrWithMessage {
@@ -419,20 +420,21 @@ private class UnifiedInteractionState(
 		}
 
 		initialResponse.awaitSent()
-		return Result.FollowedUp(restService.createFollowupMessage(interaction.token, message))
+		val followup = InteractionCallback.FollowupMessage(message)
+		return Result.FollowedUp(restService.createFollowupMessage(interaction.token, followup))
 	}
 
-	suspend fun followup(message: InteractionCallback.Message, autoAck: Boolean): Result.FollowedUp {
+	suspend fun followup(followup: InteractionCallback.FollowupMessage, autoAck: Boolean): Result.FollowedUp {
 		if (!initialResponse.isCompleted) {
 			if (autoAck) {
-				ack(message.flags?.contains(EPHEMERAL) ?: true)
+				ack(followup.message.flags?.contains(EPHEMERAL) ?: true)
 			} else {
 				throw IllegalStateException("Can't send followup on un-acked interaction")
 			}
 		}
 
 		initialResponse.awaitSent()
-		return Result.FollowedUp(restService.createFollowupMessage(interaction.token, message))
+		return Result.FollowedUp(restService.createFollowupMessage(interaction.token, followup))
 	}
 
 	suspend fun fetch(messageId: Long?): Result.Fetched {
@@ -449,15 +451,15 @@ private class UnifiedInteractionState(
 		return Result.Fetched(fetched)
 	}
 
-	suspend fun edit(messageId: Long?, message: InteractionCallback.Message): Result.Edited {
+	suspend fun edit(messageId: Long?, followup: InteractionCallback.FollowupMessage): Result.Edited {
 		if (!initialResponse.isCompleted) {
 			throw IllegalStateException("Can't edit on un-acked interaction") // but maybe message components or modals can?
 		}
 		initialResponse.awaitSent()
 		val edited = if (messageId != null) {
-			restService.editFollowupMessage(interaction.token, message, messageId)
+			restService.editFollowupMessage(interaction.token, followup, messageId)
 		} else {
-			restService.editOriginalResponse(interaction.token, message)
+			restService.editOriginalResponse(interaction.token, followup)
 		}
 
 		return Result.Edited(edited)

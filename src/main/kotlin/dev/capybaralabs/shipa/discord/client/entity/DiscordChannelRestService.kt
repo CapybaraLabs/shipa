@@ -2,6 +2,10 @@ package dev.capybaralabs.shipa.discord.client.entity
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
+import dev.capybaralabs.shipa.discord.client.FileUpload
+import dev.capybaralabs.shipa.discord.client.MultipartBody
+import dev.capybaralabs.shipa.discord.client.PayloadWithFiles
+import dev.capybaralabs.shipa.discord.client.WithAttachments
 import dev.capybaralabs.shipa.discord.client.ratelimit.ChannelsId
 import dev.capybaralabs.shipa.discord.client.ratelimit.ChannelsIdInvites
 import dev.capybaralabs.shipa.discord.client.ratelimit.ChannelsIdMessages
@@ -14,8 +18,11 @@ import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.Invite
 import dev.capybaralabs.shipa.discord.model.Message
 import dev.capybaralabs.shipa.discord.model.MessageFlag
+import dev.capybaralabs.shipa.discord.model.PartialAttachment
 import java.util.Optional
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
+import org.springframework.http.MediaType
 import org.springframework.http.RequestEntity
 import org.springframework.web.util.UriComponentsBuilder
 
@@ -38,13 +45,25 @@ class DiscordChannelRestService(
 	}
 
 	// https://discord.com/developers/docs/resources/channel#create-message
-	suspend fun createMessage(channelId: Long, createMessage: CreateMessage): Message {
+	suspend fun createMessage(channelId: Long, createMessageRequest: CreateMessageRequest): Message {
+
+		val requestBuilder = RequestEntity.post("/channels/{channelId}/messages", channelId)
+
+		val multipartBody = createMessageRequest.toPotentialMultipartBody()
+		if (multipartBody is MultipartBody) {
+			requestBuilder.header(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE)
+		}
 		return discordRestService.exchange<Message>(
 			ChannelsIdMessages(channelId),
-			RequestEntity
-				.post("/channels/{channelId}/messages", channelId)
-				.body(createMessage),
+			requestBuilder.body(multipartBody.body),
 		).body!!
+	}
+
+	data class CreateMessageRequest(
+		val createMessage: CreateMessage,
+		override val files: List<FileUpload>? = null,
+	) : PayloadWithFiles<CreateMessage> {
+		override val payload = createMessage
 	}
 
 	data class CreateMessage(
@@ -56,11 +75,15 @@ class DiscordChannelRestService(
 //		val messageReference: MessageReference? = null,
 		val components: List<ActionRow>? = null,
 		val stickerIds: List<Long>? = null,
-//		val files[n]: List<???>? = null,
 //		val payloadJson: String? = null,
-//		val attachments: List<PartialAttachment>? = null,
+		override val attachments: List<PartialAttachment>? = null,
 		val flags: IntBitfield<MessageFlag>? = null, // SUPPRESS_EMBEDS only
-	)
+	) : WithAttachments<CreateMessage> {
+
+		override fun copyWithAttachments(attachments: List<PartialAttachment>): CreateMessage {
+			return copy(attachments = attachments)
+		}
+	}
 
 
 	// https://discord.com/developers/docs/resources/channel#get-channel-messages

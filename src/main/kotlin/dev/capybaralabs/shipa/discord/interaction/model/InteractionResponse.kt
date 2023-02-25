@@ -1,5 +1,8 @@
 package dev.capybaralabs.shipa.discord.interaction.model
 
+import dev.capybaralabs.shipa.discord.client.FileUpload
+import dev.capybaralabs.shipa.discord.client.PayloadWithFiles
+import dev.capybaralabs.shipa.discord.client.WithAttachments
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Flags
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE
@@ -14,6 +17,7 @@ import dev.capybaralabs.shipa.discord.model.AllowedMentions
 import dev.capybaralabs.shipa.discord.model.Embed
 import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.MessageFlag
+import dev.capybaralabs.shipa.discord.model.PartialAttachment
 import dev.capybaralabs.shipa.discord.model.ZERO_WIDTH_SPACE
 
 /**
@@ -89,8 +93,25 @@ sealed interface InteractionCallback {
 		val flags: IntBitfield<MessageFlag>? = null, // SUPPRESS_EMBEDS & EPHEMERAL only
 		val allowedMentions: AllowedMentions? = AllowedMentions.none(),
 		val tts: Boolean? = null,
-//	val attachments: List<PartialAttachment>?,
-	) : InteractionCallback
+		override val attachments: List<PartialAttachment>? = null,
+	) : InteractionCallback, WithAttachments<Message> {
+
+		override fun copyWithAttachments(attachments: List<PartialAttachment>): Message {
+			return copy(attachments = attachments)
+		}
+	}
+
+	/**
+	 * [Discord Interaction Followup Message](https://discord.com/developers/docs/interactions/receiving-and-responding#create-followup-message)
+	 *
+	 * These can NOT be used as immediate responses, only when sending our own request. They support sending files.
+	 */
+	data class FollowupMessage(
+		val message: Message,
+		override val files: List<FileUpload>? = null,
+	) : PayloadWithFiles<Message> {
+		override val payload = message
+	}
 
 	/**
 	 * [Discord Interaction Response Callback Data Autocomplete](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-response-object-autocomplete)

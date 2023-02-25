@@ -2,10 +2,13 @@ package dev.capybaralabs.shipa.discord.interaction
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
+import dev.capybaralabs.shipa.discord.client.MultipartBody
 import dev.capybaralabs.shipa.discord.client.ratelimit.WebhooksIdToken
 import dev.capybaralabs.shipa.discord.client.ratelimit.WebhooksIdTokenMessagesId
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback
 import dev.capybaralabs.shipa.discord.model.Message
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.http.RequestEntity
 import org.springframework.stereotype.Service
 
@@ -33,12 +36,18 @@ class InteractionRestService(
 	}
 
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#edit-original-interaction-response
-	suspend fun editOriginalResponse(token: String, data: InteractionCallback): Message {
+	suspend fun editOriginalResponse(token: String, data: InteractionCallback.FollowupMessage): Message {
+
+		val requestBuilder = RequestEntity.patch("/webhooks/{applicationId}/{token}/messages/@original", applicationId, token)
+
+		val potentialMultipartBody = data.toPotentialMultipartBody()
+		if (potentialMultipartBody is MultipartBody) {
+			requestBuilder.header(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE)
+		}
+
 		return discordRestService.exchange<Message>(
 			WebhooksIdTokenMessagesId(applicationId, token),
-			RequestEntity
-				.patch("/webhooks/{applicationId}/{token}/messages/@original", applicationId, token)
-				.body(data),
+			requestBuilder.body(potentialMultipartBody.body),
 		).body!!
 	}
 
@@ -54,12 +63,18 @@ class InteractionRestService(
 
 
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#create-followup-message
-	suspend fun createFollowupMessage(token: String, data: InteractionCallback): Message {
+	suspend fun createFollowupMessage(token: String, data: InteractionCallback.FollowupMessage): Message {
+
+		val requestBuilder = RequestEntity.post("/webhooks/{applicationId}/{token}", applicationId, token)
+
+		val multipartBody = data.toPotentialMultipartBody()
+		if (multipartBody is MultipartBody) {
+			requestBuilder.header(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE)
+		}
+
 		return discordRestService.exchange<Message>(
 			WebhooksIdToken(applicationId, token),
-			RequestEntity
-				.post("/webhooks/{applicationId}/{token}", applicationId, token)
-				.body(data),
+			requestBuilder.body(multipartBody.body),
 		).body!!
 	}
 
@@ -74,12 +89,18 @@ class InteractionRestService(
 	}
 
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#edit-followup-message
-	suspend fun editFollowupMessage(token: String, response: InteractionCallback, messageId: Long): Message {
+	suspend fun editFollowupMessage(token: String, data: InteractionCallback.FollowupMessage, messageId: Long): Message {
+
+		val requestBuilder = RequestEntity.patch("/webhooks/{applicationId}/{token}/messages/{messageId}", applicationId, token, messageId)
+
+		val multipartBody = data.toPotentialMultipartBody()
+		if (multipartBody is MultipartBody) {
+			requestBuilder.header(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE)
+		}
+
 		return discordRestService.exchange<Message>(
 			WebhooksIdTokenMessagesId(applicationId, token),
-			RequestEntity
-				.patch("/webhooks/{applicationId}/{token}/messages/{messageId}", applicationId, token, messageId)
-				.body(response),
+			requestBuilder.body(multipartBody.body),
 		).body!!
 	}
 
@@ -92,5 +113,4 @@ class InteractionRestService(
 				.build(),
 		)
 	}
-
 }
