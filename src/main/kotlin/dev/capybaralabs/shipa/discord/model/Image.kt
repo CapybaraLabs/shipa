@@ -11,10 +11,10 @@ class Image(
 	private val format: Format = Format.PNG, // only JPG, GIF, PNG
 ) {
 	fun dataUri(): String {
-		return String.format("data:image/%s;base64,%s", format.extension, hash())
+		return String.format("data:image/%s;base64,%s", format.extension[0], hash())
 	}
 
-	private fun hash(): String? {
+	private fun hash(): String {
 		return Base64.getEncoder().encodeToString(data)
 	}
 }
