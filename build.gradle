@@ -16,7 +16,7 @@ plugins {
 }
 
 group = "dev.capybaralabs.shipa"
-version = "0.1.9"
+version = "0.1.10"
 
 allprojects {
 	java {
