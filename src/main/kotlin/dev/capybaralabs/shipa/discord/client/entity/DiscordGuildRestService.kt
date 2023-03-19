@@ -16,7 +16,9 @@ import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.Member
 import dev.capybaralabs.shipa.discord.model.SystemChannelFlag
 import dev.capybaralabs.shipa.discord.model.VerificationLevel
+import dev.capybaralabs.shipa.discord.namedQueryParam
 import java.util.Optional
+import org.springframework.http.HttpMethod
 import org.springframework.http.RequestEntity
 import org.springframework.web.util.UriComponentsBuilder
 
@@ -67,13 +69,20 @@ class DiscordGuildRestService(
 		val uriTemplate = "/guilds/{guildId}"
 		val uriBuilder = UriComponentsBuilder
 			.fromUriString(uriTemplate)
-		withCounts?.let { uriBuilder.queryParam("with_counts", it) }
+		val uriVariables = mutableMapOf<String, Any>("guildId" to guildId)
+
+		withCounts?.let { counts ->
+			uriBuilder.namedQueryParam("with_counts")
+			uriVariables.put("with_counts", counts)
+		}
 
 		return discordRestService.exchange<Guild>(
 			GuildsId(guildId),
-			RequestEntity
-				.get(uriBuilder.buildAndExpand(guildId).toUriString())
-				.build(),
+			RequestEntity.method(
+				HttpMethod.GET,
+				uriBuilder.build().toUriString(),
+				uriVariables,
+			).build(),
 			uriTemplate,
 		).body!!
 	}
@@ -103,15 +112,24 @@ class DiscordGuildRestService(
 		val uriTemplate = "/guilds/{guildId}/members"
 		val uriBuilder = UriComponentsBuilder
 			.fromUriString(uriTemplate)
+		val uriVariables = mutableMapOf<String, Any>("guildId" to guildId)
 
-		limit?.let { uriBuilder.queryParam("limit", it) }
-		after?.let { uriBuilder.queryParam("after", it) }
+		limit?.let {
+			uriBuilder.namedQueryParam("limit")
+			uriVariables.put("limit", it)
+		}
+		after?.let {
+			uriBuilder.namedQueryParam("after")
+			uriVariables.put("after", it)
+		}
 
 		return discordRestService.exchange<List<Member>>(
 			GuildsIdMembers(guildId),
-			RequestEntity
-				.get(uriBuilder.buildAndExpand(guildId).toUriString())
-				.build(),
+			RequestEntity.method(
+				HttpMethod.GET,
+				uriBuilder.build().toUriString(),
+				uriVariables,
+			).build(),
 			uriTemplate,
 		).body!!
 	}

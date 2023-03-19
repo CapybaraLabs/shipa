@@ -19,6 +19,7 @@ import dev.capybaralabs.shipa.discord.model.Invite
 import dev.capybaralabs.shipa.discord.model.Message
 import dev.capybaralabs.shipa.discord.model.MessageFlag
 import dev.capybaralabs.shipa.discord.model.PartialAttachment
+import dev.capybaralabs.shipa.discord.namedQueryParam
 import java.util.Optional
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -75,7 +76,6 @@ class DiscordChannelRestService(
 //		val messageReference: MessageReference? = null,
 		val components: List<ActionRow>? = null,
 		val stickerIds: List<Long>? = null,
-//		val payloadJson: String? = null,
 		override val attachments: List<PartialAttachment>? = null,
 		val flags: IntBitfield<MessageFlag>? = null, // SUPPRESS_EMBEDS only
 	) : WithAttachments<CreateMessage> {
@@ -91,17 +91,32 @@ class DiscordChannelRestService(
 		val uriTemplate = "/channels/{channelId}/messages"
 		val uriBuilder = UriComponentsBuilder
 			.fromUriString(uriTemplate)
+		val uriVariables = mutableMapOf<String, Any>("channelId" to channelId)
 
-		around?.let { uriBuilder.queryParam("around", it) }
-		before?.let { uriBuilder.queryParam("before", it) }
-		after?.let { uriBuilder.queryParam("after", it) }
-		limit?.let { uriBuilder.queryParam("limit", it) }
+		around?.let {
+			uriBuilder.namedQueryParam("around")
+			uriVariables.put("around", it)
+		}
+		before?.let {
+			uriBuilder.namedQueryParam("before")
+			uriVariables.put("before", it)
+		}
+		after?.let {
+			uriBuilder.namedQueryParam("after")
+			uriVariables.put("after", it)
+		}
+		limit?.let {
+			uriBuilder.namedQueryParam("limit")
+			uriVariables.put("limit", it)
+		}
 
 		return discordRestService.exchange<List<Message>>(
 			ChannelsIdMessages(channelId),
-			RequestEntity
-				.get(uriBuilder.buildAndExpand(channelId).toUriString())
-				.build(),
+			RequestEntity.method(
+				HttpMethod.GET,
+				uriBuilder.build().toUriString(),
+				uriVariables,
+			).build(),
 			uriTemplate,
 		).body!!
 	}
