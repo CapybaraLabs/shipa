@@ -57,6 +57,7 @@ dependencies {
 	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8"
 	api "org.springframework.boot:spring-boot-starter"
 	api "org.springframework.boot:spring-boot-starter-web"
+	api "org.springframework:spring-websocket"
 	api "com.fasterxml.jackson.module:jackson-module-kotlin"
 	api "io.prometheus:simpleclient"
 	implementation libs.saltycoffee
