@@ -56,7 +56,7 @@ class DiscordClientConfiguration(
 
 		val requestFactory = builder.buildRequestFactory()
 		if (requestFactory is SimpleClientHttpRequestFactory) {
-			logger().warn("Please include either Apache HttpComponents4 or OkHttp3 http client lib in your class path. The simple client based on Java's URL does not work properly with PATCH requests, and doesn't handle 429s Ratelimits gracefully.")
+			logger().warn("Please include either Apache HttpComponents5 or OkHttp3 http client lib in your class path. The simple client based on Java's URL does not work properly with PATCH requests, and doesn't handle 429s Ratelimits gracefully.")
 		}
 
 		if (logger().isDebugEnabled) {

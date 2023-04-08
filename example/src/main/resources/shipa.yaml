@@ -5,6 +5,7 @@ logging:
   level:
     dev.capybaralabs: DEBUG
     org.springframework.web.client.RestTemplate: DEBUG
+    io.undertow: DEBUG
 spring:
   devtools:
     restart:

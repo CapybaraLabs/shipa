@@ -1,19 +1,33 @@
 package dev.capybaralabs.shipa
 
+import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.client.entity.DiscordEntityRestService
+import dev.capybaralabs.shipa.discord.gateway.GatewayIntent
+import dev.capybaralabs.shipa.discord.gateway.GatewayService
+import dev.capybaralabs.shipa.discord.gateway.GatewayService.GatewayProps
 import dev.capybaralabs.shipa.discord.interaction.command.CommandRegisterService
 import dev.capybaralabs.shipa.discord.interaction.command.InteractionCommand
+import dev.capybaralabs.shipa.discord.model.IntBitfield
+import dev.reformator.stacktracedecoroutinator.runtime.DecoroutinatorRuntime
 import io.prometheus.client.CollectorRegistry
+import java.net.URI
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
+import org.springframework.core.env.Environment
+import org.springframework.core.env.Profiles
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
 class Launcher(
-	private val registerService: CommandRegisterService,
-	private val commands: List<InteractionCommand>,
+	registerService: CommandRegisterService,
+	commands: List<InteractionCommand>,
 	collectorRegistry: CollectorRegistry,
+	gatewayService: GatewayService,
+	restService: DiscordEntityRestService,
+	properties: DiscordProperties,
+	environment: Environment,
 ) {
 
 	init {
@@ -21,10 +35,34 @@ class Launcher(
 		collectorRegistry.clear()
 
 		Thread.setDefaultUncaughtExceptionHandler { t, e -> logger().warn("Uncaught exception in thread {}", t.name, e) }
-		println("Henlo")
+		DecoroutinatorRuntime.load()
 
-		runBlocking {
-			registerService.bulkOverwrite(commands.map { it.creation() })
+		logger().info("Henlo")
+
+		if (environment.acceptsProfiles(Profiles.of("test"))) {
+			logger().info("Test profile active, not launching shards")
+		} else {
+			val gatewayBot = runBlocking {
+				registerService.bulkOverwrite(commands.map { it.creation() })
+
+				restService.gateway.getGatewayBot()
+			}
+
+			val shardsAmount = gatewayBot.shards + 1 //TODO remove
+
+			logger().info("Shards: {}", shardsAmount)
+
+			val shards = (0 until shardsAmount).toSet()
+
+			val gatewayProps = GatewayProps(
+				URI.create(gatewayBot.url), // TODO figure out caching rules for this thing
+				properties.botToken,
+				IntBitfield.of(*GatewayIntent.values()),
+				shardsAmount,
+			)
+			logger().info("Launching shards")
+			gatewayService.launch(shards, gatewayProps)
+			logger().info("Shards launched")
 		}
 	}
 }

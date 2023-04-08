@@ -21,8 +21,9 @@ dependencies {
 
 	implementation rootProject
 	implementation "org.springframework.boot:spring-boot-starter-undertow"
-	developmentOnly "org.springframework.boot:spring-boot-devtools"
-	implementation "org.apache.httpcomponents:httpclient"
+//	developmentOnly "org.springframework.boot:spring-boot-devtools"
+	implementation "org.apache.httpcomponents.client5:httpclient5"
+	implementation libs.decoroutinator
 
 	testImplementation "org.junit.jupiter:junit-jupiter-api"
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
