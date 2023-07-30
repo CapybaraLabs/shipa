@@ -34,7 +34,7 @@ internal class BitflagSerdeTest {
 		assertSerdeIntBitfield(listOf(EPHEMERAL), "1000000".toInt(2))
 		assertSerdeIntBitfield(listOf(FAILED_TO_MENTION_SOME_ROLES_IN_THREAD), "100000000".toInt(2))
 
-		val otherFlags = MessageFlag.values().filterNot { listOf(CROSSPOSTED, EPHEMERAL, FAILED_TO_MENTION_SOME_ROLES_IN_THREAD).contains(it) }
+		val otherFlags = MessageFlag.entries.filterNot { listOf(CROSSPOSTED, EPHEMERAL, FAILED_TO_MENTION_SOME_ROLES_IN_THREAD).contains(it) }
 		assertSerdeIntBitfield(otherFlags, "10111110".toInt(2))
 	}
 
@@ -76,7 +76,7 @@ internal class BitflagSerdeTest {
 		assertSerdeStringBitfield(listOf(ADMINISTRATOR), "1000".toBigInteger(2).toString())
 		assertSerdeStringBitfield(listOf(MODERATE_MEMBERS), "10000000000000000000000000000000000000000".toBigInteger(2).toString())
 
-		val otherPerms = Permission.values().filterNot { listOf(CREATE_INSTANT_INVITE, ADMINISTRATOR, MODERATE_MEMBERS).contains(it) }
+		val otherPerms = Permission.entries.filterNot { listOf(CREATE_INSTANT_INVITE, ADMINISTRATOR, MODERATE_MEMBERS).contains(it) }
 		assertSerdeStringBitfield(otherPerms, "1111111111111111111111111111111111110110".toBigInteger(2).toString())
 	}
 

@@ -22,15 +22,11 @@ dependencies {
 	implementation rootProject
 	implementation "org.springframework.boot:spring-boot-starter-undertow"
 	developmentOnly "org.springframework.boot:spring-boot-devtools"
-	implementation "org.apache.httpcomponents:httpclient"
+	implementation "org.apache.httpcomponents.client5:httpclient5"
 
 	testImplementation "org.junit.jupiter:junit-jupiter-api"
-	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
-	testImplementation("org.springframework.boot:spring-boot-starter-test") {
-		//don't drag in weird JSON impl with conflicting JSONObject and missing gradle metadata
-		exclude group: "com.vaadin.external.google", module: "android-json"
-	}
-	testImplementation "org.mockito:mockito-inline"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+	testImplementation "org.springframework.boot:spring-boot-starter-test"
 	testImplementation libs.mockitokotlin
 	testImplementation "com.jayway.jsonpath:json-path-assert"
 }

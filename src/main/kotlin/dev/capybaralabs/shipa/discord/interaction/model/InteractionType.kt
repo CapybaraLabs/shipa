@@ -14,6 +14,6 @@ enum class InteractionType(@JsonValue val value: Int) {
 	;
 
 	companion object {
-		fun fromValue(value: Int) = values().first { it.value == value }
+		fun fromValue(value: Int) = entries.first { it.value == value }
 	}
 }

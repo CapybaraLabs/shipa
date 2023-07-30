@@ -218,7 +218,7 @@ enum class JsonErrorCode(val value: Int) {
 
 	companion object {
 		fun parse(value: Int): JsonErrorCode {
-			for (error in values()) {
+			for (error in entries) {
 				if (error.value == value) {
 					return error
 				}
