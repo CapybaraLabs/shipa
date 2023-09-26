@@ -99,15 +99,16 @@ class DiscordRestService(
 						}
 					} catch (discordClientException: DiscordClientException) {
 						val cause = discordClientException.cause
+						val resetAfter = cause.responseHeaders?.let {
+							updateBucket(bucket, it, uriTemplate)
+							resetAfter(it)
+						}
+
 						if (cause !is TooManyRequests) {
 							throw discordClientException
 						}
 
 						logger().info("Hit ratelimit on bucket {}: {}", bucketKey, cause.message)
-						val resetAfter = cause.responseHeaders?.let {
-							updateBucket(bucket, it, uriTemplate)
-							resetAfter(it)
-						}
 						if (resetAfter == null) {
 							logger().warn("Hit ratelimit on bucket {} but no known wait time. Backing off.", bucketKey, cause)
 							delay(1.seconds) // shrug
