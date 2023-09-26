@@ -46,9 +46,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.job
 import kotlinx.coroutines.withTimeout
 import org.springframework.stereotype.Service
 import dev.capybaralabs.shipa.discord.interaction.InteractionResponseActionResult as Result
@@ -69,64 +67,64 @@ interface InteractionStateHolder {
 	/**
 	 * Ack this interaction
 	 */
-	suspend fun ack(ephemeral: Boolean = true): Deferred<Result.Acked>
+	fun ack(ephemeral: Boolean = true): Deferred<Result.Acked>
 
 	/**
 	 * Immediately complete this interaction with the response. If it has been completed already, edit the existing original message.
 	 */
-	suspend fun completeOrEditOriginal(message: InteractionCallback.Message): Deferred<Result.CompletedOrWithMessage>
+	fun completeOrEditOriginal(message: InteractionCallback.Message): Deferred<Result.CompletedOrWithMessage>
 
 	/**
 	 * Immediately complete this interaction with the response. If it has been completed already, send a followup message.
 	 */
-	suspend fun completeOrFollowup(message: InteractionCallback.Message): Deferred<Result.CompletedOrWithMessage>
+	fun completeOrFollowup(message: InteractionCallback.Message): Deferred<Result.CompletedOrWithMessage>
 
 	/**
 	 * Create a followup message. If this interaction has not been acked yet, will auto-ack with the ephemeral settings of the passed message by default.
 	 * @throws IllegalStateException if this interaction has not been acked yet and [autoAck] is set to false.
 	 */
-	suspend fun followup(followup: InteractionCallback.FollowupMessage, autoAck: Boolean = true): Deferred<Result.FollowedUp>
+	fun followup(followup: InteractionCallback.FollowupMessage, autoAck: Boolean = true): Deferred<Result.FollowedUp>
 
 	/**
 	 * Fetch the original message.
 	 * @throws IllegalStateException if this interaction has not been acked yet
 	 */
-	suspend fun fetchOriginal(): Deferred<Result.Fetched>
+	fun fetchOriginal(): Deferred<Result.Fetched>
 
 	/**
 	 * Fetch a followup message.
 	 * @throws IllegalStateException if this interaction has not been acked yet
 	 */
-	suspend fun fetchFollowup(messageId: Long): Deferred<Result.Fetched>
+	fun fetchFollowup(messageId: Long): Deferred<Result.Fetched>
 
 	/**
 	 * Edit the original message.
 	 * @throws IllegalStateException if this interaction has not been acked yet
 	 */
-	suspend fun editOriginal(followup: InteractionCallback.FollowupMessage): Deferred<Result.Edited>
+	fun editOriginal(followup: InteractionCallback.FollowupMessage): Deferred<Result.Edited>
 
 	/**
 	 * Edit a followup message.
 	 * @throws IllegalStateException if this interaction has not been acked yet
 	 */
-	suspend fun editFollowup(messageId: Long, followup: InteractionCallback.FollowupMessage): Deferred<Result.Edited>
+	fun editFollowup(messageId: Long, followup: InteractionCallback.FollowupMessage): Deferred<Result.Edited>
 
 	/**
 	 * Delete the original message.
 	 * @throws IllegalStateException if this interaction has not been acked yet
 	 */
-	suspend fun deleteOriginal(): Deferred<Result.Deleted>
+	fun deleteOriginal(): Deferred<Result.Deleted>
 
 	/**
 	 * Delete a followup message.
 	 * @throws IllegalStateException if this interaction has not been acked yet
 	 */
-	suspend fun deleteFollowup(messageId: Long): Deferred<Result.Deleted>
+	fun deleteFollowup(messageId: Long): Deferred<Result.Deleted>
 
 	/**
 	 * Respond to an autocomplete interaction with a bunch of choices
 	 */
-	suspend fun autocomplete(choices: List<OptionChoice>): Deferred<Result.Completed>
+	fun autocomplete(choices: List<OptionChoice>): Deferred<Result.Completed>
 }
 
 enum class AutoAckTactic {
@@ -303,70 +301,70 @@ private class InteractionStateHolderImpl(
 		}
 	}
 
-	override suspend fun ack(ephemeral: Boolean): Deferred<Result.Acked> {
-		val response = CompletableDeferred<Result.Acked>(currentCoroutineContext().job)
+	override fun ack(ephemeral: Boolean): Deferred<Result.Acked> {
+		val response = CompletableDeferred<Result.Acked>()
 		send(Ack(ephemeral, response))
 		return response
 	}
 
-	override suspend fun completeOrEditOriginal(message: InteractionCallback.Message): Deferred<Result.CompletedOrWithMessage> {
-		val response = CompletableDeferred<Result.CompletedOrWithMessage>(currentCoroutineContext().job)
+	override fun completeOrEditOriginal(message: InteractionCallback.Message): Deferred<Result.CompletedOrWithMessage> {
+		val response = CompletableDeferred<Result.CompletedOrWithMessage>()
 		send(CompleteOrEdit(message, null, response))
 		return response
 	}
 
-	override suspend fun completeOrFollowup(message: InteractionCallback.Message): Deferred<Result.CompletedOrWithMessage> {
-		val response = CompletableDeferred<Result.CompletedOrWithMessage>(currentCoroutineContext().job)
+	override fun completeOrFollowup(message: InteractionCallback.Message): Deferred<Result.CompletedOrWithMessage> {
+		val response = CompletableDeferred<Result.CompletedOrWithMessage>()
 		send(CompleteOrFollowup(message, response))
 		return response
 	}
 
-	override suspend fun followup(followup: InteractionCallback.FollowupMessage, autoAck: Boolean): Deferred<Result.FollowedUp> {
-		val response = CompletableDeferred<Result.FollowedUp>(currentCoroutineContext().job)
+	override fun followup(followup: InteractionCallback.FollowupMessage, autoAck: Boolean): Deferred<Result.FollowedUp> {
+		val response = CompletableDeferred<Result.FollowedUp>()
 		send(Followup(followup, autoAck, response))
 		return response
 	}
 
-	override suspend fun editOriginal(followup: InteractionCallback.FollowupMessage): Deferred<Result.Edited> {
-		val response = CompletableDeferred<Result.Edited>(currentCoroutineContext().job)
+	override fun editOriginal(followup: InteractionCallback.FollowupMessage): Deferred<Result.Edited> {
+		val response = CompletableDeferred<Result.Edited>()
 		send(Edit(null, followup, response))
 		return response
 	}
 
-	override suspend fun editFollowup(messageId: Long, followup: InteractionCallback.FollowupMessage): Deferred<Result.Edited> {
-		val response = CompletableDeferred<Result.Edited>(currentCoroutineContext().job)
+	override fun editFollowup(messageId: Long, followup: InteractionCallback.FollowupMessage): Deferred<Result.Edited> {
+		val response = CompletableDeferred<Result.Edited>()
 		send(Edit(messageId, followup, response))
 		return response
 
 	}
 
-	override suspend fun fetchOriginal(): Deferred<Result.Fetched> {
-		val response = CompletableDeferred<Result.Fetched>(currentCoroutineContext().job)
+	override fun fetchOriginal(): Deferred<Result.Fetched> {
+		val response = CompletableDeferred<Result.Fetched>()
 		send(Fetch(null, response))
 		return response
 	}
 
-	override suspend fun fetchFollowup(messageId: Long): Deferred<Result.Fetched> {
-		val response = CompletableDeferred<Result.Fetched>(currentCoroutineContext().job)
+	override fun fetchFollowup(messageId: Long): Deferred<Result.Fetched> {
+		val response = CompletableDeferred<Result.Fetched>()
 		send(Fetch(messageId, response))
 		return response
 
 	}
 
-	override suspend fun deleteOriginal(): Deferred<Result.Deleted> {
-		val response = CompletableDeferred<Result.Deleted>(currentCoroutineContext().job)
+	override fun deleteOriginal(): Deferred<Result.Deleted> {
+		val response = CompletableDeferred<Result.Deleted>()
 		send(Delete(null, response))
 		return response
 	}
 
-	override suspend fun deleteFollowup(messageId: Long): Deferred<Result.Deleted> {
-		val response = CompletableDeferred<Result.Deleted>(currentCoroutineContext().job)
+	override fun deleteFollowup(messageId: Long): Deferred<Result.Deleted> {
+		val response = CompletableDeferred<Result.Deleted>()
 		send(Delete(messageId, response))
 		return response
 	}
 
-	override suspend fun autocomplete(choices: List<OptionChoice>): Deferred<Result.Completed> {
-		val response = CompletableDeferred<Result.Completed>(currentCoroutineContext().job)
+	override fun autocomplete(choices: List<OptionChoice>): Deferred<Result.Completed> {
+		val response = CompletableDeferred<Result.Completed>()
 		send(Autocomplete(choices, response))
 		return response
 	}
