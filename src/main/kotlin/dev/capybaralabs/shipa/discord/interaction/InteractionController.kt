@@ -9,6 +9,7 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
 import io.prometheus.client.Summary
+import io.sentry.kotlin.SentryContext
 import jakarta.servlet.http.HttpServletRequest
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
@@ -73,7 +74,7 @@ internal class InteractionController(
 				.thenCompose {
 					// give Discord some time to process our response before we start sending followup requests
 					interactionScope.async { delay(200.milliseconds) }.asCompletableFuture()
-				}
+				},
 		)
 		req.setAttribute(CompletionInterceptor.ATTRIBUTE, resultSent)
 
@@ -84,7 +85,7 @@ internal class InteractionController(
 	}
 
 	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, initialResponse: InitialResponse, totalTimer: Summary.Timer) =
-		launch(CoroutineExceptionHandler { _, t -> log.error("Unhandled exception in coroutine", t) }) {
+		launch(SentryContext() + CoroutineExceptionHandler { _, t -> log.error("Unhandled exception in coroutine", t) }) {
 			log.debug("Launching interaction processing coroutine!")
 
 			try {
