@@ -26,6 +26,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.RequestEntity
 import org.springframework.http.RequestEntity.UriTemplateRequestEntity
 import org.springframework.http.ResponseEntity
+import org.springframework.web.client.HttpClientErrorException.NotFound
 import org.springframework.web.client.HttpClientErrorException.TooManyRequests
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
@@ -83,6 +84,7 @@ class DiscordRestService(
 		val bucket = bucketService.bucket(bucketKey)
 		bucket.mutex.withLock {
 			try {
+				var notFoundTry = 0
 				while (true) { // consider escape hatch after X attempts or reaching a max attempt duration
 					if (bucket.tokens <= 0) {
 						val untilReset = Duration.between(Instant.now(), bucket.nextReset)
@@ -103,6 +105,15 @@ class DiscordRestService(
 							updateBucket(bucket, it, uriTemplate)
 							resetAfter(it)
 						}
+
+						if (cause is NotFound && notFoundTry < 3) {
+							// retry. could be race condition where the ack response has not been processed yet
+							logger().info("Got 404, retrying")
+							notFoundTry++
+							delay(500.milliseconds)
+							continue
+						}
+
 
 						if (cause !is TooManyRequests) {
 							throw discordClientException
