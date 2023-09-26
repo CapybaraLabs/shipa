@@ -7,7 +7,6 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Mess
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.ApplicationCommand
 import dev.capybaralabs.shipa.discord.interaction.model.create.CreateCommand
 import dev.capybaralabs.shipa.discord.model.IntBitfield
-import dev.capybaralabs.shipa.discord.model.MessageFlag
 import dev.capybaralabs.shipa.discord.model.MessageFlag.EPHEMERAL
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

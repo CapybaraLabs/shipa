@@ -155,7 +155,7 @@ private sealed interface UnifiedInteractionMsg<E : Result> {
 
 	data class Ack(
 		val ephemeral: Boolean,
-		override val response: CompletableDeferred<Result.Acked>
+		override val response: CompletableDeferred<Result.Acked>,
 	) : UnifiedInteractionMsg<Result.Acked>
 
 	data class CompleteOrEdit(
