@@ -29,7 +29,7 @@ allprojects {
 		}
 	}
 
-	tasks.withType(JavaCompile) {
+	tasks.withType(JavaCompile).configureEach {
 		dependsOn(processResources)
 		options.encoding = "UTF-8"
 		options.release.set(theJavaVersion.toInteger())
@@ -78,7 +78,7 @@ tasks.register("resolveAndLockAll") {
 		assert gradle.startParameter.writeDependencyLocks
 	}
 	doLast {
-		configurations.all {
+		configurations.configureEach {
 			resolutionStrategy {
 				componentSelection properReleasesOnly()
 			}
@@ -132,7 +132,7 @@ tasks.register("codeCoverageReport", JacocoReport) {
 	}
 }
 
-tasks.withType(org.sonarqube.gradle.SonarTask) {
+tasks.withType(org.sonarqube.gradle.SonarTask).configureEach {
 	dependsOn codeCoverageReport
 }
 sonarqube {
