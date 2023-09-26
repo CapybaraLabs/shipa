@@ -140,13 +140,13 @@ sealed interface InteractionResponseActionResult {
 		val message: Message
 	}
 
-	object Acked : InteractionResponseActionResult
+	data object Acked : InteractionResponseActionResult
 	object Completed : InteractionResponseActionResult, CompletedOrWithMessage
 	data class FollowedUp(override val message: Message) : WithMessage
 
 	data class Fetched(override val message: Message) : WithMessage
 	data class Edited(override val message: Message) : WithMessage
-	object Deleted : InteractionResponseActionResult
+	data object Deleted : InteractionResponseActionResult
 }
 
 private sealed interface UnifiedInteractionMsg<E : Result> {

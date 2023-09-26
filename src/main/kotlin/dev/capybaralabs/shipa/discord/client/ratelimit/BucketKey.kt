@@ -79,13 +79,13 @@ data class ChannelsIdTyping(val id: Long) : BucketKey
 data class ChannelsIdWebhooks(val id: Long) : BucketKey
 
 // Operating with the gateway information.
-object Gateway : BucketKey
+data object Gateway : BucketKey
 
 // Operating with the gateway information tailored to the current user.
-object GatewayBot : BucketKey
+data object GatewayBot : BucketKey
 
 // Operating on the guild resource.
-object Guilds : BucketKey
+data object Guilds : BucketKey
 
 // Operating on one of user's guilds.
 data class GuildsId(val id: Long) : BucketKey
@@ -210,46 +210,46 @@ data class GuildsTemplatesCode(val code: String) : BucketKey
 data class InteractionCallback(val id: Long) : BucketKey
 
 // Operating on an invite.
-object InvitesCode : BucketKey
+data object InvitesCode : BucketKey
 
 // Operating on the user's application information.
-object OAuthApplicationsMe : BucketKey
+data object OAuthApplicationsMe : BucketKey
 
 // Operating on the current authorization's information.
-object OAuthMe : BucketKey
+data object OAuthMe : BucketKey
 
 // Operating on stage instances.
-object StageInstances : BucketKey
+data object StageInstances : BucketKey
 
 // Operating on sticker packs.
-object StickerPacks : BucketKey
+data object StickerPacks : BucketKey
 
 // Operating on a sticker.
-object Stickers : BucketKey
+data object Stickers : BucketKey
 
 // Operating on the current authorization's user.
-object UsersMe : BucketKey
+data object UsersMe : BucketKey
 
 // Operating on a user.
-object UsersId : BucketKey
+data object UsersId : BucketKey
 
 // Operating on the user's private channels.
-object UsersIdChannels : BucketKey
+data object UsersIdChannels : BucketKey
 
 // Operating on the user's connections.
-object UsersIdConnections : BucketKey
+data object UsersIdConnections : BucketKey
 
 // Operating on the state of a guild that the user is in.
-object UsersIdGuilds : BucketKey
+data object UsersIdGuilds : BucketKey
 
 // Operating on the state of a guild that the user is in.
-object UsersIdGuildsId : BucketKey
+data object UsersIdGuildsId : BucketKey
 
 // Operating on the state of a guild that the user, as a member, is in.
-object UsersIdGuildsIdMember : BucketKey
+data object UsersIdGuildsIdMember : BucketKey
 
 // Operating on the voice regions available to the current user.
-object VoiceRegions : BucketKey
+data object VoiceRegions : BucketKey
 
 // Operating on a webhook as a bot.
 data class WebhooksId(val id: Long) : BucketKey
