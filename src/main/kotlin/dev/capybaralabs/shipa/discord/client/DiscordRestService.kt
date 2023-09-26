@@ -84,9 +84,11 @@ class DiscordRestService(
 		bucket.mutex.withLock {
 			try {
 				while (true) { // consider escape hatch after X attempts or reaching a max attempt duration
-					val untilReset = Duration.between(Instant.now(), bucket.nextReset)
-					if (bucket.tokens <= 0 && !untilReset.isNegative) {
-						delay(untilReset.toKotlinDuration())
+					if (bucket.tokens <= 0) {
+						val untilReset = Duration.between(Instant.now(), bucket.nextReset)
+						if (!untilReset.isNegative) {
+							delay(untilReset.toKotlinDuration())
+						}
 					}
 
 					val response: ResponseEntity<R>
@@ -109,6 +111,8 @@ class DiscordRestService(
 						if (resetAfter == null) {
 							logger().warn("Hit ratelimit on bucket {} but no known wait time. Backing off.", bucketKey, cause)
 							delay(1.seconds) // shrug
+						} else {
+							delay(resetAfter.toKotlinDuration())
 						}
 						continue
 					}
