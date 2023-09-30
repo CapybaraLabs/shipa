@@ -24,6 +24,7 @@ allprojects {
 			languageVersion = JavaLanguageVersion.of(theJavaVersion)
 			vendor = JvmVendorSpec.ADOPTIUM
 		}
+		withSourcesJar()
 		consistentResolution {
 			useCompileClasspathVersions()
 		}
