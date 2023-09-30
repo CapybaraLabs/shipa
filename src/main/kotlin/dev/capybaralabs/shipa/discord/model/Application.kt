@@ -21,14 +21,16 @@ data class Application(
 	val verifyKey: String,
 //	val team: Optional<Team>,
 	val guildId: Long?,
+//	val guild: PartialGuild?,
 	val primarySkuId: Long?,
 	val slug: String?,
 	val coverImage: String?,
 	val flags: IntBitfield<ApplicationFlag>?,
+	val approximateGuildCount: Int?,
 	val tags: List<String>?,
 //	val installParams: InstallParams?,
 	val customInstallUrl: String?,
-	val roleConnectionVerificationUrl: String?,
+	val roleConnectionsVerificationUrl: String?,
 ) {
 
 	fun iconUrl(): String? {
@@ -48,6 +50,7 @@ data class Application(
  * [Application Flags](https://discord.com/developers/docs/resources/application#application-object-application-flags)
  */
 enum class ApplicationFlag(override val value: Int) : IntBitflag {
+	APPLICATION_AUTO_MODERATION_RULE_CREATE_BADGE(1 shl 6),
 	GATEWAY_PRESENCE(1 shl 12),
 	GATEWAY_PRESENCE_LIMITED(1 shl 13),
 	GATEWAY_GUILD_MEMBERS(1 shl 14),
