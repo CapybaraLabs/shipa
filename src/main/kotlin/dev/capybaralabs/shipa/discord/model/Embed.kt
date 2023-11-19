@@ -72,12 +72,21 @@ data class EmbedField private constructor(
 			return EmbedField(
 				(name ?: ZERO_WIDTH_SPACE).let { it.ifBlank { ZERO_WIDTH_SPACE } },
 				(value ?: ZERO_WIDTH_SPACE).let { it.ifBlank { ZERO_WIDTH_SPACE } },
-				inline
+				inline,
 			)
 		}
 
 		fun blank(inline: Boolean? = null): EmbedField {
 			return EmbedField(ZERO_WIDTH_SPACE, ZERO_WIDTH_SPACE, inline)
 		}
+
+		fun inlined(name: String? = null, value: String? = null): EmbedField {
+			return EmbedField(name, value, true)
+		}
+
+		fun fullWidth(name: String? = null, value: String? = null): EmbedField {
+			return EmbedField(name, value, false)
+		}
+
 	}
 }
