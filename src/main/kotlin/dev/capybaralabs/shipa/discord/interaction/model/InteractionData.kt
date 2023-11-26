@@ -42,7 +42,7 @@ sealed interface InteractionData {
 	 */
 	data class MessageComponentData(
 		@JsonProperty("custom_id") val customId: String,
-		@JsonProperty("component_type") val componenType: MessageComponent.ComponentType,
+		@JsonProperty("component_type") val componentType: MessageComponent.ComponentType,
 		val values: List<String>?,
 	) : InteractionData
 
