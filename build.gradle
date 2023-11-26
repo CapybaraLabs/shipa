@@ -39,7 +39,7 @@ allprojects {
 	}
 	tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
 		kotlinOptions.jvmTarget = theJavaVersion
-		compilerOptions.freeCompilerArgs.add("-java-parameters")
+		compilerOptions.freeCompilerArgs.addAll("-java-parameters", "-Werror")
 	}
 
 	repositories {
