@@ -27,46 +27,46 @@ sealed interface InteractionResponse {
 	val type: InteractionCallbackType
 	val data: InteractionCallback?
 
-	object Pong : InteractionResponse {
+	data object Pong : InteractionResponse {
 		override val type = PONG
 		override val data: Nothing? = null
 	}
 
 	data class SendMessage(
-		override val data: InteractionCallback.Message
+		override val data: InteractionCallback.Message,
 	) : InteractionResponse {
 
 		override val type = CHANNEL_MESSAGE_WITH_SOURCE
 	}
 
 	data class Ack(
-		override val data: Flags? = null
+		override val data: Flags? = null,
 	) : InteractionResponse {
 		override val type = DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
 	}
 
 	//Only valid for message-component interactions
-	object AckUpdate : InteractionResponse {
+	data object AckUpdate : InteractionResponse {
 		override val type = DEFERRED_UPDATE_MESSAGE
 		override val data: Nothing? = null
 	}
 
 	//Only valid for message-component interactions
 	data class UpdateMessage(
-		override val data: InteractionCallback.Message
+		override val data: InteractionCallback.Message,
 	) : InteractionResponse {
 		override val type = UPDATE_MESSAGE
 	}
 
 	data class Autocomplete(
-		override val data: InteractionCallback.Autocomplete
+		override val data: InteractionCallback.Autocomplete,
 	) : InteractionResponse {
 
 		override val type = APPLICATION_COMMAND_AUTOCOMPLETE_RESULT
 	}
 
 	data class Modal(
-		override val data: InteractionCallback.Modal
+		override val data: InteractionCallback.Modal,
 	) : InteractionResponse {
 
 		override val type = MODAL
@@ -80,7 +80,7 @@ sealed interface InteractionResponse {
 sealed interface InteractionCallback {
 
 	data class Flags(
-		val flags: IntBitfield<MessageFlag>? = null // EPHEMERAL only
+		val flags: IntBitfield<MessageFlag>? = null, // EPHEMERAL only
 	) : InteractionCallback
 
 	/**

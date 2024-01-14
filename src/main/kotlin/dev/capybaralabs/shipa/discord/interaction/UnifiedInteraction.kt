@@ -141,7 +141,7 @@ sealed interface InteractionResponseActionResult {
 	}
 
 	data object Acked : InteractionResponseActionResult
-	object Completed : InteractionResponseActionResult, CompletedOrWithMessage
+	data object Completed : InteractionResponseActionResult, CompletedOrWithMessage
 	data class FollowedUp(override val message: Message) : WithMessage
 
 	data class Fetched(override val message: Message) : WithMessage
