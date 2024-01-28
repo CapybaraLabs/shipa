@@ -28,7 +28,7 @@ sealed interface CreateCommand {
 		val guildIds: List<Long>
 	}
 
-	class CreateUserGlobalCommand(
+	data class CreateUserGlobalCommand(
 		override val name: String,
 		override val dmPermission: Boolean? = null,
 		override val defaultMemberPermissions: Optional<StringBitfield<Permission>> = Optional.empty(),
@@ -36,7 +36,7 @@ sealed interface CreateCommand {
 		override val type = USER
 	}
 
-	class CreateUserGuildCommand(
+	data class CreateUserGuildCommand(
 		override val name: String,
 		override val guildIds: List<Long>,
 		override val defaultMemberPermissions: Optional<StringBitfield<Permission>> = Optional.empty(),
@@ -45,7 +45,7 @@ sealed interface CreateCommand {
 	}
 
 
-	class CreateMessageGlobalCommand(
+	data class CreateMessageGlobalCommand(
 		override val name: String,
 		override val dmPermission: Boolean? = null,
 		override val defaultMemberPermissions: Optional<StringBitfield<Permission>> = Optional.empty(),
@@ -53,7 +53,7 @@ sealed interface CreateCommand {
 		override val type = MESSAGE
 	}
 
-	class CreateMessageGuildCommand(
+	data class CreateMessageGuildCommand(
 		override val name: String,
 		override val guildIds: List<Long>,
 		override val defaultMemberPermissions: Optional<StringBitfield<Permission>> = Optional.empty(),
@@ -68,7 +68,7 @@ sealed interface CreateCommand {
 			get() = null
 	}
 
-	class CreateSlashGlobalCommand(
+	data class CreateSlashGlobalCommand(
 		override val name: String,
 		override val description: String,
 		override val dmPermission: Boolean? = null,
@@ -78,7 +78,7 @@ sealed interface CreateCommand {
 		override val type = CHAT_INPUT
 	}
 
-	class CreateSlashGuildCommand(
+	data class CreateSlashGuildCommand(
 		override val name: String,
 		override val description: String,
 		override val guildIds: List<Long>,
