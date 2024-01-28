@@ -15,8 +15,10 @@ import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Delete
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Edit
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Fetch
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.Followup
+import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionMsg.ShowModal
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Flags
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallback.Modal
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.MessageComponent
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
@@ -125,6 +127,11 @@ interface InteractionStateHolder {
 	 * Respond to an autocomplete interaction with a bunch of choices
 	 */
 	fun autocomplete(choices: List<OptionChoice>): Deferred<Result.Completed>
+
+	/**
+	 * Show a modal to the user
+	 */
+	fun showModal(modal: Modal): Deferred<Result.Completed>
 }
 
 enum class AutoAckTactic {
@@ -195,6 +202,12 @@ private sealed interface UnifiedInteractionMsg<E : Result> {
 		val choices: List<OptionChoice>,
 		override val response: CompletableDeferred<Result.Completed>,
 	) : UnifiedInteractionMsg<Result.Completed>
+
+	data class ShowModal(
+		val modal: Modal,
+		override val response: CompletableDeferred<Result.Completed>,
+	) : UnifiedInteractionMsg<Result.Completed>
+
 }
 
 
@@ -235,6 +248,7 @@ internal class UnifiedInteractionService(
 						is Fetch -> msg.response.complete(state.fetch(msg.messageId))
 						is Delete -> msg.response.complete(state.delete(msg.messageId))
 						is Autocomplete -> state.autocomplete(msg.choices).let { msg.response.complete(Result.Completed) }
+						is ShowModal -> state.showModal(msg.modal).let { msg.response.complete(Result.Completed) }
 					}
 				}
 			} catch (t: TimeoutCancellationException) {
@@ -368,6 +382,12 @@ private class InteractionStateHolderImpl(
 		send(Autocomplete(choices, response))
 		return response
 	}
+
+	override fun showModal(modal: Modal): Deferred<Result.Completed> {
+		val response = CompletableDeferred<Result.Completed>()
+		send(ShowModal(modal, response))
+		return response
+	}
 }
 
 
@@ -485,6 +505,15 @@ private class UnifiedInteractionState(
 		}
 
 		initialResponse.complete(InteractionResponse.Autocomplete(InteractionCallback.Autocomplete(choices)))
+	}
+
+	fun showModal(modal: Modal) {
+		if (initialResponse.isCompleted) {
+			logger().warn("Cannot send Modal to acked interaction")
+			return
+		}
+
+		initialResponse.complete(InteractionResponse.Modal(modal))
 	}
 
 }

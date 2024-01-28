@@ -46,6 +46,21 @@ sealed interface MessageComponent {
 		}
 	}
 
+	data class ModalActionRow internal constructor(
+		val components: List<TextInput>,
+	) : MessageComponent {
+
+		override val type = ACTION_ROW
+
+		companion object {
+			fun textInputs(inputs: List<TextInput>): ModalActionRow {
+				Assert.isTrue(inputs.isNotEmpty(), "At least one text input is required")
+				Assert.isTrue(inputs.size <= 5, "Only a maximum of 5 text inputs is allowed in a Modal ActionRow")
+				return ModalActionRow(inputs)
+			}
+		}
+	}
+
 
 	data class PartialEmoji(
 		val id: Optional<Long> = Optional.empty(),

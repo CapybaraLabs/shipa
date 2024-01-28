@@ -3,7 +3,7 @@ package dev.capybaralabs.shipa.discord.interaction.model
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id.DEDUCTION
-import java.awt.TextComponent
+import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.ComponentType
 
 /**
  * [Discord Interaction Data](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-interaction-data)
@@ -51,7 +51,21 @@ sealed interface InteractionData {
 	 */
 	data class ModalSubmitData(
 		@JsonProperty("custom_id") val customId: String,
-		val components: List<TextComponent>,
-	) : InteractionData
+		val components: List<SubmitActionRow>,
+	) : InteractionData {
+
+		data class SubmitActionRow(
+			val components: List<SubmitTextInput>,
+		) {
+			val type = ComponentType.ACTION_ROW
+		}
+
+		data class SubmitTextInput(
+			val customId: String,
+			val value: String,
+		) {
+			val type = ComponentType.TEXT_INPUT
+		}
+	}
 
 }

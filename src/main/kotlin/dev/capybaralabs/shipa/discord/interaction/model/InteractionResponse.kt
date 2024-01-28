@@ -12,7 +12,7 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.PONG
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionCallbackType.UPDATE_MESSAGE
 import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.ActionRow
-import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.TextInput
+import dev.capybaralabs.shipa.discord.interaction.model.MessageComponent.ModalActionRow
 import dev.capybaralabs.shipa.discord.model.AllowedMentions
 import dev.capybaralabs.shipa.discord.model.Embed
 import dev.capybaralabs.shipa.discord.model.IntBitfield
@@ -126,7 +126,7 @@ sealed interface InteractionCallback {
 	data class Modal(
 		val customId: String,
 		val title: String,
-		val components: List<TextInput>,
+		val components: List<ModalActionRow>,
 	) : InteractionCallback
 
 }
