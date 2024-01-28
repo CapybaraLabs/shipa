@@ -8,6 +8,7 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.Intera
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
+import dev.capybaralabs.shipa.logger
 import io.prometheus.client.Summary
 import io.sentry.kotlin.SentryContext
 import jakarta.servlet.http.HttpServletRequest
@@ -47,6 +48,7 @@ internal class InteractionController(
 
 	@PostMapping
 	fun post(req: HttpServletRequest, @RequestBody rawBody: String): CompletionStage<ResponseEntity<InteractionResponse>> {
+		logger().debug("Incoming interaction with body {}", rawBody)
 		metrics.interactionHttpResponseTime.startTimer().use {
 			return doPost(req, rawBody)
 		}
