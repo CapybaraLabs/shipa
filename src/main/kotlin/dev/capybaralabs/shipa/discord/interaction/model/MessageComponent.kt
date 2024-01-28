@@ -137,7 +137,7 @@ sealed interface MessageComponent {
 	}
 
 	/**
-	 * [Discord Message Component Text Input](https://discord.com/developers/docs/interactions/message-components#text-inputs-text-input-structure)
+	 * [Discord Message Component Text Input](https://discord.com/developers/docs/interactions/message-components#text-input-object)
 	 */
 	data class TextInput(
 		val customId: String,
