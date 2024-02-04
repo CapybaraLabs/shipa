@@ -19,6 +19,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.http.RequestEntity
@@ -28,7 +29,6 @@ import org.springframework.web.client.HttpClientErrorException.NotFound
 import org.springframework.web.client.HttpClientErrorException.TooManyRequests
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
-import org.springframework.web.client.RestTemplate
 
 const val HEADER_LIMIT = "X-RateLimit-Limit"
 const val HEADER_REMAINING = "X-RateLimit-Remaining"
@@ -41,15 +41,26 @@ const val HEADER_RETRY_AFTER = "Retry-After"
 
 
 class DiscordRestService(
-	private val restTemplate: RestTemplate,
+	private val authToken: DiscordAuthToken,
+	private val restTemplateBuilder: RestTemplateBuilder,
 	private val bucketService: BucketService,
 	private val metrics: ShipaMetrics,
 ) {
 
 	private val mapper = ObjectMapper()
+	private val restTemplate = restTemplateBuilder.additionalInterceptors(
+		{ req, body, exec ->
+			req.headers.add(HttpHeaders.AUTHORIZATION, authToken.authHeader())
+			exec.execute(req, body)
+		},
+	).build()
 
 	@OptIn(ExperimentalCoroutinesApi::class)
 	private val restDispatcher = Dispatchers.IO.limitedParallelism(100)
+
+	fun withUser(authToken: DiscordAuthToken.Oauth2): DiscordRestService {
+		return DiscordRestService(authToken, restTemplateBuilder, bucketService, metrics)
+	}
 
 	/**
 	 * [Discord Rate Limits](https://discord.com/developers/docs/topics/rate-limits#rate-limits)
@@ -79,7 +90,7 @@ class DiscordRestService(
 		type: ParameterizedTypeReference<R>,
 		uriTemplateOverride: String? = null,
 	): ResponseEntity<R> {
-		val bucket = bucketService.bucket(bucketKey)
+		val bucket = bucketService.bucket(authToken, bucketKey)
 		bucket.mutex.withLock {
 			try {
 				var notFoundTry = 0
@@ -131,7 +142,7 @@ class DiscordRestService(
 					return response
 				}
 			} finally {
-				bucketService.update(bucketKey, bucket) // trigger expiry update
+				bucketService.update(authToken, bucketKey, bucket) // trigger expiry update
 			}
 		}
 	}

@@ -20,7 +20,6 @@ import org.springframework.http.client.ClientHttpResponse
 import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.http.converter.FormHttpMessageConverter
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
-import org.springframework.web.client.RestTemplate
 
 @Configuration
 class DiscordClientConfiguration(
@@ -37,18 +36,22 @@ class DiscordClientConfiguration(
 
 	@Bean
 	fun discordRestService(): DiscordRestService {
-		return DiscordRestService(restTemplate(), bucketService, metrics)
+		return DiscordRestService(
+			DiscordAuthToken.Bot(properties.botToken),
+			restTemplateBuilder(),
+			bucketService,
+			metrics,
+		)
 	}
 
-	private fun restTemplate(): RestTemplate {
+	private fun restTemplateBuilder(): RestTemplateBuilder {
 		val formConverter = FormHttpMessageConverter()
 		formConverter.addPartConverter(converter)
 		var builder = restTemplateBuilder
 			.rootUri(properties.discordApiRootUrl)
 			.messageConverters(converter, formConverter)
 			.additionalInterceptors(
-				ClientHttpRequestInterceptor { req, body, exec ->
-					req.headers.add(HttpHeaders.AUTHORIZATION, "Bot " + properties.botToken)
+				{ req, body, exec ->
 					req.headers.add(HttpHeaders.USER_AGENT, userAgent)
 					exec.execute(req, body)
 				},
@@ -65,7 +68,7 @@ class DiscordClientConfiguration(
 				.additionalInterceptors(LoggingInterceptor())
 		}
 
-		return builder.build()
+		return builder
 	}
 
 	/**

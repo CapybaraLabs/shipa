@@ -2,6 +2,7 @@ package dev.capybaralabs.shipa.discord.client.ratelimit
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.Expiry
+import dev.capybaralabs.shipa.discord.client.DiscordAuthToken
 import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.sync.Mutex
@@ -11,29 +12,34 @@ import org.springframework.stereotype.Service
 @Service
 internal class CaffeineBucketService : BucketService {
 
+	private data class TokenBucketKey(
+		val token: DiscordAuthToken,
+		val bucketKey: BucketKey,
+	)
+
 	private val oneMinute = Duration.ofMinutes(1)
 
 	private val buckets = Caffeine.newBuilder()
 		.expireAfter(
-			object : Expiry<BucketKey, Bucket> {
-				override fun expireAfterCreate(key: BucketKey, bucket: Bucket, currentTime: Long): Long =
+			object : Expiry<TokenBucketKey, Bucket> {
+				override fun expireAfterCreate(key: TokenBucketKey, bucket: Bucket, currentTime: Long): Long =
 					oneMinute.toNanos()
 
-				override fun expireAfterUpdate(key: BucketKey, bucket: Bucket, currentTime: Long, currentDuration: Long): Long =
+				override fun expireAfterUpdate(key: TokenBucketKey, bucket: Bucket, currentTime: Long, currentDuration: Long): Long =
 					calcExpire(bucket).toNanos()
 
-				override fun expireAfterRead(key: BucketKey, bucket: Bucket, currentTime: Long, currentDuration: Long): Long =
+				override fun expireAfterRead(key: TokenBucketKey, bucket: Bucket, currentTime: Long, currentDuration: Long): Long =
 					currentDuration
 			},
 		)
-		.build<BucketKey, Bucket>()
+		.build<TokenBucketKey, Bucket>()
 
-	override fun bucket(bucketKey: BucketKey): Bucket {
-		return buckets.asMap().computeIfAbsent(bucketKey) { Bucket(it) }
+	override fun bucket(token: DiscordAuthToken, bucketKey: BucketKey): Bucket {
+		return buckets.asMap().computeIfAbsent(TokenBucketKey(token, bucketKey)) { Bucket(it.bucketKey) }
 	}
 
-	override fun update(bucketKey: BucketKey, bucket: Bucket) {
-		buckets.put(bucketKey, bucket)
+	override fun update(token: DiscordAuthToken, bucketKey: BucketKey, bucket: Bucket) {
+		buckets.put(TokenBucketKey(token, bucketKey), bucket)
 	}
 
 

@@ -1,6 +1,8 @@
 package dev.capybaralabs.shipa.discord.client.ratelimit
 
+import dev.capybaralabs.shipa.discord.client.DiscordAuthToken
+
 interface BucketService {
-	fun bucket(bucketKey: BucketKey): Bucket
-	fun update(bucketKey: BucketKey, bucket: Bucket)
+	fun bucket(token: DiscordAuthToken, bucketKey: BucketKey): Bucket
+	fun update(token: DiscordAuthToken, bucketKey: BucketKey, bucket: Bucket)
 }
