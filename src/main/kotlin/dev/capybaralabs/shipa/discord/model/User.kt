@@ -8,10 +8,13 @@ import kotlin.jvm.optionals.getOrNull
 /**
  * [Discord User](https://discord.com/developers/docs/resources/user#user-object)
  */
+@Suppress("DEPRECATION")
 data class User(
 	val id: Long,
 	val username: String,
+	@Deprecated("Read https://discord.com/developers/docs/change-log#unique-usernames-on-discord")
 	val discriminator: String,
+	val globalName: Optional<String>,
 	val avatar: Optional<String>,
 	val bot: Boolean?,
 	val system: Boolean?,
@@ -26,6 +29,10 @@ data class User(
 	val publicFlags: IntBitfield<UserFlag>?,
 ) {
 
+	private fun isMigratedUsername(): Boolean {
+		return "0" == discriminator
+	}
+
 	fun asMention(): String {
 		return "<@$id>"
 	}
@@ -35,7 +42,12 @@ data class User(
 	}
 
 	private fun defaultAvatarUrl(): String {
-		return ImageFormatting.imageUrl("/embed/avatars/${discriminator.toInt() % 5}", PNG)
+		val imageId = if (isMigratedUsername()) {
+			id.shr(22) % 6
+		} else {
+			discriminator.toInt() % 5
+		}
+		return ImageFormatting.imageUrl("/embed/avatars/${imageId}", PNG)
 	}
 
 	fun avatarUrl(): String? {
@@ -52,8 +64,17 @@ data class User(
 		}
 	}
 
+	fun displayName(): String {
+		return tag()
+	}
+
+	@Deprecated("Use displayName() instead")
 	fun tag(): String {
-		return "$username#$discriminator"
+		return globalName.getOrNull() ?: if (isMigratedUsername()) {
+			username
+		} else {
+			"$username#$discriminator"
+		}
 	}
 }
 
