@@ -12,7 +12,6 @@ import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.util.ContentCachingRequestWrapper
 import org.springframework.web.util.ContentCachingResponseWrapper
@@ -22,7 +21,7 @@ import org.springframework.web.util.ContentCachingResponseWrapper
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @WebFilter(urlPatterns = ["/*"])
-@Component
+//@Component // breaks tests, PONG response body is not rendered.
 class RequestAndResponseLoggingFilter(private val objectMapper: ObjectMapper) : OncePerRequestFilter() {
 
 	/**
@@ -30,7 +29,7 @@ class RequestAndResponseLoggingFilter(private val objectMapper: ObjectMapper) : 
 	 */
 	private val sensitiveHeaders = listOf(
 		"authorization",
-		"proxy-authorization"
+		"proxy-authorization",
 	)
 
 	private val visibleTypes = listOf(
@@ -40,7 +39,7 @@ class RequestAndResponseLoggingFilter(private val objectMapper: ObjectMapper) : 
 		MediaType.APPLICATION_XML,
 		MediaType.valueOf("application/*+json"),
 		MediaType.valueOf("application/*+xml"),
-		MediaType.MULTIPART_FORM_DATA
+		MediaType.MULTIPART_FORM_DATA,
 	)
 
 	override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
