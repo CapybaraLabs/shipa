@@ -1,5 +1,7 @@
 package dev.capybaralabs.shipa.discord.client
 
+import dev.capybaralabs.shipa.discord.oauth2.OAuth2Scope
+
 sealed interface DiscordAuthToken {
 
 	val token: String
@@ -16,7 +18,9 @@ sealed interface DiscordAuthToken {
 
 	data class Oauth2(
 		override val token: String,
+		val scopes: List<OAuth2Scope>,
 	) : DiscordAuthToken {
+
 		override fun authHeader(): String {
 			return "Bearer $token"
 		}

@@ -10,9 +10,9 @@ import kotlin.jvm.optionals.getOrNull
  * [Discord Guild Object](https://discord.com/developers/docs/resources/guild#guild-object)
  */
 data class Guild(
-	val id: Long,
+	override val id: Long,
 	val name: String,
-	val icon: Optional<String>,
+	override val icon: Optional<String>,
 	val iconHash: Optional<String>?,
 	val splash: Optional<String>,
 	val discoverySplash: Optional<String>,
@@ -50,14 +50,7 @@ data class Guild(
 	val nsfwLevel: GuildNsfwLevel,
 //	val stickers: List<Sticker>,
 	val premiumProgressBarEnabled: Boolean,
-) {
-
-	fun iconUrl(): String? {
-		return icon.getOrNull()?.let {
-			val format = if (it.startsWith("a_")) GIF else PNG
-			ImageFormatting.imageUrl("/icons/$id/$it", format)
-		}
-	}
+) : HasGuildIcon {
 
 	fun splashUrl(): String? {
 		return splash.getOrNull()?.let {

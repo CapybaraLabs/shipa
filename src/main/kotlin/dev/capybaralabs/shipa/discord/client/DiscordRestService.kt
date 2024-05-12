@@ -6,6 +6,8 @@ import dev.capybaralabs.shipa.ShipaMetrics
 import dev.capybaralabs.shipa.discord.client.ratelimit.Bucket
 import dev.capybaralabs.shipa.discord.client.ratelimit.BucketKey
 import dev.capybaralabs.shipa.discord.client.ratelimit.BucketService
+import dev.capybaralabs.shipa.discord.oauth2.OAuth2Scope
+import dev.capybaralabs.shipa.discord.oauth2.OAuth2ScopeException
 import dev.capybaralabs.shipa.logger
 import io.prometheus.client.Collector
 import java.time.Duration
@@ -60,6 +62,20 @@ class DiscordRestService(
 
 	fun withUser(authToken: DiscordAuthToken.Oauth2): DiscordRestService {
 		return DiscordRestService(authToken, restTemplateBuilder, bucketService, metrics)
+	}
+
+	/**
+	 * @throws OAuth2ScopeException if the token is a user token and is missing the required scope
+	 */
+	fun assertUserHasScope(scope: OAuth2Scope) {
+		when (authToken) {
+			is DiscordAuthToken.Bot -> {}  // is this a sane assumption? how do we know the bot can access the concrete endpoint?
+			is DiscordAuthToken.Oauth2 -> {
+				if (!authToken.scopes.contains(scope)) {
+					throw OAuth2ScopeException(authToken, scope)
+				}
+			}
+		}
 	}
 
 	/**

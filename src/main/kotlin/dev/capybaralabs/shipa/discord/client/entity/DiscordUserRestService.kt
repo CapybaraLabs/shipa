@@ -3,9 +3,12 @@ package dev.capybaralabs.shipa.discord.client.entity
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.client.ratelimit.UsersId
+import dev.capybaralabs.shipa.discord.client.ratelimit.UsersIdGuilds
 import dev.capybaralabs.shipa.discord.client.ratelimit.UsersMe
 import dev.capybaralabs.shipa.discord.model.Channel
+import dev.capybaralabs.shipa.discord.model.PartialGuild
 import dev.capybaralabs.shipa.discord.model.User
+import dev.capybaralabs.shipa.discord.oauth2.OAuth2Scope.GUILDS
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 import org.springframework.http.RequestEntity
@@ -61,6 +64,18 @@ class DiscordUserRestService(
 			RequestEntity
 				.patch("/users/@me")
 				.body(request),
+		).body!!
+	}
+
+	// https://discord.com/developers/docs/resources/user#get-current-user-guilds
+	suspend fun listCurrentUserGuilds(): List<PartialGuild> {
+		discordRestService.assertUserHasScope(GUILDS)
+
+		return discordRestService.exchange<List<PartialGuild>>(
+			UsersIdGuilds,
+			RequestEntity
+				.get("/users/@me/guilds")
+				.build(),
 		).body!!
 	}
 
