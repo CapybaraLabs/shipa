@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonValue
  */
 enum class DiscordLocale(@JsonValue val value: String, val languageName: String, val nativeName: String) {
 	ARABIC("ar", "Arabic", "العربية"), // not documented, but we see it in Sentry
+	HEBREW("he", "Hebrew", "עִברִית"), // not documented, but we see it in Sentry
 	INDONESIAN("id", "Indonesian", "Bahasa Indonesia"),
 	DANISH("da", "Danish", "Dansk"),
 	GERMAN("de", "German", "Deutsch"),
