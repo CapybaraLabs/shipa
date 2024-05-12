@@ -23,6 +23,7 @@ class InteractionRestService(
 	private val discordRestService: DiscordRestService,
 ) {
 
+	private val retryNotFoundTimes = 3
 	private val applicationId = properties.applicationId
 
 	// https://discord.com/developers/docs/interactions/receiving-and-responding#get-original-interaction-response
@@ -32,6 +33,7 @@ class InteractionRestService(
 			RequestEntity
 				.get("/webhooks/{applicationId}/{token}/messages/@original", applicationId, token)
 				.build(),
+			retryNotFoundTimes = retryNotFoundTimes,
 		).body!!
 	}
 
@@ -48,6 +50,7 @@ class InteractionRestService(
 		return discordRestService.exchange<Message>(
 			WebhooksIdTokenMessagesId(applicationId, token),
 			requestBuilder.body(potentialMultipartBody.body),
+			retryNotFoundTimes = retryNotFoundTimes,
 		).body!!
 	}
 
@@ -58,6 +61,7 @@ class InteractionRestService(
 			RequestEntity
 				.delete("/webhooks/{applicationId}/{token}/messages/@original", applicationId, token)
 				.build(),
+			retryNotFoundTimes = retryNotFoundTimes,
 		)
 	}
 
@@ -75,6 +79,7 @@ class InteractionRestService(
 		return discordRestService.exchange<Message>(
 			WebhooksIdToken(applicationId, token),
 			requestBuilder.body(multipartBody.body),
+			retryNotFoundTimes = retryNotFoundTimes,
 		).body!!
 	}
 
@@ -85,6 +90,7 @@ class InteractionRestService(
 			RequestEntity
 				.get("/webhooks/{applicationId}/{token}/messages/{messageId}", applicationId, token, messageId)
 				.build(),
+			retryNotFoundTimes = retryNotFoundTimes,
 		).body!!
 	}
 
@@ -101,6 +107,7 @@ class InteractionRestService(
 		return discordRestService.exchange<Message>(
 			WebhooksIdTokenMessagesId(applicationId, token),
 			requestBuilder.body(multipartBody.body),
+			retryNotFoundTimes = retryNotFoundTimes,
 		).body!!
 	}
 
@@ -111,6 +118,7 @@ class InteractionRestService(
 			RequestEntity
 				.delete("/webhooks/{applicationId}/{token}/messages/{messageId}", applicationId, token, messageId)
 				.build(),
+			retryNotFoundTimes = retryNotFoundTimes,
 		)
 	}
 }

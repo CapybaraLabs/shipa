@@ -80,8 +80,9 @@ class DiscordRestService(
 		bucketKey: BucketKey,
 		request: RequestEntity<*>,
 		uriTemplateOverride: String? = null,
+		retryNotFoundTimes: Int = 0,
 	): ResponseEntity<R> {
-		return exchange(bucketKey, request, object : ParameterizedTypeReference<R>() {}, uriTemplateOverride)
+		return exchange(bucketKey, request, object : ParameterizedTypeReference<R>() {}, uriTemplateOverride, retryNotFoundTimes)
 	}
 
 	suspend fun <R> exchange(
@@ -89,6 +90,7 @@ class DiscordRestService(
 		request: RequestEntity<*>,
 		type: ParameterizedTypeReference<R>,
 		uriTemplateOverride: String? = null,
+		retryNotFoundTimes: Int = 0,
 	): ResponseEntity<R> {
 		val bucket = bucketService.bucket(authToken, bucketKey)
 		bucket.mutex.withLock {
@@ -115,9 +117,9 @@ class DiscordRestService(
 							resetAfter(it)
 						}
 
-						if (cause is NotFound && notFoundTry < 3) {
+						if (cause is NotFound && notFoundTry < retryNotFoundTimes) {
 							// retry. could be race condition where the ack response has not been processed yet
-							logger().info("Got 404, retrying")
+							logger().info("Got 404, retrying #$notFoundTry")
 							notFoundTry++
 							delay(500.milliseconds)
 							continue
