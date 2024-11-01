@@ -1,8 +1,9 @@
 package dev.capybaralabs.shipa.discord.interaction.validation
 
 import dev.capybaralabs.shipa.ShipaMetrics
+import dev.capybaralabs.shipa.ShipaMetrics.Companion.NANOSECONDS_PER_MILLISECOND
 import dev.capybaralabs.shipa.logger
-import io.prometheus.client.Collector
+import io.micrometer.core.instrument.Timer
 
 class InstrumentedInteractionValidator(
 	private val label: String,
@@ -12,17 +13,15 @@ class InstrumentedInteractionValidator(
 
 	override fun validateSignature(signature: String, timestamp: String, body: String): Boolean {
 		var result = false
-		val start = System.nanoTime()
+		val timer = Timer.start()
 		try {
 			result = delegate.validateSignature(signature, timestamp, body)
 		} finally {
-			val duration = System.nanoTime() - start
-			metrics.interactionSignatureValidationTime.labels(label, "$result")
-				.observe(duration / Collector.NANOSECONDS_PER_SECOND)
-			val ms = duration / 1E6 // nanos per millisecond
+			val durationNanos = timer.stop(metrics.interactionSignatureValidationTime(label, "$result"))
+			val ms = durationNanos / NANOSECONDS_PER_MILLISECOND
 			logger().debug(
 				"Validated interaction using {} in {}ms: {} {} {} {}",
-				label, ms, result, signature, timestamp, body
+				label, ms, result, signature, timestamp, body,
 			)
 		}
 		return result

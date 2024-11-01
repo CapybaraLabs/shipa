@@ -21,6 +21,7 @@ dependencies {
 
 	implementation rootProject
 	implementation "org.springframework.boot:spring-boot-starter-undertow"
+	implementation "org.springframework.boot:spring-boot-starter-actuator"
 	developmentOnly "org.springframework.boot:spring-boot-devtools"
 	implementation "org.apache.httpcomponents.client5:httpclient5"
 

@@ -29,7 +29,6 @@ dependencyResolutionManagement {
 
 			library("kotlin-bom", "org.jetbrains.kotlin", "kotlin-bom").versionRef("kotlin")
 			library("spring-boot-bom", "org.springframework.boot", "spring-boot-dependencies").versionRef("spring-boot")
-			library("prometheus-bom", "io.prometheus", "simpleclient_bom").version("$prometheusVersion")
 			library("sentry-bom", "io.sentry", "sentry-bom").version("$sentryVersion")
 			library("saltycoffee", "software.pando.crypto", "salty-coffee").version("$saltyCoffeeVersion")
 			library("mockitokotlin", "org.mockito.kotlin", "mockito-kotlin").version("$mockitoKotlinVersion")

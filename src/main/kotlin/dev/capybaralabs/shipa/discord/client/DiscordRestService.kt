@@ -3,13 +3,15 @@ package dev.capybaralabs.shipa.discord.client
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.capybaralabs.shipa.ShipaMetrics
+import dev.capybaralabs.shipa.ShipaMetrics.Companion.NANOSECONDS_PER_MILLISECOND
 import dev.capybaralabs.shipa.discord.client.ratelimit.Bucket
 import dev.capybaralabs.shipa.discord.client.ratelimit.BucketKey
 import dev.capybaralabs.shipa.discord.client.ratelimit.BucketService
 import dev.capybaralabs.shipa.discord.oauth2.OAuth2Scope
 import dev.capybaralabs.shipa.discord.oauth2.OAuth2ScopeException
+import dev.capybaralabs.shipa.discord.time
 import dev.capybaralabs.shipa.logger
-import io.prometheus.client.Collector
+import io.micrometer.core.instrument.Timer
 import java.time.Duration
 import java.time.Instant
 import kotlin.time.Duration.Companion.milliseconds
@@ -172,25 +174,17 @@ class DiscordRestService(
 	private fun <R> instrument(request: RequestEntity<*>, uriTemplate: String, block: () -> ResponseEntity<R>): ResponseEntity<R> {
 		val method = request.method?.name() ?: "WTF"
 
-		val started = System.nanoTime()
+		val timer = Timer.start()
 		try {
-			val result = metrics.discordRestRequestResponseTime.startTimer().use { block.invoke() }
+			val result = metrics.discordRestRequestResponseTime().time(block)
 
-			val responseTimeNanos = System.nanoTime() - started
-			val responseTimeSeconds: Double = responseTimeNanos / Collector.NANOSECONDS_PER_SECOND
+			val responseTimeNanos = timer.stop(metrics.discordRestRequests(method, uriTemplate, "${result.statusCode.value()}", ""))
+			val responseTimeMillis = (responseTimeNanos / NANOSECONDS_PER_MILLISECOND).toInt()
 
-			metrics.discordRestRequests
-				.labels(method, uriTemplate, "${result.statusCode.value()}", "")
-				.observe(responseTimeSeconds)
-
-			val responseTimeMillis = (responseTimeSeconds * 1000).toInt()
 			logger().debug("{} {} {}ms {}", method, uriTemplate, responseTimeMillis, result.statusCode.value())
 
 			return result
 		} catch (e: RestClientResponseException) {
-			val responseTimeNanos = System.nanoTime() - started
-			val responseTimeSeconds: Double = responseTimeNanos / Collector.NANOSECONDS_PER_SECOND
-
 			// https://discord.com/developers/docs/reference#error-messages
 			val tree = try {
 				mapper.readTree(e.responseBodyAsString)
@@ -199,13 +193,11 @@ class DiscordRestService(
 			}
 			val errorCode = tree.get("code")?.asInt(-1) ?: -1
 
-			metrics.discordRestRequests
-				.labels(method, uriTemplate, "${e.statusCode.value()}", "$errorCode")
-				.observe(responseTimeSeconds)
+			val responseTimeNanos = timer.stop(metrics.discordRestRequests(method, uriTemplate, "${e.statusCode.value()}", "$errorCode"))
 
 			val message = tree.get("message")?.asText()
 			val errors = tree.get("errors")?.asText()
-			val responseTimeMillis = (responseTimeSeconds * 1000).toInt()
+			val responseTimeMillis = (responseTimeNanos / NANOSECONDS_PER_MILLISECOND).toInt()
 			logger().debug("Encountered error response: {} {} {}ms {} {} {} {}", method, uriTemplate, responseTimeMillis, e.statusCode.value(), errorCode, message, errors)
 
 			throw DiscordClientException(JsonErrorCode.parse(errorCode), message, errors, e)
@@ -215,7 +207,7 @@ class DiscordRestService(
 	}
 
 	private fun hardRestFail(e: Exception, method: String, uriTemplate: String): Exception {
-		metrics.discordRestHardFailures.labels(method, uriTemplate).inc()
+		metrics.discordRestHardFailures(method, uriTemplate).increment()
 		logger().warn("Failed request to: {} {}", method, uriTemplate, e)
 		return e
 	}

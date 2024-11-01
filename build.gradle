@@ -16,7 +16,7 @@ plugins {
 }
 
 group = "dev.capybaralabs.shipa"
-version = "0.6.3"
+version = "0.7.0"
 
 allprojects {
 	java {
@@ -51,7 +51,6 @@ dependencies {
 	api platform(libs.kotlin.bom)
 	api platform(libs.spring.boot.bom)
 	kapt platform(libs.spring.boot.bom)
-	api platform(libs.prometheus.bom)
 	api platform(libs.sentry.bom)
 
 	api "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
@@ -60,8 +59,8 @@ dependencies {
 	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8"
 	api "org.springframework.boot:spring-boot-starter"
 	api "org.springframework.boot:spring-boot-starter-web"
+	api "io.micrometer:micrometer-registry-prometheus"
 	api "com.fasterxml.jackson.module:jackson-module-kotlin"
-	api "io.prometheus:simpleclient"
 	implementation "io.sentry:sentry-kotlin-extensions"
 	implementation libs.saltycoffee
 	implementation "com.github.ben-manes.caffeine:caffeine"

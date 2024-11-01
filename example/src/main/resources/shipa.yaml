@@ -14,3 +14,18 @@ spring:
   output:
     ansi:
       enabled: always
+management:
+  defaults:
+    metrics:
+      export:
+        enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  endpoint:
+    health:
+      show-details: always
+      enabled: true
+    prometheus:
+      enabled: true

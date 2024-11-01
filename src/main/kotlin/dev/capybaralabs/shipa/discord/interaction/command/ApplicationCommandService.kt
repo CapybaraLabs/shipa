@@ -5,6 +5,7 @@ import dev.capybaralabs.shipa.discord.interaction.InitialResponse
 import dev.capybaralabs.shipa.discord.interaction.InteractionRepository
 import dev.capybaralabs.shipa.discord.interaction.UnifiedInteractionService
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
+import dev.capybaralabs.shipa.discord.timeSuspending
 import dev.capybaralabs.shipa.logger
 import org.springframework.stereotype.Service
 
@@ -38,7 +39,7 @@ private class ApplicationCommandServiceImpl(
 		}
 
 		val stateHolder = unifiedInteractionService.create(interaction, command.autoAckTactic(), initialResponse)
-		metrics.commandProcessTime.labels(command.name(), interaction.type.name).startTimer().use {
+		metrics.commandProcessTime(command.name(), interaction.type.name).timeSuspending {
 			command.onInteraction(stateHolder)
 		}
 	}

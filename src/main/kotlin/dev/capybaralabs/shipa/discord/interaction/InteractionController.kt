@@ -8,8 +8,9 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.Intera
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
+import dev.capybaralabs.shipa.discord.time
 import dev.capybaralabs.shipa.logger
-import io.prometheus.client.Summary
+import io.micrometer.core.instrument.Timer
 import io.sentry.kotlin.SentryContext
 import jakarta.servlet.http.HttpServletRequest
 import java.util.concurrent.CompletableFuture
@@ -49,13 +50,11 @@ internal class InteractionController(
 	@PostMapping
 	fun post(req: HttpServletRequest, @RequestBody rawBody: String): CompletionStage<ResponseEntity<InteractionResponse>> {
 		logger().debug("Incoming interaction with body {}", rawBody)
-		metrics.interactionHttpResponseTime.startTimer().use {
-			return doPost(req, rawBody)
-		}
+		return metrics.interactionHttpResponseTime().time { doPost(req, rawBody) }
 	}
 
 	private fun doPost(req: HttpServletRequest, rawBody: String): CompletionStage<ResponseEntity<InteractionResponse>> {
-		val totalTimer = metrics.interactionTotalTime.startTimer()
+		val totalTimer = Timer.start()
 		val signature: String? = req.getHeader(HEADER_SIGNATURE)
 		val timestamp: String? = req.getHeader(HEADER_TIMESTAMP)
 		if (signature == null || timestamp == null) {
@@ -86,7 +85,7 @@ internal class InteractionController(
 			.orTimeout(3, SECONDS)
 	}
 
-	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, initialResponse: InitialResponse, totalTimer: Summary.Timer) =
+	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, initialResponse: InitialResponse, totalTimer: Timer.Sample) =
 		launch(SentryContext() + CoroutineExceptionHandler { _, t -> log.error("Unhandled exception in coroutine", t) }) {
 			log.debug("Launching interaction processing coroutine!")
 
@@ -99,7 +98,7 @@ internal class InteractionController(
 				log.error("Uncaught error processing the interaction", t)
 				initialResponse.completeExceptionally(t)
 			} finally {
-				totalTimer.observeDuration()
+				totalTimer.stop(metrics.interactionTotalTime())
 			}
 		}
 }
