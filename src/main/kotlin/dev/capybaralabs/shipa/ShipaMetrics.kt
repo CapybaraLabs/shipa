@@ -20,7 +20,7 @@ class ShipaMetrics(private val meterRegistry: MeterRegistry) {
 
 	fun interactionSignatureValidationTime(implementation: String, success: String): Timer {
 		return Timer
-			.builder("shipa_interaction_signature_validation_seconds")
+			.builder("shipa.interaction.signature.validation")
 			.description("How long signature validation for interactions takes")
 			.tags(
 				Tags.of(
@@ -33,21 +33,21 @@ class ShipaMetrics(private val meterRegistry: MeterRegistry) {
 
 	fun interactionHttpResponseTime(): Timer {
 		return Timer
-			.builder("shipa_interaction_http_response_time_seconds")
+			.builder("shipa.interaction.http_response.time")
 			.description("How long until we return an http response to discord")
 			.register(meterRegistry)
 	}
 
 	fun interactionTotalTime(): Timer {
 		return Timer
-			.builder("shipa_interaction_total_time_seconds")
+			.builder("shipa.interaction.total.time")
 			.description("How long until an interaction is fully processed")
 			.register(meterRegistry)
 	}
 
 	fun commandProcessTime(name: String, type: String): Timer {
 		return Timer
-			.builder("shipa_command_process_time_seconds")
+			.builder("shipa.command.process.time")
 			.description("How long until an interaction is fully processed")
 			.tags(
 				Tags.of(
@@ -60,7 +60,7 @@ class ShipaMetrics(private val meterRegistry: MeterRegistry) {
 
 	fun discordRestRequests(method: String, uri: String, status: String, error: String): Timer {
 		return Timer
-			.builder("shipa_discord_rest_request_seconds")
+			.builder("shipa.discord.rest.request")
 			.description("Total Discord REST requests sent and their received responses")
 			.tags(
 				Tags.of(
@@ -75,7 +75,7 @@ class ShipaMetrics(private val meterRegistry: MeterRegistry) {
 
 	fun discordRestRequestResponseTime(): Timer {
 		return Timer
-			.builder("shipa_discord_rest_request_response_time_seconds")
+			.builder("shipa.discord.rest.request.response.time")
 			.description("Discord REST request response time")
 			.serviceLevelObjectives(*exponentialBuckets(50.milliseconds.toJavaDuration(), 1.2, 20))
 			.publishPercentileHistogram()
@@ -84,7 +84,7 @@ class ShipaMetrics(private val meterRegistry: MeterRegistry) {
 
 	fun discordRestHardFailures(method: String, uri: String): Counter {
 		return Counter
-			.builder("shipa_discord_rest_request_hard_failures_total")
+			.builder("shipa.discord.rest.request.hard.failures")
 			.description("Total Discord REST requests that experienced hard failures (not client response exceptions)")
 			.tags(
 				Tags.of(
