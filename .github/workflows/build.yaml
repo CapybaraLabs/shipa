@@ -37,7 +37,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          arguments: check sonar --no-build-cache --info -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=capybaralabs -Dsonar.login=${{ env.SONAR_TOKEN }}
+          arguments: check sonar --no-build-cache --info -Dsonar.host.url=https://sonarcloud.io -Dsonar.organization=capybaralabs -Dsonar.token=${{ env.SONAR_TOKEN }}
 
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@170bf24d20d201b842d7a52403b73ed297e6645b # v2.18.0
