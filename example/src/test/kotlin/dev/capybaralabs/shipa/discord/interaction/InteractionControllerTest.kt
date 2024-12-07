@@ -10,15 +10,15 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doReturn
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
-import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 
 
 internal class InteractionControllerTest : ApplicationTest() {
 
-	@SpyBean
+	@MockitoSpyBean
 	private lateinit var interactionValidator: InteractionValidator
 
 	@Test

@@ -64,7 +64,7 @@ class DiscordClientConfiguration(
 
 		if (logger().isDebugEnabled) {
 			builder = builder
-				.requestFactory { _ -> BufferingClientHttpRequestFactory(requestFactory) }
+				.requestFactoryBuilder { _ -> BufferingClientHttpRequestFactory(requestFactory) }
 				.additionalInterceptors(LoggingInterceptor())
 		}
 

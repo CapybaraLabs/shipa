@@ -12,11 +12,11 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.SpyBean
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 
 internal class ApplicationCommandServiceTest : ApplicationTest() {
 
-	@SpyBean
+	@MockitoSpyBean
 	private lateinit var service: ApplicationCommandService
 
 	@Autowired
@@ -27,7 +27,7 @@ internal class ApplicationCommandServiceTest : ApplicationTest() {
 		runBlocking {
 			val interaction = ApplicationCommand(
 				42, 42, "foo", 1, GREEK,
-				ApplicationCommandData(42, "bar", CHAT_INPUT, null, null, null, null), null, 69, null, null, null, null, null
+				ApplicationCommandData(42, "bar", CHAT_INPUT, null, null, null, null), null, 69, null, null, null, null, null,
 			)
 
 			assertThat(repo.find(42)).isNull()
