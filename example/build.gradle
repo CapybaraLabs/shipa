@@ -38,7 +38,7 @@ test {
 }
 
 testlogger {
-	theme "mocha"
+	theme = "mocha"
 }
 
 
