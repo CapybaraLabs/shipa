@@ -8,6 +8,7 @@ import dev.capybaralabs.shipa.discord.interaction.validation.SaltyCoffeeInteract
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -23,7 +24,8 @@ class InteractionsConfiguration(private val discord: DiscordProperties) {
 	@Bean
 	@OptIn(ExperimentalCoroutinesApi::class)
 	internal fun interactionCoroutineScope(): CoroutineScope {
-		return CoroutineScope(Dispatchers.IO.limitedParallelism(100))
+		val supervisor = SupervisorJob()
+		return CoroutineScope(Dispatchers.IO.limitedParallelism(100) + supervisor)
 	}
 
 }
