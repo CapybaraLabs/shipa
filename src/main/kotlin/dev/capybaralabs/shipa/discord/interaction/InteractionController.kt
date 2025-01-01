@@ -94,9 +94,9 @@ internal class InteractionController(
 					is InteractionObject.Ping -> initialResponse.complete(InteractionResponse.Pong)
 					is InteractionWithData -> applicationCommandService.onInteraction(interaction, initialResponse)
 				}
-			} catch (t: Throwable) {
-				log.error("Uncaught error processing the interaction", t)
-				initialResponse.completeExceptionally(t)
+			} catch (e: Exception) {
+				log.error("Uncaught error processing the interaction", e)
+				initialResponse.completeExceptionally(e)
 			} finally {
 				totalTimer.stop(metrics.interactionTotalTime())
 			}

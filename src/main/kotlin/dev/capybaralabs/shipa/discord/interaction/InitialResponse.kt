@@ -16,7 +16,7 @@ class InitialResponse(
 		result.complete(value)
 	}
 
-	fun completeExceptionally(exception: Throwable) {
+	fun completeExceptionally(exception: Exception) {
 		result.completeExceptionally(exception)
 	}
 

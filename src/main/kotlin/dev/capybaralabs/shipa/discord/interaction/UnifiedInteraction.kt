@@ -30,11 +30,11 @@ import dev.capybaralabs.shipa.logger
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeoutException
 import kotlin.Boolean
+import kotlin.Exception
 import kotlin.IllegalStateException
 import kotlin.Long
 import kotlin.OptIn
 import kotlin.Suppress
-import kotlin.Throwable
 import kotlin.let
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -251,17 +251,17 @@ internal class UnifiedInteractionService(
 						is ShowModal -> state.showModal(msg.modal).let { msg.response.complete(Result.Completed) }
 					}
 				}
-			} catch (t: TimeoutCancellationException) {
+			} catch (e: TimeoutCancellationException) {
 				if (!msg.response.isCompleted) {
 					msg.response.completeExceptionally(TimeoutException("Interaction actor did not process message $msg in time!")) // can we find a way to propagate the cause?
 				} else {
-					logger().warn("Caught exception but response already completed.", t)
+					logger().warn("Caught exception but response already completed.", e)
 				}
-			} catch (t: Throwable) {
+			} catch (e: Exception) {
 				if (!msg.response.isCompleted) {
-					msg.response.completeExceptionally(t)
+					msg.response.completeExceptionally(e)
 				} else {
-					logger().warn("Caught exception but response already completed.", t)
+					logger().warn("Caught exception but response already completed.", e)
 				}
 			} finally {
 				if (!msg.response.isCompleted) {
