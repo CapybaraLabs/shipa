@@ -3,8 +3,8 @@ package dev.capybaralabs.shipa.discord.client.entity
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.client.ratelimit.UsersId
+import dev.capybaralabs.shipa.discord.client.ratelimit.UsersIdChannels
 import dev.capybaralabs.shipa.discord.client.ratelimit.UsersIdGuilds
-import dev.capybaralabs.shipa.discord.client.ratelimit.UsersMe
 import dev.capybaralabs.shipa.discord.model.Channel
 import dev.capybaralabs.shipa.discord.model.PartialGuild
 import dev.capybaralabs.shipa.discord.model.User
@@ -25,7 +25,7 @@ class DiscordUserRestService(
 	// https://discord.com/developers/docs/resources/user#get-current-user
 	suspend fun fetchSelf(): User {
 		return discordRestService.exchange<User>(
-			UsersMe,
+			UsersId,
 			RequestEntity
 				.get("/users/@me")
 				.build(),
@@ -46,7 +46,7 @@ class DiscordUserRestService(
 	// https://discord.com/developers/docs/resources/user#create-dm
 	suspend fun createDm(recipientId: Long): Channel {
 		return discordRestService.exchange<Channel>(
-			UsersMe,
+			UsersIdChannels,
 			RequestEntity
 				.post("/users/@me/channels")
 				.body(mapOf("recipient_id" to recipientId)),
@@ -60,7 +60,7 @@ class DiscordUserRestService(
 		avatar?.let { request.put("avatar", it.getOrNull()) }
 
 		return discordRestService.exchange<User>(
-			UsersMe,
+			UsersId,
 			RequestEntity
 				.patch("/users/@me")
 				.body(request),
