@@ -227,6 +227,9 @@ data object StickerPacks : BucketKey
 // Operating on a sticker.
 data object Stickers : BucketKey
 
+// Operating on the current authorization's user.
+data object UsersMe : BucketKey
+
 // Operating on a user.
 data object UsersId : BucketKey
 
