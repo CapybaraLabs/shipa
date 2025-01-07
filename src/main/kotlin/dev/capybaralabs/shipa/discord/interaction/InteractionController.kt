@@ -16,6 +16,7 @@ import jakarta.servlet.http.HttpServletRequest
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.TimeoutException
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -67,7 +68,15 @@ internal class InteractionController(
 
 		val interaction = mapper.readValue(rawBody, UntypedInteractionObject::class.java).typed()
 		val result = CompletableDeferred<InteractionResponse>()
-		val resultSent = CompletableFuture<Unit>().orTimeout(10, SECONDS)
+		val resultSent = CompletableFuture<Unit>()
+			.orTimeout(10, SECONDS)
+			.exceptionallyCompose {
+				if (it is TimeoutException) {
+					CompletableFuture.failedFuture(TimeoutException("resultSent Future timed out"))
+				} else {
+					CompletableFuture.failedFuture(it)
+				}
+			}
 
 		val initialResponse = InitialResponse(
 			result,
@@ -83,6 +92,13 @@ internal class InteractionController(
 		return result.asCompletableFuture()
 			.thenApply { ResponseEntity.ok().body(it) }
 			.orTimeout(3, SECONDS)
+			.exceptionallyCompose {
+				if (it is TimeoutException) {
+					CompletableFuture.failedFuture(TimeoutException("result Future timed out"))
+				} else {
+					CompletableFuture.failedFuture(it)
+				}
+			}
 	}
 
 	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, initialResponse: InitialResponse, totalTimer: Timer.Sample) =
