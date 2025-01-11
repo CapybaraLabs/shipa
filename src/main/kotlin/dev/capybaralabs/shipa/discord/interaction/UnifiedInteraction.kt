@@ -26,7 +26,6 @@ import dev.capybaralabs.shipa.discord.interaction.model.OptionChoice
 import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.Message
 import dev.capybaralabs.shipa.discord.model.MessageFlag.EPHEMERAL
-import dev.capybaralabs.shipa.logger
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeoutException
 import kotlin.Boolean
@@ -50,11 +49,20 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import dev.capybaralabs.shipa.discord.interaction.InteractionResponseActionResult as Result
 
 
 val INTERACTION_TIMEOUT = 15.minutes
+
+class UnifiedInteraction {
+	companion object {
+		val log: Logger = LoggerFactory.getLogger(UnifiedInteraction::class.java)
+	}
+}
+
 
 /**
  * This class does all at once
@@ -255,13 +263,13 @@ internal class UnifiedInteractionService(
 				if (!msg.response.isCompleted) {
 					msg.response.completeExceptionally(TimeoutException("Interaction actor did not process message $msg in time!")) // can we find a way to propagate the cause?
 				} else {
-					logger().warn("Caught exception but response already completed.", e)
+					UnifiedInteraction.log.warn("Caught exception but response already completed.", e)
 				}
 			} catch (e: Exception) {
 				if (!msg.response.isCompleted) {
 					msg.response.completeExceptionally(e)
 				} else {
-					logger().warn("Caught exception but response already completed.", e)
+					UnifiedInteraction.log.warn("Caught exception but response already completed.", e)
 				}
 			} finally {
 				if (!msg.response.isCompleted) {
@@ -286,20 +294,20 @@ private class InteractionStateHolderImpl(
 
 	init {
 		scope.async {
-			logger().trace("Interaction {}: Starting auto-ack delay", interaction.id)
+			UnifiedInteraction.log.trace("Interaction {}: Starting auto-ack delay", interaction.id)
 			delay(AUTO_ACK_DELAY)
-			logger().trace("Interaction {}: Auto-ack delayed, tactic is {}", interaction.id, autoAckTactic)
+			UnifiedInteraction.log.trace("Interaction {}: Auto-ack delayed, tactic is {}", interaction.id, autoAckTactic)
 			when (autoAckTactic) {
 				DO_NOTHING -> {}
 				ACK_EPHEMERAL -> ack(true).await()
 				ACK -> ack(false).await()
 			}
-			logger().trace("Interaction {}: Auto-ack tactic {} applied", interaction.id, autoAckTactic)
+			UnifiedInteraction.log.trace("Interaction {}: Auto-ack tactic {} applied", interaction.id, autoAckTactic)
 
 			delay(REMAINING_INTERACTION_TIMEOUT_DELAY)
 			actor.close()
 		}.invokeOnCompletion {
-			logger().debug("Interaction {}: Closed actor", interaction.id)
+			UnifiedInteraction.log.debug("Interaction {}: Closed actor", interaction.id)
 		}
 	}
 
@@ -311,7 +319,7 @@ private class InteractionStateHolderImpl(
 				if (error !is CancellationException) {
 					val completed = msg.response.completeExceptionally(error)
 					if (!completed) {
-						logger().warn("Potentially swallowed error", error)
+						UnifiedInteraction.log.warn("Potentially swallowed error", error)
 					}
 				}
 			}
@@ -512,7 +520,7 @@ private class UnifiedInteractionState(
 
 	fun showModal(modal: Modal) {
 		if (initialResponse.isCompleted) {
-			logger().warn("Cannot send Modal to acked interaction")
+			UnifiedInteraction.log.warn("Cannot send Modal to acked interaction")
 			return
 		}
 
