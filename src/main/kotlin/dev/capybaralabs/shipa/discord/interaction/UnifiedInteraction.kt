@@ -286,17 +286,20 @@ private class InteractionStateHolderImpl(
 
 	init {
 		scope.async {
+			logger().trace("Interaction {}: Starting auto-ack delay", interaction.id)
 			delay(AUTO_ACK_DELAY)
+			logger().trace("Interaction {}: Auto-ack delayed, tactic is {}", interaction.id, autoAckTactic)
 			when (autoAckTactic) {
 				DO_NOTHING -> {}
 				ACK_EPHEMERAL -> ack(true).await()
 				ACK -> ack(false).await()
 			}
+			logger().trace("Interaction {}: Auto-ack tactic {} applied", interaction.id, autoAckTactic)
 
 			delay(REMAINING_INTERACTION_TIMEOUT_DELAY)
 			actor.close()
 		}.invokeOnCompletion {
-			logger().debug("Closed actor for interaction {}", interaction.id)
+			logger().debug("Interaction {}: Closed actor", interaction.id)
 		}
 	}
 

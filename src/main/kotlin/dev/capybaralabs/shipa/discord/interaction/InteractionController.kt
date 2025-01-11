@@ -72,7 +72,7 @@ internal class InteractionController(
 			.orTimeout(10, SECONDS)
 			.exceptionallyCompose {
 				if (it is TimeoutException) {
-					CompletableFuture.failedFuture(TimeoutException("resultSent Future timed out"))
+					CompletableFuture.failedFuture(TimeoutException("resultSent Future timed out on interaction ${interaction.id}"))
 				} else {
 					CompletableFuture.failedFuture(it)
 				}
@@ -94,7 +94,7 @@ internal class InteractionController(
 			.orTimeout(3, SECONDS)
 			.exceptionallyCompose {
 				if (it is TimeoutException) {
-					CompletableFuture.failedFuture(TimeoutException("result Future timed out"))
+					CompletableFuture.failedFuture(TimeoutException("result Future timed out on interaction ${interaction.id}"))
 				} else {
 					CompletableFuture.failedFuture(it)
 				}
@@ -103,7 +103,7 @@ internal class InteractionController(
 
 	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, initialResponse: InitialResponse, totalTimer: Timer.Sample) =
 		launch(SentryContext() + CoroutineExceptionHandler { _, t -> log.error("Unhandled exception in coroutine", t) }) {
-			log.debug("Launching interaction processing coroutine!")
+			log.trace("Interaction {}: Launching interaction processing coroutine!", interaction.id)
 
 			try {
 				when (interaction) {
@@ -111,9 +111,10 @@ internal class InteractionController(
 					is InteractionWithData -> applicationCommandService.onInteraction(interaction, initialResponse)
 				}
 			} catch (e: Exception) {
-				log.error("Uncaught error processing the interaction", e)
+				log.error("Uncaught error processing interaction {}", interaction.id, e)
 				initialResponse.completeExceptionally(e)
 			} finally {
+				log.trace("Interaction {}: Done processing", interaction.id)
 				totalTimer.stop(metrics.interactionTotalTime())
 			}
 		}
