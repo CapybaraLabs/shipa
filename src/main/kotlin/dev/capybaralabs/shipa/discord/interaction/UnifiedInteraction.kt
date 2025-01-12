@@ -4,6 +4,7 @@ package dev.capybaralabs.shipa.discord.interaction
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import dev.capybaralabs.shipa.discord.delay
+import dev.capybaralabs.shipa.discord.delayUntil
 import dev.capybaralabs.shipa.discord.interaction.AutoAckTactic.ACK
 import dev.capybaralabs.shipa.discord.interaction.AutoAckTactic.ACK_EPHEMERAL
 import dev.capybaralabs.shipa.discord.interaction.AutoAckTactic.DO_NOTHING
@@ -290,7 +291,6 @@ private class InteractionStateHolderImpl(
 
 	companion object {
 		private val AUTO_ACK_DELAY = 2_000.millis
-		private val REMAINING_INTERACTION_TIMEOUT_DELAY = INTERACTION_TIMEOUT.minus(AUTO_ACK_DELAY)
 	}
 
 	init {
@@ -307,7 +307,7 @@ private class InteractionStateHolderImpl(
 			}
 			UnifiedInteraction.log.trace("Interaction {}: Auto-ack tactic {} applied", interaction.id, autoAckTactic)
 
-			delay(REMAINING_INTERACTION_TIMEOUT_DELAY)
+			delayUntil(interaction.shipaMetadata.received.plus(INTERACTION_TIMEOUT))
 			actor.close()
 		}.invokeOnCompletion {
 			UnifiedInteraction.log.debug("Interaction {}: Closed actor", interaction.id)

@@ -46,3 +46,10 @@ internal val Number.seconds: Duration get() = Duration.ofSeconds(toLong())
 internal val Number.minutes: Duration get() = Duration.ofMinutes(toLong())
 
 internal suspend fun delay(duration: Duration): Unit = kotlinx.coroutines.delay(duration.toKotlinDuration())
+
+internal suspend fun delayUntil(until: Instant) {
+	val untilReset = Duration.between(Instant.now(), until)
+	if (!untilReset.isNegative) {
+		delay(untilReset)
+	}
+}
