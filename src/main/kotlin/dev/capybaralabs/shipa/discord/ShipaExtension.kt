@@ -12,11 +12,11 @@ fun Instant.asDiscordSnowflake(): Long {
 	return (toEpochMilli() - DISCORD_EPOCH) shl 22
 }
 
-fun UriComponentsBuilder.namedQueryParam(name: String): UriComponentsBuilder {
+internal fun UriComponentsBuilder.namedQueryParam(name: String): UriComponentsBuilder {
 	return queryParam(name, "{$name}")
 }
 
-fun <T> Timer.time(block: () -> T): T {
+internal fun <T> Timer.time(block: () -> T): T {
 	return Timer.start().let {
 		try {
 			block.invoke()
@@ -26,7 +26,7 @@ fun <T> Timer.time(block: () -> T): T {
 	}
 }
 
-suspend fun <T> Timer.timeSuspending(block: suspend () -> T): T {
+internal suspend fun <T> Timer.timeSuspending(block: suspend () -> T): T {
 	return Timer.start().let {
 		try {
 			block.invoke()
