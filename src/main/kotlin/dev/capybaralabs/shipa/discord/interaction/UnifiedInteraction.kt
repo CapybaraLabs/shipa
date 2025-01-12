@@ -29,6 +29,8 @@ import dev.capybaralabs.shipa.discord.minutes
 import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.Message
 import dev.capybaralabs.shipa.discord.model.MessageFlag.EPHEMERAL
+import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeoutException
 import kotlin.Boolean
@@ -293,8 +295,10 @@ private class InteractionStateHolderImpl(
 
 	init {
 		scope.async {
-			UnifiedInteraction.log.trace("Interaction {}: Starting auto-ack delay", interaction.id)
-			delay(AUTO_ACK_DELAY)
+			val alreadyDelayed = Duration.between(interaction.shipaMetadata.received, Instant.now())
+			val adjustedDelay = AUTO_ACK_DELAY.minus(alreadyDelayed).coerceIn(Duration.ZERO, AUTO_ACK_DELAY)
+			UnifiedInteraction.log.trace("Interaction {}: Starting auto-ack delay of {}", interaction.id, adjustedDelay)
+			delay(adjustedDelay)
 			UnifiedInteraction.log.trace("Interaction {}: Auto-ack delayed, tactic is {}", interaction.id, autoAckTactic)
 			when (autoAckTactic) {
 				DO_NOTHING -> {}

@@ -6,6 +6,7 @@ import dev.capybaralabs.shipa.discord.delay
 import dev.capybaralabs.shipa.discord.interaction.command.ApplicationCommandService
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.ShipaMetadata
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
@@ -15,6 +16,7 @@ import dev.capybaralabs.shipa.logger
 import io.micrometer.core.instrument.Timer
 import io.sentry.kotlin.SentryContext
 import jakarta.servlet.http.HttpServletRequest
+import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit.SECONDS
@@ -56,6 +58,7 @@ internal class InteractionController(
 
 	private fun doPost(req: HttpServletRequest, rawBody: String): CompletionStage<ResponseEntity<InteractionResponse>> {
 		val totalTimer = Timer.start()
+		val requestReceived = Instant.now() //would be nice if we could access an even earlier timestamp from the underlying webserver
 		val signature: String? = req.getHeader(HEADER_SIGNATURE)
 		val timestamp: String? = req.getHeader(HEADER_TIMESTAMP)
 		if (signature == null || timestamp == null) {
@@ -66,7 +69,9 @@ internal class InteractionController(
 			return CompletableFuture.completedStage(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build())
 		}
 
-		val interaction = mapper.readValue(rawBody, UntypedInteractionObject::class.java).typed()
+		val metadata = ShipaMetadata(requestReceived)
+		val interaction = mapper.readValue(rawBody, UntypedInteractionObject::class.java).typed(metadata)
+		log.trace("Interaction {}: Timestamp header is {}, received is {}", interaction.id, timestamp, requestReceived)
 		val result = CompletableDeferred<InteractionResponse>()
 		val resultSent = CompletableFuture<Unit>()
 			.orTimeout(10, SECONDS)

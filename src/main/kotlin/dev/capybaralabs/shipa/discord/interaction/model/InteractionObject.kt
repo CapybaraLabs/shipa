@@ -5,6 +5,7 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionData.MessageC
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionData.ModalSubmitData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.Ping
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.ShipaMetadata
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.APPLICATION_COMMAND
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionType.MESSAGE_COMPONENT
@@ -16,12 +17,14 @@ import dev.capybaralabs.shipa.discord.model.Message
 import dev.capybaralabs.shipa.discord.model.Permission
 import dev.capybaralabs.shipa.discord.model.StringBitfield
 import dev.capybaralabs.shipa.discord.model.User
+import java.time.Instant
 
 /**
  * [Discord Interaction](https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object)
  */
 sealed interface InteractionObject {
 	val id: Long
+	val shipaMetadata: ShipaMetadata
 	val applicationId: Long
 	val token: String
 	val type: InteractionType
@@ -36,8 +39,13 @@ sealed interface InteractionObject {
 	val appPermissions: StringBitfield<Permission>?
 	val guildLocale: DiscordLocale?
 
+	data class ShipaMetadata(
+		val received: Instant,
+	)
+
 	data class Ping(
 		override val id: Long,
+		override val shipaMetadata: ShipaMetadata,
 		override val applicationId: Long,
 		override val token: String,
 		override val version: Int,
@@ -64,6 +72,7 @@ sealed interface InteractionObject {
 
 		data class ApplicationCommand(
 			override val id: Long,
+			override val shipaMetadata: ShipaMetadata,
 			override val applicationId: Long,
 			override val token: String,
 			override val version: Int,
@@ -82,6 +91,7 @@ sealed interface InteractionObject {
 
 		data class MessageComponent(
 			override val id: Long,
+			override val shipaMetadata: ShipaMetadata,
 			override val applicationId: Long,
 			override val token: String,
 			override val version: Int,
@@ -100,6 +110,7 @@ sealed interface InteractionObject {
 
 		data class Autocomplete(
 			override val id: Long,
+			override val shipaMetadata: ShipaMetadata,
 			override val applicationId: Long,
 			override val token: String,
 			override val version: Int,
@@ -118,6 +129,7 @@ sealed interface InteractionObject {
 
 		data class ModalSubmit(
 			override val id: Long,
+			override val shipaMetadata: ShipaMetadata,
 			override val applicationId: Long,
 			override val token: String,
 			override val version: Int,
@@ -154,11 +166,14 @@ data class UntypedInteractionObject(
 	val guildLocale: DiscordLocale?,
 ) {
 
-	fun typed(): InteractionObject {
+	fun typed(
+		shipaMetadata: ShipaMetadata,
+	): InteractionObject {
 		return when (type) {
-			PING -> Ping(id, applicationId, token, version)
+			PING -> Ping(id, shipaMetadata, applicationId, token, version)
 			APPLICATION_COMMAND -> InteractionWithData.ApplicationCommand(
 				id,
+				shipaMetadata,
 				applicationId,
 				token,
 				version,
@@ -175,6 +190,7 @@ data class UntypedInteractionObject(
 
 			MESSAGE_COMPONENT -> InteractionWithData.MessageComponent(
 				id,
+				shipaMetadata,
 				applicationId,
 				token,
 				version,
@@ -191,6 +207,7 @@ data class UntypedInteractionObject(
 
 			APPLICATION_COMMAND_AUTOCOMPLETE -> InteractionWithData.Autocomplete(
 				id,
+				shipaMetadata,
 				applicationId,
 				token,
 				version,
@@ -207,6 +224,7 @@ data class UntypedInteractionObject(
 
 			MODAL_SUBMIT -> InteractionWithData.ModalSubmit(
 				id,
+				shipaMetadata,
 				applicationId,
 				token,
 				version,
