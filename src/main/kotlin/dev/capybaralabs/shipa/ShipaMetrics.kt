@@ -1,5 +1,6 @@
 package dev.capybaralabs.shipa
 
+import dev.capybaralabs.shipa.discord.millis
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
@@ -7,8 +8,6 @@ import io.micrometer.core.instrument.Tags
 import io.micrometer.core.instrument.Timer
 import java.time.Duration
 import kotlin.math.pow
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.toJavaDuration
 import org.springframework.stereotype.Component
 
 @Component
@@ -77,7 +76,7 @@ class ShipaMetrics(private val meterRegistry: MeterRegistry) {
 		return Timer
 			.builder("shipa.discord.rest.request.response.time")
 			.description("Discord REST request response time")
-			.serviceLevelObjectives(*exponentialBuckets(50.milliseconds.toJavaDuration(), 1.2, 20))
+			.serviceLevelObjectives(*exponentialBuckets(50.millis, 1.2, 20))
 			.publishPercentileHistogram()
 			.register(meterRegistry)
 	}
@@ -99,8 +98,7 @@ class ShipaMetrics(private val meterRegistry: MeterRegistry) {
 	// mimics former functionality of prometheus simple client
 	private fun exponentialBuckets(start: Duration, factor: Double, amount: Int): Array<Duration> {
 		return IntRange(0, amount).map { i ->
-			(start.toMillis() * factor.pow(i.toDouble()))
-				.milliseconds.toJavaDuration()
+			(start.toMillis() * factor.pow(i.toDouble())).millis
 		}.toTypedArray()
 	}
 

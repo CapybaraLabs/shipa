@@ -7,20 +7,18 @@ import dev.capybaralabs.shipa.ShipaMetrics.Companion.NANOSECONDS_PER_MILLISECOND
 import dev.capybaralabs.shipa.discord.client.ratelimit.Bucket
 import dev.capybaralabs.shipa.discord.client.ratelimit.BucketKey
 import dev.capybaralabs.shipa.discord.client.ratelimit.BucketService
+import dev.capybaralabs.shipa.discord.delay
+import dev.capybaralabs.shipa.discord.millis
 import dev.capybaralabs.shipa.discord.oauth2.OAuth2Scope
 import dev.capybaralabs.shipa.discord.oauth2.OAuth2ScopeException
+import dev.capybaralabs.shipa.discord.seconds
 import dev.capybaralabs.shipa.discord.time
 import dev.capybaralabs.shipa.logger
 import io.micrometer.core.instrument.Timer
 import java.time.Duration
 import java.time.Instant
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
-import kotlin.time.toKotlinDuration
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.springframework.boot.web.client.RestTemplateBuilder
@@ -118,7 +116,7 @@ class DiscordRestService(
 					if (bucket.tokens <= 0) {
 						val untilReset = Duration.between(Instant.now(), bucket.nextReset)
 						if (!untilReset.isNegative) {
-							delay(untilReset.toKotlinDuration())
+							delay(untilReset)
 						}
 					}
 
@@ -139,7 +137,7 @@ class DiscordRestService(
 							// retry. could be race condition where the ack response has not been processed yet
 							logger().info("Got 404, retrying #$notFoundTry")
 							notFoundTry++
-							delay(500.milliseconds)
+							delay(500.millis)
 							continue
 						}
 
@@ -153,7 +151,7 @@ class DiscordRestService(
 							logger().warn("Hit ratelimit on bucket {} but no known wait time. Backing off.", bucketKey, cause)
 							delay(1.seconds) // shrug
 						} else {
-							delay(resetAfter.toKotlinDuration())
+							delay(resetAfter)
 						}
 						continue
 					}
@@ -253,6 +251,6 @@ class DiscordRestService(
 		val resetAfterHeader: String? = (responseHeaders.getFirst(HEADER_RESET_AFTER)
 			?: responseHeaders.getFirst(HEADER_RETRY_AFTER))
 
-		return resetAfterHeader?.toDouble()?.times(1000)?.milliseconds?.toJavaDuration()
+		return resetAfterHeader?.toDouble()?.times(1000)?.millis
 	}
 }

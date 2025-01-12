@@ -1,7 +1,9 @@
 package dev.capybaralabs.shipa.discord
 
 import io.micrometer.core.instrument.Timer
+import java.time.Duration
 import java.time.Instant
+import kotlin.time.toKotlinDuration
 import org.springframework.web.util.UriComponentsBuilder
 
 /**
@@ -35,3 +37,12 @@ internal suspend fun <T> Timer.timeSuspending(block: suspend () -> T): T {
 		}
 	}
 }
+
+
+// Copies of Kotlin Time niceties for Java Time
+
+internal val Number.millis: Duration get() = Duration.ofMillis(toLong())
+internal val Number.seconds: Duration get() = Duration.ofSeconds(toLong())
+internal val Number.minutes: Duration get() = Duration.ofMinutes(toLong())
+
+internal suspend fun delay(duration: Duration): Unit = kotlinx.coroutines.delay(duration.toKotlinDuration())

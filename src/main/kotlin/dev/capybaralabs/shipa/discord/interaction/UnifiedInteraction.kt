@@ -3,6 +3,7 @@
 package dev.capybaralabs.shipa.discord.interaction
 
 import com.github.benmanes.caffeine.cache.Caffeine
+import dev.capybaralabs.shipa.discord.delay
 import dev.capybaralabs.shipa.discord.interaction.AutoAckTactic.ACK
 import dev.capybaralabs.shipa.discord.interaction.AutoAckTactic.ACK_EPHEMERAL
 import dev.capybaralabs.shipa.discord.interaction.AutoAckTactic.DO_NOTHING
@@ -23,6 +24,8 @@ import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.Intera
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData.MessageComponent
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.OptionChoice
+import dev.capybaralabs.shipa.discord.millis
+import dev.capybaralabs.shipa.discord.minutes
 import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.Message
 import dev.capybaralabs.shipa.discord.model.MessageFlag.EPHEMERAL
@@ -35,10 +38,7 @@ import kotlin.Long
 import kotlin.OptIn
 import kotlin.Suppress
 import kotlin.let
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -47,7 +47,6 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeout
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -226,7 +225,7 @@ internal class UnifiedInteractionService(
 ) {
 
 	private val actors = Caffeine.newBuilder()
-		.expireAfterWrite(INTERACTION_TIMEOUT.toJavaDuration())
+		.expireAfterWrite(INTERACTION_TIMEOUT)
 		.build<Long, InteractionStateHolderImpl>()
 
 	suspend fun get(interaction: InteractionWithData): InteractionStateHolder? {
@@ -288,7 +287,7 @@ private class InteractionStateHolderImpl(
 ) : InteractionStateHolder {
 
 	companion object {
-		private val AUTO_ACK_DELAY = 2_000.milliseconds
+		private val AUTO_ACK_DELAY = 2_000.millis
 		private val REMAINING_INTERACTION_TIMEOUT_DELAY = INTERACTION_TIMEOUT.minus(AUTO_ACK_DELAY)
 	}
 

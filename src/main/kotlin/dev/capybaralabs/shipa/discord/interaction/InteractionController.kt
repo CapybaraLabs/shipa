@@ -2,12 +2,14 @@ package dev.capybaralabs.shipa.discord.interaction
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.capybaralabs.shipa.ShipaMetrics
+import dev.capybaralabs.shipa.discord.delay
 import dev.capybaralabs.shipa.discord.interaction.command.ApplicationCommandService
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionObject.InteractionWithData
 import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
+import dev.capybaralabs.shipa.discord.millis
 import dev.capybaralabs.shipa.discord.time
 import dev.capybaralabs.shipa.logger
 import io.micrometer.core.instrument.Timer
@@ -17,12 +19,10 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
@@ -83,7 +83,7 @@ internal class InteractionController(
 			resultSent
 				.thenCompose {
 					// give Discord some time to process our response before we start sending followup requests
-					interactionScope.async { delay(200.milliseconds) }.asCompletableFuture()
+					interactionScope.async { delay(200.millis) }.asCompletableFuture()
 				},
 		)
 		req.setAttribute(CompletionInterceptor.ATTRIBUTE, resultSent)
