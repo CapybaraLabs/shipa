@@ -24,24 +24,31 @@ private class ApplicationCommandServiceImpl(
 ) : ApplicationCommandService {
 
 	override suspend fun onInteraction(interaction: InteractionWithData, initialResponse: InitialResponse) {
+		logger().trace("Interaction {}: Saving", interaction.id)
 		interactionRepository.save(interaction)
+		logger().trace("Interaction {}: Saved", interaction.id)
 
+		logger().trace("Interaction {}: Looking up command", interaction.id)
 		val command = when (interaction) {
 			is InteractionWithData.ApplicationCommand -> commandLookupService.findByName(interaction.data.name)
 			is InteractionWithData.MessageComponent -> commandLookupService.findByCustomId(interaction.data.customId)
 			is InteractionWithData.Autocomplete -> commandLookupService.findByName(interaction.data.name)
 			is InteractionWithData.ModalSubmit -> commandLookupService.findByCustomId(interaction.data.customId)
 		}
+		logger().trace("Interaction {}: Looked up command", interaction.id)
 
 		if (command == null) {
 			logger().warn("Unknown Command {}", interaction)
 			return
 		}
 
+		logger().trace("Interaction {}: Creating state", interaction.id)
 		val stateHolder = unifiedInteractionService.create(interaction, command.autoAckTactic(), initialResponse)
+		logger().trace("Interaction {}: Processing", interaction.id)
 		metrics.commandProcessTime(command.name(), interaction.type.name).timeSuspending {
 			command.onInteraction(stateHolder)
 		}
+		logger().trace("Interaction {}: Done", interaction.id)
 	}
 
 }

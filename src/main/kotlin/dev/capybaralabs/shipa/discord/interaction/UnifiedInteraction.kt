@@ -236,11 +236,15 @@ internal class UnifiedInteractionService(
 	}
 
 	suspend fun create(interaction: InteractionWithData, autoAckTactic: AutoAckTactic, initialResponse: InitialResponse): InteractionStateHolder {
-
+		UnifiedInteraction.log.trace("Interaction {}: Create State", interaction.id)
 		val state = UnifiedInteractionState(interaction, initialResponse, restService)
+		UnifiedInteraction.log.trace("Interaction {}: Create Actor", interaction.id)
 		val actor = interactionScope.unifiedInteractionActor(state)
+		UnifiedInteraction.log.trace("Interaction {}: Create State Holder", interaction.id)
 		val stateHolder = InteractionStateHolderImpl(actor, interactionScope, interaction, autoAckTactic)
+		UnifiedInteraction.log.trace("Interaction {}: Save Actor", interaction.id)
 		actors.put(interaction.id, stateHolder)
+		UnifiedInteraction.log.trace("Interaction {}: Create Done", interaction.id)
 		return stateHolder
 	}
 
@@ -294,6 +298,7 @@ private class InteractionStateHolderImpl(
 	}
 
 	init {
+		UnifiedInteraction.log.trace("Interaction {}: Init state holder", interaction.id)
 		scope.async {
 			val alreadyDelayed = Duration.between(interaction.shipaMetadata.received, Instant.now())
 			val adjustedDelay = AUTO_ACK_DELAY.minus(alreadyDelayed).coerceIn(Duration.ZERO, AUTO_ACK_DELAY)
