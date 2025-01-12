@@ -33,8 +33,9 @@ internal class InteractionControllerTest : ApplicationTest() {
 
 	@Test
 	internal fun whenMissingSignatureHeader_badRequest() {
-		val headers = HttpHeaders()
-		headers.add(HEADER_TIMESTAMP, "bar")
+		val headers = HttpHeaders().apply {
+			add(HEADER_TIMESTAMP, "bar")
+		}
 		val body = InteractionObject.Ping(42, 42, "foo", 1)
 
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), Void::class.java)
@@ -45,8 +46,9 @@ internal class InteractionControllerTest : ApplicationTest() {
 
 	@Test
 	internal fun whenMissingTimestampHeader_badRequest() {
-		val headers = HttpHeaders()
-		headers.add(HEADER_SIGNATURE, "foo")
+		val headers = HttpHeaders().apply {
+			add(HEADER_SIGNATURE, "foo")
+		}
 		val body = InteractionObject.Ping(42, 42, "foo", 1)
 
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), Void::class.java)
@@ -56,9 +58,10 @@ internal class InteractionControllerTest : ApplicationTest() {
 
 	@Test
 	internal fun whenWrongHeaders_unauthorized() {
-		val headers = HttpHeaders()
-		headers.add(HEADER_SIGNATURE, "foo")
-		headers.add(HEADER_TIMESTAMP, "bar")
+		val headers = HttpHeaders().apply {
+			add(HEADER_SIGNATURE, "foo")
+			add(HEADER_TIMESTAMP, "bar")
+		}
 		val body = InteractionObject.Ping(42, 42, "foo", 1)
 
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), Void::class.java)
@@ -68,9 +71,10 @@ internal class InteractionControllerTest : ApplicationTest() {
 
 	@Test
 	internal fun whenPing_thenPong() {
-		val headers = HttpHeaders()
-		headers.add(HEADER_SIGNATURE, "signature")
-		headers.add(HEADER_TIMESTAMP, "timestamp")
+		val headers = HttpHeaders().apply {
+			add(HEADER_SIGNATURE, "signature")
+			add(HEADER_TIMESTAMP, "timestamp")
+		}
 		val body = InteractionObject.Ping(42, 42, "foo", 1)
 
 		doReturn(true).`when`(interactionValidator).validateSignature(eq("signature"), eq("timestamp"), any())
