@@ -16,6 +16,7 @@ import dev.capybaralabs.shipa.logger
 import io.micrometer.core.instrument.Timer
 import io.sentry.kotlin.SentryContext
 import jakarta.servlet.http.HttpServletRequest
+import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
@@ -67,6 +68,21 @@ internal class InteractionController(
 
 		if (!interactionValidator.validateSignature(signature, timestamp, rawBody)) {
 			return CompletableFuture.completedStage(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build())
+		}
+
+		val discordTimestamp = timestamp.toLongOrNull()?.let { Instant.ofEpochSecond(it) }
+		if (discordTimestamp == null) {
+			logger().warn("Request timestamp header is not a number: {}", timestamp)
+		} else {
+			val between = Duration.between(discordTimestamp, requestReceived)
+			if (between.isNegative) {
+				logger().warn("Request timestamp header is too young: header {} vs our clock: {}", discordTimestamp, requestReceived)
+			}
+			if (between > Duration.ofSeconds(10)) {
+				logger().warn("Request timestamp header is fairly old: header {} vs our clock: {}", discordTimestamp, requestReceived)
+			}
+			// continue processing, just log to start collecting data.
+			// discord does not state anything about having to check the timestamp recency.
 		}
 
 		val metadata = ShipaMetadata(requestReceived)
