@@ -24,10 +24,6 @@ private class ApplicationCommandServiceImpl(
 ) : ApplicationCommandService {
 
 	override suspend fun onInteraction(interaction: InteractionWithData, initialResponse: InitialResponse) {
-		logger().trace("Interaction {}: Saving", interaction.id)
-		interactionRepository.save(interaction)
-		logger().trace("Interaction {}: Saved", interaction.id)
-
 		logger().trace("Interaction {}: Looking up command", interaction.id)
 		val command = when (interaction) {
 			is InteractionWithData.ApplicationCommand -> commandLookupService.findByName(interaction.data.name)
@@ -44,6 +40,12 @@ private class ApplicationCommandServiceImpl(
 
 		logger().trace("Interaction {}: Creating state", interaction.id)
 		val stateHolder = unifiedInteractionService.create(interaction, command.autoAckTactic(), initialResponse)
+
+		//should be below state creation (and therefore start of auto-ack behaviour) because redis may hang sometimes
+		logger().trace("Interaction {}: Saving", interaction.id)
+		interactionRepository.save(interaction)
+		logger().trace("Interaction {}: Saved", interaction.id)
+
 		logger().trace("Interaction {}: Processing", interaction.id)
 		metrics.commandProcessTime(command.name(), interaction.type.name).timeSuspending {
 			command.onInteraction(stateHolder)
