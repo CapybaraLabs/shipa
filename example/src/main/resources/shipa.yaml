@@ -26,6 +26,6 @@ management:
   endpoint:
     health:
       show-details: always
-      enabled: true
+      access: read_only
     prometheus:
-      enabled: true
+      access: read_only
