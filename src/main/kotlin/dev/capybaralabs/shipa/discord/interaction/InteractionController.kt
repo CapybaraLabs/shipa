@@ -104,7 +104,7 @@ internal class InteractionController(
 			diff?.toMillis(),
 		)
 
-		val metadata = ShipaMetadata(requestReceived)
+		val metadata = ShipaMetadata(discordTimestamp ?: requestReceived)
 		val interaction = untypedInteraction.typed(metadata)
 		val result = CompletableDeferred<InteractionResponse>()
 		val resultSent = CompletableFuture<Unit>()
