@@ -75,13 +75,14 @@ internal class InteractionControllerTest : ApplicationTest() {
 
 	@Test
 	internal fun whenPing_thenPong() {
+		val timestamp = Instant.now().epochSecond.toString()
 		val headers = HttpHeaders().apply {
 			add(HEADER_SIGNATURE, "signature")
-			add(HEADER_TIMESTAMP, "timestamp")
+			add(HEADER_TIMESTAMP, timestamp)
 		}
 		val body = InteractionObject.Ping(42, metadata, 42, "foo", 1)
 
-		doReturn(true).`when`(interactionValidator).validateSignature(eq("signature"), eq("timestamp"), any())
+		doReturn(true).`when`(interactionValidator).validateSignature(eq("signature"), eq(timestamp), any())
 
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), InteractionResponse.Pong::class.java)
 
