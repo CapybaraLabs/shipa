@@ -8,8 +8,10 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDO
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.TestPropertySource
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
+@TestPropertySource(properties = ["spring.config.name=shipa"])
 @ActiveProfiles("test")
 internal abstract class ApplicationTest {
 
