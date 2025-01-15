@@ -294,7 +294,7 @@ private class InteractionStateHolderImpl(
 ) : InteractionStateHolder {
 
 	companion object {
-		private val AUTO_ACK_DELAY = 2_000.millis
+		private val AUTO_ACK_DELAY = 2_500.millis
 	}
 
 	init {
