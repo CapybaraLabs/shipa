@@ -1,5 +1,6 @@
 package dev.capybaralabs.shipa
 
+import dev.capybaralabs.shipa.discord.interaction.model.InteractionResponse
 import dev.capybaralabs.shipa.discord.millis
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.MeterRegistry
@@ -48,6 +49,18 @@ class ShipaMetrics(private val meterRegistry: MeterRegistry) {
 		return Timer
 			.builder("shipa.interaction.diff.time")
 			.description("The diff between Discord timestamp and our own. Discord timestamp resolution is seconds.")
+			.register(meterRegistry)
+	}
+
+	fun interactionCallbackTypes(interactionResponse: InteractionResponse): Counter {
+		return Counter
+			.builder("shipa.interaction.callback.types")
+			.description("The type of interaction response we respond with to the Discord webhooks")
+			.tags(
+				Tags.of(
+					Tag.of("type", interactionResponse.type.name),
+				),
+			)
 			.register(meterRegistry)
 	}
 

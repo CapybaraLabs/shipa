@@ -129,8 +129,11 @@ internal class InteractionController(
 
 		interactionScope.launchInteractionProcessing(interaction, initialResponse, totalTimer)
 		return result.asCompletableFuture()
-			.thenApply { ResponseEntity.ok().body(it) }
-			.orTimeout(3, SECONDS)
+			.thenApply {
+				metrics.interactionCallbackTypes(it).increment()
+				ResponseEntity.ok().body(it)
+			}
+			.orTimeout(3, SECONDS) // consider timing out based on Discord timestamp, not our own.
 			.exceptionallyCompose {
 				if (it is TimeoutException) {
 					CompletableFuture.failedFuture(TimeoutException("result Future timed out on interaction ${interaction.id}"))
