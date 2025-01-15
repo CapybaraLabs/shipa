@@ -29,6 +29,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -93,9 +94,24 @@ internal class InteractionController(
 			// discord does not state anything about having to check the timestamp recency.
 		}
 
+		val dateHeaderTimestamp: Instant? = try {
+			val dateMillis = req.getDateHeader(HttpHeaders.DATE)
+			if (dateMillis > 0) {
+				Instant.ofEpochMilli(dateMillis)
+			} else {
+				null
+			}
+		} catch (e: Exception) {
+			logger().info("Interaction {}: Request header Date is not a valid date: {}", untypedInteraction.id, req.getHeader(HttpHeaders.DATE), e)
+			null
+		}
+		log.trace(
+			"Interaction {}: Discord timestamp header: {}, date header timestamp: {},  received time: {}",
+			untypedInteraction.id, discordTimestamp, dateHeaderTimestamp, requestReceived,
+		)
+
 		val metadata = ShipaMetadata(requestReceived)
 		val interaction = untypedInteraction.typed(metadata)
-		log.trace("Interaction {}: Discord timestamp header: {}, received time: {}", interaction.id, discordTimestamp, requestReceived)
 		val result = CompletableDeferred<InteractionResponse>()
 		val resultSent = CompletableFuture<Unit>()
 			.orTimeout(10, SECONDS)
