@@ -44,6 +44,13 @@ class ShipaMetrics(private val meterRegistry: MeterRegistry) {
 			.register(meterRegistry)
 	}
 
+	fun interactionDiffTime(): Timer {
+		return Timer
+			.builder("shipa.interaction.diff.time")
+			.description("The diff between Discord timestamp and our own. Discord timestamp resolution is seconds.")
+			.register(meterRegistry)
+	}
+
 	fun commandProcessTime(name: String, type: String): Timer {
 		return Timer
 			.builder("shipa.command.process.time")

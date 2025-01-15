@@ -76,14 +76,16 @@ internal class InteractionController(
 		if (discordTimestamp == null) {
 			logger().warn("Interaction {}: Request timestamp header is not a number: {}", untypedInteraction.id, timestamp)
 		} else {
-			val between = Duration.between(discordTimestamp, requestReceived)
-			if (between.isNegative) {
+			val diff = Duration.between(discordTimestamp, requestReceived)
+			if (diff.isNegative) {
 				logger().warn(
 					"Interaction {}: Request timestamp header is too young: header {} vs our clock: {}",
 					untypedInteraction.id, discordTimestamp, requestReceived,
 				)
+			} else {
+				metrics.interactionDiffTime().record(diff)
 			}
-			if (between > Duration.ofSeconds(10)) {
+			if (diff > Duration.ofSeconds(10)) {
 				logger().warn(
 					"Interaction {}: Request timestamp header is fairly old: header {} vs our clock: {}",
 					untypedInteraction.id, discordTimestamp, requestReceived,
