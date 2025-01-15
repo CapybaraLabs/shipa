@@ -70,24 +70,32 @@ internal class InteractionController(
 			return CompletableFuture.completedStage(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build())
 		}
 
+		val untypedInteraction = mapper.readValue(rawBody, UntypedInteractionObject::class.java)
+
 		val discordTimestamp = timestamp.toLongOrNull()?.let { Instant.ofEpochSecond(it) }
 		if (discordTimestamp == null) {
-			logger().warn("Request timestamp header is not a number: {}", timestamp)
+			logger().warn("Interaction {}: Request timestamp header is not a number: {}", untypedInteraction.id, timestamp)
 		} else {
 			val between = Duration.between(discordTimestamp, requestReceived)
 			if (between.isNegative) {
-				logger().warn("Request timestamp header is too young: header {} vs our clock: {}", discordTimestamp, requestReceived)
+				logger().warn(
+					"Interaction {}: Request timestamp header is too young: header {} vs our clock: {}",
+					untypedInteraction.id, discordTimestamp, requestReceived,
+				)
 			}
 			if (between > Duration.ofSeconds(10)) {
-				logger().warn("Request timestamp header is fairly old: header {} vs our clock: {}", discordTimestamp, requestReceived)
+				logger().warn(
+					"Interaction {}: Request timestamp header is fairly old: header {} vs our clock: {}",
+					untypedInteraction.id, discordTimestamp, requestReceived,
+				)
 			}
 			// continue processing, just log to start collecting data.
 			// discord does not state anything about having to check the timestamp recency.
 		}
 
 		val metadata = ShipaMetadata(requestReceived)
-		val interaction = mapper.readValue(rawBody, UntypedInteractionObject::class.java).typed(metadata)
-		log.trace("Interaction {}: Timestamp header is {}, received is {}", interaction.id, timestamp, requestReceived)
+		val interaction = untypedInteraction.typed(metadata)
+		log.trace("Interaction {}: Discord timestamp header: {}, received time: {}", interaction.id, discordTimestamp, requestReceived)
 		val result = CompletableDeferred<InteractionResponse>()
 		val resultSent = CompletableFuture<Unit>()
 			.orTimeout(10, SECONDS)
