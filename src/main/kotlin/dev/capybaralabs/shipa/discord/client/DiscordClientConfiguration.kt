@@ -3,6 +3,7 @@ package dev.capybaralabs.shipa.discord.client
 import dev.capybaralabs.shipa.ShipaMetrics
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.ratelimit.BucketService
+import dev.capybaralabs.shipa.jackson.ShipaJsonMapper
 import dev.capybaralabs.shipa.logger
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -24,7 +25,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 @Configuration
 class DiscordClientConfiguration(
 	private val properties: DiscordProperties,
-	private val converter: MappingJackson2HttpMessageConverter,
+	private val shipaJsonMapper: ShipaJsonMapper,
 	private val bucketService: BucketService,
 	private val metrics: ShipaMetrics,
 	private val restTemplateBuilder: RestTemplateBuilder,
@@ -45,6 +46,7 @@ class DiscordClientConfiguration(
 	}
 
 	private fun restTemplateBuilder(): RestTemplateBuilder {
+		val converter = MappingJackson2HttpMessageConverter(shipaJsonMapper.mapper)
 		val formConverter = FormHttpMessageConverter()
 		formConverter.addPartConverter(converter)
 		var builder = restTemplateBuilder

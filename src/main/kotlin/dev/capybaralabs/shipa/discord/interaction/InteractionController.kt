@@ -1,6 +1,5 @@
 package dev.capybaralabs.shipa.discord.interaction
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import dev.capybaralabs.shipa.ShipaMetrics
 import dev.capybaralabs.shipa.discord.delay
 import dev.capybaralabs.shipa.discord.interaction.command.ApplicationCommandService
@@ -12,6 +11,7 @@ import dev.capybaralabs.shipa.discord.interaction.model.UntypedInteractionObject
 import dev.capybaralabs.shipa.discord.interaction.validation.InteractionValidator
 import dev.capybaralabs.shipa.discord.millis
 import dev.capybaralabs.shipa.discord.time
+import dev.capybaralabs.shipa.jackson.ShipaJsonMapper
 import dev.capybaralabs.shipa.logger
 import io.micrometer.core.instrument.Timer
 import io.sentry.kotlin.SentryContext
@@ -43,7 +43,7 @@ const val HEADER_TIMESTAMP = "X-Signature-Timestamp"
 @RequestMapping("\${shipa.interaction-controller-path:/api/interaction}")
 internal class InteractionController(
 	private val interactionValidator: InteractionValidator,
-	private val mapper: ObjectMapper,
+	private val shipaJsonMapper: ShipaJsonMapper,
 	private val applicationCommandService: ApplicationCommandService,
 	private val interactionScope: CoroutineScope,
 	private val metrics: ShipaMetrics,
@@ -70,7 +70,7 @@ internal class InteractionController(
 			return CompletableFuture.completedStage(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build())
 		}
 
-		val untypedInteraction = mapper.readValue(rawBody, UntypedInteractionObject::class.java)
+		val untypedInteraction = shipaJsonMapper.mapper.readValue(rawBody, UntypedInteractionObject::class.java)
 
 		val discordTimestamp = timestamp.toLongOrNull()?.let { Instant.ofEpochSecond(it) }
 		if (discordTimestamp == null) {

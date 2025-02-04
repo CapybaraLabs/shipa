@@ -1,7 +1,7 @@
 package dev.capybaralabs.shipa.discord.client
 
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jsonMapper
 import dev.capybaralabs.shipa.ShipaMetrics
 import dev.capybaralabs.shipa.ShipaMetrics.Companion.NANOSECONDS_PER_MILLISECOND
 import dev.capybaralabs.shipa.discord.client.ratelimit.Bucket
@@ -49,7 +49,7 @@ class DiscordRestService(
 	private val metrics: ShipaMetrics,
 ) {
 
-	private val mapper = ObjectMapper()
+	private val mapper = jsonMapper()
 	private val restTemplate = restTemplateBuilder.additionalInterceptors(
 		{ req, body, exec ->
 			req.headers.add(HttpHeaders.AUTHORIZATION, authToken.authHeader())

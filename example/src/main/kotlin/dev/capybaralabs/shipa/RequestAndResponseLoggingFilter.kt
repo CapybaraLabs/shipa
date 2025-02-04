@@ -1,6 +1,6 @@
 package dev.capybaralabs.shipa
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import dev.capybaralabs.shipa.jackson.ShipaJsonMapper
 import jakarta.servlet.FilterChain
 import jakarta.servlet.annotation.WebFilter
 import jakarta.servlet.http.HttpServletRequest
@@ -22,7 +22,9 @@ import org.springframework.web.util.ContentCachingResponseWrapper
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @WebFilter(urlPatterns = ["/*"])
 //@Component // breaks tests, PONG response body is not rendered.
-class RequestAndResponseLoggingFilter(private val objectMapper: ObjectMapper) : OncePerRequestFilter() {
+class RequestAndResponseLoggingFilter(
+	private val shipaJsonMapper: ShipaJsonMapper,
+) : OncePerRequestFilter() {
 
 	/**
 	 * List of HTTP headers whose values should not be logged.
@@ -136,8 +138,8 @@ class RequestAndResponseLoggingFilter(private val objectMapper: ObjectMapper) : 
 			try {
 				var contentString = String(content, Charset.forName(contentEncoding))
 				if (mediaType == MediaType.APPLICATION_JSON) {
-					val value = objectMapper.readValue(contentString, Any::class.java)
-					contentString = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(value)
+					val value = shipaJsonMapper.mapper.readValue(contentString, Any::class.java)
+					contentString = shipaJsonMapper.mapper.writerWithDefaultPrettyPrinter().writeValueAsString(value)
 				}
 				contentString.split("\r\n|\r|\n").forEach { line ->
 					msg.append("$prefix $line\n")
