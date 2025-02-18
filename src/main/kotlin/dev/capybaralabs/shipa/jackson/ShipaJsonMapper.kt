@@ -10,6 +10,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.fasterxml.jackson.module.kotlin.kotlinModule
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
 import org.springframework.stereotype.Component
 
 /**
@@ -36,5 +37,7 @@ class ShipaJsonMapper {
 		addModule(Jdk8Module())
 		addModule(JavaTimeModule())
 		addModule(kotlinModule())
+		// not sure if necessary, but it was originally active, probably. findAndRegisterModules() finds it
+		addModule(ParameterNamesModule())
 	}
 }

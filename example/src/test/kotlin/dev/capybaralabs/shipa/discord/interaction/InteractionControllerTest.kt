@@ -15,6 +15,7 @@ import org.mockito.kotlin.eq
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 
 
@@ -87,6 +88,7 @@ internal class InteractionControllerTest : ApplicationTest() {
 		val response = this.testRestTemplate.postForEntity("/api/interaction", HttpEntity(body, headers), InteractionResponse.Pong::class.java)
 
 		assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+		assertThat(response.headers.contentType).isEqualTo(MediaType.APPLICATION_JSON)
 		assertThat(response.body).isNotNull
 		assertThat(response.body!!.type).isEqualTo(PONG)
 	}

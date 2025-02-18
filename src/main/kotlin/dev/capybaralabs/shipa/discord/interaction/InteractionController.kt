@@ -30,6 +30,7 @@ import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -51,13 +52,17 @@ internal class InteractionController(
 
 	private val log = LoggerFactory.getLogger(InteractionController::class.java)
 
+	/**
+	 * @param rawBody [UntypedInteractionObject] as JSON, later refined to [InteractionObject]
+	 * @return [InteractionResponse] as JSON
+	 */
 	@PostMapping
-	fun post(req: HttpServletRequest, @RequestBody rawBody: String): CompletionStage<ResponseEntity<InteractionResponse>> {
+	fun post(req: HttpServletRequest, @RequestBody rawBody: String): CompletionStage<ResponseEntity<String>> {
 		logger().debug("Incoming interaction with body {}", rawBody)
 		return metrics.interactionHttpResponseTime().time { doPost(req, rawBody) }
 	}
 
-	private fun doPost(req: HttpServletRequest, rawBody: String): CompletionStage<ResponseEntity<InteractionResponse>> {
+	private fun doPost(req: HttpServletRequest, rawBody: String): CompletionStage<ResponseEntity<String>> {
 		val totalTimer = Timer.start()
 		val requestReceived = Instant.now() //would be nice if we could access an even earlier timestamp from the underlying webserver
 		val signature: String? = req.getHeader(HEADER_SIGNATURE)
@@ -131,7 +136,11 @@ internal class InteractionController(
 		return result.asCompletableFuture()
 			.thenApply {
 				metrics.interactionCallbackTypes(it).increment()
-				ResponseEntity.ok().body(it)
+				val responseJson = shipaJsonMapper.mapper.writeValueAsString(it)
+				log.debug("Interaction {}: Responding with {}", interaction.id, responseJson)
+				ResponseEntity.ok()
+					.contentType(MediaType.APPLICATION_JSON)
+					.body(responseJson)
 			}
 			.orTimeout(3, SECONDS) // consider timing out based on Discord timestamp, not our own.
 			.exceptionallyCompose {
