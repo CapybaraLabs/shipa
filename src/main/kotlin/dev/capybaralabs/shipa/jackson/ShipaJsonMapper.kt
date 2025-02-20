@@ -3,6 +3,7 @@ package dev.capybaralabs.shipa.jackson
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.json.JsonMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.type.SimpleType
@@ -24,6 +25,7 @@ class ShipaJsonMapper {
 		propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
 		disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 		enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+		disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) // write dates as ISO strings
 
 		val intBitfieldDeserializer = IntBitfieldDeserializer(SimpleType.constructUnsafe(Void::class.java))
 		val stringBitfieldDeserializer = StringBitfieldDeserializer(SimpleType.constructUnsafe(Void::class.java))
