@@ -23,6 +23,7 @@ class ShipaJsonMapper {
 		serializationInclusion(Include.NON_NULL)
 		propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
 		disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+		enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
 
 		val intBitfieldDeserializer = IntBitfieldDeserializer(SimpleType.constructUnsafe(Void::class.java))
 		val stringBitfieldDeserializer = StringBitfieldDeserializer(SimpleType.constructUnsafe(Void::class.java))
