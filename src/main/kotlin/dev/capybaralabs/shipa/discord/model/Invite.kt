@@ -19,8 +19,7 @@ data class Invite(
 	val expiresAt: Optional<Instant>?,
 //	val guildScheduledEvent: GuildScheduledEvent?,
 
-	// metadata
-	// has become fully optional sometime around Feb 2025?!
+	// metadata. optional, requires GUILD_MANAGE permissions or maybe ownership
 	val uses: Int?,
 	val maxUses: Int?,
 	val maxAge: Int?,

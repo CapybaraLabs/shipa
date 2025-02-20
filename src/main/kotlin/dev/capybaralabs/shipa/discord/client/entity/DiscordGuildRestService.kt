@@ -4,6 +4,7 @@ import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsId
 import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdBansId
+import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdInvites
 import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdMembers
 import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdMembersId
 import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdPreview
@@ -13,6 +14,7 @@ import dev.capybaralabs.shipa.discord.model.ExplicitContentFilterLevel
 import dev.capybaralabs.shipa.discord.model.Guild
 import dev.capybaralabs.shipa.discord.model.GuildPreview
 import dev.capybaralabs.shipa.discord.model.IntBitfield
+import dev.capybaralabs.shipa.discord.model.Invite
 import dev.capybaralabs.shipa.discord.model.Member
 import dev.capybaralabs.shipa.discord.model.SystemChannelFlag
 import dev.capybaralabs.shipa.discord.model.VerificationLevel
@@ -160,4 +162,21 @@ class DiscordGuildRestService(
 		)
 	}
 
+	// https://discord.com/developers/docs/resources/guild#get-guild-invites
+	suspend fun listGuildInvites(guildId: Long): List<Invite> {
+		val uriTemplate = "/guilds/{guildId}/invites"
+		val uriBuilder = UriComponentsBuilder
+			.fromUriString(uriTemplate)
+		val uriVariables = mutableMapOf<String, Any>("guildId" to guildId)
+
+		return discordRestService.exchange<List<Invite>>(
+			GuildsIdInvites(guildId),
+			RequestEntity.method(
+				HttpMethod.GET,
+				uriBuilder.build().toUriString(),
+				uriVariables,
+			).build(),
+			uriTemplate,
+		).body!!
+	}
 }

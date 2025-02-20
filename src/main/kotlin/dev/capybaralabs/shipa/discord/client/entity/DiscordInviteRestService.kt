@@ -24,4 +24,15 @@ class DiscordInviteRestService(
 				.build(),
 		).body!!
 	}
+
+	// https://discord.com/developers/docs/resources/invite#delete-invite
+	suspend fun deleteInvite(inviteCode: String): Invite {
+		return discordRestService.exchange<Invite>(
+			InvitesCode,
+			RequestEntity
+				.delete("/invites/{inviteCode}", inviteCode)
+				.build(),
+		).body!!
+	}
+
 }
