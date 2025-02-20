@@ -20,9 +20,10 @@ data class Invite(
 //	val guildScheduledEvent: GuildScheduledEvent?,
 
 	// metadata
-	val uses: Int,
-	val maxUses: Int,
-	val maxAge: Int,
-	val temporary: Boolean,
+	// has become fully optional sometime around Feb 2025?!
+	val uses: Int?,
+	val maxUses: Int?,
+	val maxAge: Int?,
+	val temporary: Boolean?,
 	val createdAt: Instant?, // seems to be missing for really old invites?
 )
