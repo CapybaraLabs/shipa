@@ -186,8 +186,9 @@ class DiscordRestService(
 			// https://discord.com/developers/docs/reference#error-messages
 			val tree = try {
 				mapper.readTree(e.responseBodyAsString)
-			} catch (e: JsonProcessingException) {
-				throw hardRestFail(e, method, uriTemplate)
+			} catch (j: JsonProcessingException) {
+				logger().warn("Failed to parse discords error response: {}", e.responseBodyAsString, j)
+				throw hardRestFail(e, method, uriTemplate, e.responseBodyAsString)
 			}
 			val errorCode = tree.get("code")?.asInt(-1) ?: -1
 
@@ -200,13 +201,13 @@ class DiscordRestService(
 
 			throw DiscordClientException(JsonErrorCode.parse(errorCode), message, errors, e)
 		} catch (e: RestClientException) {
-			throw hardRestFail(e, method, uriTemplate)
+			throw hardRestFail(e, method, uriTemplate, "No Body Read")
 		}
 	}
 
-	private fun hardRestFail(e: Exception, method: String, uriTemplate: String): Exception {
+	private fun hardRestFail(e: Exception, method: String, uriTemplate: String, responseBody: String): Exception {
 		metrics.discordRestHardFailures(method, uriTemplate).increment()
-		logger().warn("Failed request to: {} {}", method, uriTemplate, e)
+		logger().warn("Failed request to: {} {} with response {}", method, uriTemplate, responseBody, e)
 		return e
 	}
 
