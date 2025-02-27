@@ -142,18 +142,18 @@ class DiscordRestService(
 						}
 
 
-						if (cause !is TooManyRequests) {
-							throw discordClientException
+						if (cause is TooManyRequests) {
+							logger().info("Hit ratelimit on bucket {}: {}", bucketKey, cause.message)
+							if (resetAfter == null) {
+								logger().warn("Hit ratelimit on bucket {} but no known wait time. Backing off.", bucketKey, cause)
+								delay(1.seconds) // shrug
+							} else {
+								delay(resetAfter)
+							}
+							continue
 						}
 
-						logger().info("Hit ratelimit on bucket {}: {}", bucketKey, cause.message)
-						if (resetAfter == null) {
-							logger().warn("Hit ratelimit on bucket {} but no known wait time. Backing off.", bucketKey, cause)
-							delay(1.seconds) // shrug
-						} else {
-							delay(resetAfter)
-						}
-						continue
+						throw discordClientException
 					}
 
 					updateBucket(bucket, response.headers, uriTemplate)
