@@ -29,7 +29,6 @@ import org.springframework.http.RequestEntity.UriTemplateRequestEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.HttpClientErrorException.NotFound
 import org.springframework.web.client.HttpClientErrorException.TooManyRequests
-import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestClientResponseException
 
 const val HEADER_LIMIT = "X-RateLimit-Limit"
@@ -91,27 +90,43 @@ class DiscordRestService(
 	 *
 	 * If the RequestEntity was constructed using a complex URI builder, provide a generic URI template to overide it
 	 * for tracking, otherwise logs and metrics will contain concrete parameters, leading to high cardinality.
+	 *
+	 * Automatically retries eligible requests if they fail due to rate limiting, transport or server errors.
+	 * Logical Discord errors are thrown immediately as [DiscordClientException].
+	 * Other errors are wrapped in [DiscordClientRequestFailedException].
 	 */
+	@Throws(DiscordClientException::class)
 	suspend inline fun <reified R> exchange(
 		bucketKey: BucketKey,
 		request: RequestEntity<*>,
 		uriTemplateOverride: String? = null,
 		retryNotFoundTimes: Int = 0,
+		retryErrorTimes: Int = 3,
 	): ResponseEntity<R> {
-		return exchange(bucketKey, request, object : ParameterizedTypeReference<R>() {}, uriTemplateOverride, retryNotFoundTimes)
+		return exchange(
+			bucketKey,
+			request,
+			object : ParameterizedTypeReference<R>() {},
+			uriTemplateOverride,
+			retryNotFoundTimes,
+			retryErrorTimes,
+		)
 	}
 
+	@Throws(DiscordClientException::class)
 	suspend fun <R> exchange(
 		bucketKey: BucketKey,
 		request: RequestEntity<*>,
 		type: ParameterizedTypeReference<R>,
 		uriTemplateOverride: String? = null,
 		retryNotFoundTimes: Int = 0,
+		retryErrorTimes: Int = 3,
 	): ResponseEntity<R> {
 		val bucket = bucketService.bucket(authToken, bucketKey)
 		bucket.mutex.withLock {
 			try {
 				var notFoundTry = 0
+				val errors: MutableList<Exception> = mutableListOf()
 				while (true) { // consider escape hatch after X attempts or reaching a max attempt duration
 					if (bucket.tokens <= 0) {
 						val untilReset = Duration.between(Instant.now(), bucket.nextReset)
@@ -120,44 +135,71 @@ class DiscordRestService(
 						}
 					}
 
-					val response: ResponseEntity<R>
 					val uriTemplate = uriTemplateOverride ?: detectUriTemplate(request)
-					try {
-						response = withContext(restDispatcher) {
-							instrument(request, uriTemplate) { restTemplate.exchange(request, type) }
-						}
-					} catch (discordClientException: DiscordClientException) {
-						val cause = discordClientException.cause
-						val resetAfter = cause.responseHeaders?.let {
-							updateBucket(bucket, it, uriTemplate)
-							resetAfter(it)
-						}
-
-						if (cause is NotFound && notFoundTry < retryNotFoundTimes) {
-							// retry. could be race condition where the ack response has not been processed yet
-							logger().info("Got 404, retrying #$notFoundTry")
-							notFoundTry++
-							delay(500.millis)
-							continue
-						}
-
-
-						if (cause is TooManyRequests) {
-							logger().info("Hit ratelimit on bucket {}: {}", bucketKey, cause.message)
-							if (resetAfter == null) {
-								logger().warn("Hit ratelimit on bucket {} but no known wait time. Backing off.", bucketKey, cause)
-								delay(1.seconds) // shrug
-							} else {
-								delay(resetAfter)
-							}
-							continue
-						}
-
-						throw discordClientException
+					val requestResult: DiscordRequestResult<R> = withContext(restDispatcher) {
+						instrumentRequest(request, uriTemplate) { restTemplate.exchange(request, type) }
 					}
+					when (requestResult) {
+						is DiscordRequestResult.DiscordRequestResultError -> {
+							val exception = requestResult.exception
+							when (requestResult) {
+								is DiscordRequestResult.TransportError -> {} // no response, fall through to retry logic
+								is DiscordRequestResult.ServerError -> {
+									// only fall through if it's a 5xx error
+									if (!requestResult.exception.statusCode.is5xxServerError) {
+										logger().warn("Got non-5xx other error, not retrying request, body {}", requestResult.exception.responseBodyAsString, exception)
+										throw DiscordClientRequestFailedException(exception, *errors.toTypedArray())
+									}
+								}
 
-					updateBucket(bucket, response.headers, uriTemplate)
-					return response
+								is DiscordRequestResult.LogicalError -> {
+									val discordClientException = requestResult.exception
+									val cause = discordClientException.cause
+									val resetAfter = cause.responseHeaders?.let {
+										updateBucket(bucket, it, uriTemplate)
+										resetAfter(it)
+									}
+
+									if (cause is NotFound && notFoundTry < retryNotFoundTimes) {
+										// retry. could be race condition where the ack response has not been processed yet
+										logger().info("Got 404, retrying #$notFoundTry")
+										notFoundTry++
+										delay(500.millis)
+										continue
+									}
+
+									if (cause is TooManyRequests) {
+										logger().info("Hit ratelimit on bucket {}: {}", bucketKey, cause.message)
+										if (resetAfter == null) {
+											logger().warn("Hit ratelimit on bucket {} but no known wait time. Backing off.", bucketKey, cause)
+											delay(1.seconds) // shrug
+										} else {
+											delay(resetAfter)
+										}
+										continue
+									}
+
+									//do not retry Discord Errors, they are logical errors, not transport/server error
+									throw discordClientException
+								}
+							}
+
+							// retry logic here
+							if (errors.size < retryErrorTimes) {
+								logger().info("Got error, retrying request #{}", errors.size, exception)
+								errors.add(exception)
+								delay(500.millis) // shrug
+								continue
+							}
+
+							throw DiscordClientRequestFailedException(exception, *errors.toTypedArray())
+						}
+
+						is DiscordRequestResult.ResponseSuccess -> {
+							updateBucket(bucket, requestResult.response.headers, uriTemplate)
+							return requestResult.response
+						}
+					}
 				}
 			} finally {
 				bucketService.update(authToken, bucketKey, bucket) // trigger expiry update
@@ -169,7 +211,35 @@ class DiscordRestService(
 		return if (request is UriTemplateRequestEntity) request.uriTemplate else "Not Template"
 	}
 
-	private fun <R> instrument(request: RequestEntity<*>, uriTemplate: String, block: () -> ResponseEntity<R>): ResponseEntity<R> {
+	//
+	// possible outcomes for requests to discord:
+	// 1. no response / hard error
+	// 2. response
+	// 	2a. discord error
+	// 	2b. other error (e.g. some 5xxs, cloudflare bullshit, etc)
+	// 	2c. success
+	//
+	private sealed interface DiscordRequestResult<R> {
+
+		sealed interface DiscordRequestResultError<R> : DiscordRequestResult<R> {
+			val exception: Exception
+		}
+
+		// likely transport error. we never received a response.
+		data class TransportError<R>(override val exception: Exception) : DiscordRequestResultError<R>
+
+		// some error we received as a response. 5xx, cloudflare, etc. could be a transport error, could be a general server error
+		data class ServerError<R>(override val exception: RestClientResponseException) : DiscordRequestResultError<R>
+
+		// logical discord error. we are rate limited, missing permissions, etc.
+		data class LogicalError<R>(override val exception: DiscordClientLogicalException) : DiscordRequestResultError<R>
+
+		// success. we got a response, and Discord is happy as well.
+		data class ResponseSuccess<R>(val response: ResponseEntity<R>) : DiscordRequestResult<R>
+	}
+
+
+	private fun <R> instrumentRequest(request: RequestEntity<*>, uriTemplate: String, block: () -> ResponseEntity<R>): DiscordRequestResult<R> {
 		val method = request.method?.name() ?: "WTF"
 
 		val timer = Timer.start()
@@ -181,14 +251,17 @@ class DiscordRestService(
 
 			logger().debug("{} {} {}ms {}", method, uriTemplate, responseTimeMillis, result.statusCode.value())
 
-			return result
+			return DiscordRequestResult.ResponseSuccess(result)
 		} catch (e: RestClientResponseException) {
 			// https://discord.com/developers/docs/reference#error-messages
+			val responseBody = e.responseBodyAsString
 			val tree = try {
-				mapper.readTree(e.responseBodyAsString)
+				mapper.readTree(responseBody)
 			} catch (j: JsonProcessingException) {
-				logger().warn("Failed to parse discords error response: {}", e.responseBodyAsString, j)
-				throw hardRestFail(e, method, uriTemplate, e.responseBodyAsString)
+				logger().warn("Failed to parse discords error response: {}", responseBody, j)
+				timer.stop(metrics.discordRestRequests(method, uriTemplate, "${e.statusCode.value()}", ""))
+				logger().warn("Failed request to: {} {} with response {}", method, uriTemplate, responseBody, e)
+				return DiscordRequestResult.ServerError(e)
 			}
 			val errorCode = tree.get("code")?.asInt(-1) ?: -1
 
@@ -199,16 +272,12 @@ class DiscordRestService(
 			val responseTimeMillis = (responseTimeNanos / NANOSECONDS_PER_MILLISECOND).toInt()
 			logger().debug("Encountered error response: {} {} {}ms {} {} {} {}", method, uriTemplate, responseTimeMillis, e.statusCode.value(), errorCode, message, errors)
 
-			throw DiscordClientException(JsonErrorCode.parse(errorCode), message, errors, e)
-		} catch (e: RestClientException) {
-			throw hardRestFail(e, method, uriTemplate, "No Body Read")
+			return DiscordRequestResult.LogicalError(DiscordClientLogicalException(JsonErrorCode.parse(errorCode), message, errors, e))
+		} catch (e: Exception) {
+			metrics.discordRestHardFailures(method, uriTemplate).increment()
+			logger().warn("Failed request to: {} {}", method, uriTemplate, e)
+			return DiscordRequestResult.TransportError(e)
 		}
-	}
-
-	private fun hardRestFail(e: Exception, method: String, uriTemplate: String, responseBody: String): Exception {
-		metrics.discordRestHardFailures(method, uriTemplate).increment()
-		logger().warn("Failed request to: {} {} with response {}", method, uriTemplate, responseBody, e)
-		return e
 	}
 
 	private fun updateBucket(bucket: Bucket, responseHeaders: HttpHeaders, uriTemplate: String) {
