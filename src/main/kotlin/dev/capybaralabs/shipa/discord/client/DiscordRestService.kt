@@ -253,8 +253,15 @@ class DiscordRestService(
 
 			return DiscordRequestResult.ResponseSuccess(result)
 		} catch (e: RestClientResponseException) {
-			// https://discord.com/developers/docs/reference#error-messages
+			// see https://discord.com/developers/docs/topics/opcodes-and-status-codes#http-http-response-codes
 			val responseBody = e.responseBodyAsString
+			if (e.statusCode.is5xxServerError) {
+				timer.stop(metrics.discordRestRequests(method, uriTemplate, "${e.statusCode.value()}", ""))
+				logger().warn("Failed request to: {} {} with response {}", method, uriTemplate, responseBody, e)
+				return DiscordRequestResult.ServerError(e)
+			}
+
+			// https://discord.com/developers/docs/reference#error-messages
 			val tree = try {
 				mapper.readTree(responseBody)
 			} catch (j: JsonProcessingException) {
