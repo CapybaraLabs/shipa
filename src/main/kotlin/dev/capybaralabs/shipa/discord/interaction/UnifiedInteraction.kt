@@ -68,9 +68,10 @@ class UnifiedInteraction {
 
 /**
  * This class does all at once
- * - define the public API for end users for ALL interaction types TODO modal
+ * - define the public API for end users for ALL interaction types
  * - state protection, via single coroutine concurrency (actor used in impl)
  * - timeout & auto-ack behaviour
+ *
  */
 interface InteractionStateHolder {
 
