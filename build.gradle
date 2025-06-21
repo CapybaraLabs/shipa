@@ -98,6 +98,10 @@ tasks.named("dependencyUpdates").configure {
 	gradleReleaseChannel = "current"
 }
 
+tasks.register("outdated") {
+	dependsOn dependencyUpdates
+}
+
 
 static def properReleasesOnly() {
 	return { rules ->
