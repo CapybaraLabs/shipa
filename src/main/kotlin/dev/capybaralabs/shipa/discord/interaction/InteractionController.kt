@@ -84,33 +84,7 @@ internal class InteractionController(
 		if (discordTimestamp == null) {
 			logger().warn("Interaction {}: Request timestamp header is not a number: {}", untypedInteraction.id, timestamp)
 		} else {
-			val diff = Duration.between(discordTimestamp, requestReceived)
-			if (diff.isNegative) {
-				// discord timestamp has seconds resolution. so we round our own to the nearest seconds to avoid warnings like
-				// Request timestamp header is too young: header 2025-07-16T07:51:25Z vs our clock: 2025-07-16T07:51:24.996183346
-				val millisPart = requestReceived.toEpochMilli() % 1000
-				val rounded = requestReceived.truncatedTo(ChronoUnit.SECONDS).plusSeconds(
-					if (millisPart >= 500) 1 else 0
-				)
-				val roundedDiff = Duration.between(discordTimestamp, rounded)
-				if (roundedDiff.isNegative) {
-					logger().warn(
-						"Interaction {}: Request timestamp header is too young: header {} vs our clock: {}",
-						untypedInteraction.id, discordTimestamp, requestReceived,
-					)
-					// cannot record the interaction time, as micrometer does not support negative times
-				} else {
-					metrics.interactionDiffTime().record(roundedDiff)
-				}
-			} else {
-				metrics.interactionDiffTime().record(diff)
-			}
-			if (diff > Duration.ofSeconds(10)) {
-				logger().warn(
-					"Interaction {}: Request timestamp header is fairly old: header {} vs our clock: {}",
-					untypedInteraction.id, discordTimestamp, requestReceived,
-				)
-			}
+			checkTimestamp(discordTimestamp, requestReceived, untypedInteraction)
 			// continue processing, just log to start collecting data.
 			// discord does not state anything about having to check the timestamp recency.
 		}
@@ -165,6 +139,36 @@ internal class InteractionController(
 					CompletableFuture.failedFuture(it)
 				}
 			}
+	}
+
+	private fun checkTimestamp(discordTimestamp: Instant, requestReceived: Instant, untypedInteraction: UntypedInteractionObject) {
+		val diff = Duration.between(discordTimestamp, requestReceived)
+		if (diff.isNegative) {
+			// discord timestamp has seconds resolution. so we round our own to the nearest seconds to avoid warnings like
+			// Request timestamp header is too young: header 2025-07-16T07:51:25Z vs our clock: 2025-07-16T07:51:24.996183346
+			val millisPart = requestReceived.toEpochMilli() % 1000
+			val rounded = requestReceived.truncatedTo(ChronoUnit.SECONDS).plusSeconds(
+				if (millisPart >= 500) 1 else 0,
+			)
+			val roundedDiff = Duration.between(discordTimestamp, rounded)
+			if (roundedDiff.isNegative) {
+				logger().warn(
+					"Interaction {}: Request timestamp header is too young: header {} vs our clock: {}",
+					untypedInteraction.id, discordTimestamp, requestReceived,
+				)
+				// cannot record the interaction time, as micrometer does not support negative times
+			} else {
+				metrics.interactionDiffTime().record(roundedDiff)
+			}
+		} else {
+			metrics.interactionDiffTime().record(diff)
+		}
+		if (diff > Duration.ofSeconds(10)) {
+			logger().warn(
+				"Interaction {}: Request timestamp header is fairly old: header {} vs our clock: {}",
+				untypedInteraction.id, discordTimestamp, requestReceived,
+			)
+		}
 	}
 
 	private fun CoroutineScope.launchInteractionProcessing(interaction: InteractionObject, initialResponse: InitialResponse, totalTimer: Timer.Sample) =
