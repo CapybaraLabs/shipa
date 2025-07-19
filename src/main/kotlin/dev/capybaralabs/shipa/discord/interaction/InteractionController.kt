@@ -14,12 +14,15 @@ import dev.capybaralabs.shipa.discord.time
 import dev.capybaralabs.shipa.jackson.ShipaJsonMapper
 import dev.capybaralabs.shipa.logger
 import io.micrometer.core.instrument.Timer
+import io.sentry.DateUtils
 import io.sentry.kotlin.SentryContext
 import jakarta.servlet.http.HttpServletRequest
 import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.CompletableDeferred
@@ -83,10 +86,22 @@ internal class InteractionController(
 		} else {
 			val diff = Duration.between(discordTimestamp, requestReceived)
 			if (diff.isNegative) {
-				logger().warn(
-					"Interaction {}: Request timestamp header is too young: header {} vs our clock: {}",
-					untypedInteraction.id, discordTimestamp, requestReceived,
+				// discord timestamp has seconds resolution. so we round our own to the nearest seconds to avoid warnings like
+				// Request timestamp header is too young: header 2025-07-16T07:51:25Z vs our clock: 2025-07-16T07:51:24.996183346
+				val millisPart = requestReceived.toEpochMilli() % 1000
+				val rounded = requestReceived.truncatedTo(ChronoUnit.SECONDS).plusSeconds(
+					if (millisPart >= 500) 1 else 0
 				)
+				val roundedDiff = Duration.between(discordTimestamp, rounded)
+				if (roundedDiff.isNegative) {
+					logger().warn(
+						"Interaction {}: Request timestamp header is too young: header {} vs our clock: {}",
+						untypedInteraction.id, discordTimestamp, requestReceived,
+					)
+					// cannot record the interaction time, as micrometer does not support negative times
+				} else {
+					metrics.interactionDiffTime().record(roundedDiff)
+				}
 			} else {
 				metrics.interactionDiffTime().record(diff)
 			}
