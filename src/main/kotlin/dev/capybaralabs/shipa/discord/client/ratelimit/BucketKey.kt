@@ -87,8 +87,11 @@ data object GatewayBot : BucketKey
 // Operating on the guild resource.
 data object Guilds : BucketKey
 
-// Operating on one of user's guilds.
-data class GuildsId(val id: Long) : BucketKey
+// Reading one of user's guilds.
+data class GuildsIdRead(val id: Long) : BucketKey
+
+// Modifying one of user's guilds.
+data class GuildsIdModify(val id: Long) : BucketKey
 
 // Operating on a ban from one of the user's guilds.
 data class GuildsIdAuditLogs(val id: Long) : BucketKey
@@ -227,8 +230,11 @@ data object StickerPacks : BucketKey
 // Operating on a sticker.
 data object Stickers : BucketKey
 
-// Operating on the current authorization's user.
-data object UsersMe : BucketKey
+// Reading the current authorization's user.
+data object UsersMeRead : BucketKey
+
+// Modifying the current authorization's user.
+data object UsersMeModify : BucketKey
 
 // Operating on a user.
 data object UsersId : BucketKey

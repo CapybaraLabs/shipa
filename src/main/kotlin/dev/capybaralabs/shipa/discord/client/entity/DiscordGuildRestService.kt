@@ -2,12 +2,13 @@ package dev.capybaralabs.shipa.discord.client.entity
 
 import dev.capybaralabs.shipa.discord.DiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
-import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsId
 import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdBansId
 import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdInvites
 import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdMembers
 import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdMembersId
+import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdModify
 import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdPreview
+import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdRead
 import dev.capybaralabs.shipa.discord.model.DefaultMessageNotificationLevel
 import dev.capybaralabs.shipa.discord.model.DiscordLocale
 import dev.capybaralabs.shipa.discord.model.ExplicitContentFilterLevel
@@ -39,7 +40,7 @@ class DiscordGuildRestService(
 
 
 		return discordRestService.exchange<Guild>(
-			GuildsId(guildId),
+			GuildsIdModify(guildId),
 			builder.body(modifyRequest),
 		).body!!
 	}
@@ -79,7 +80,7 @@ class DiscordGuildRestService(
 		}
 
 		return discordRestService.exchange<Guild>(
-			GuildsId(guildId),
+			GuildsIdRead(guildId),
 			RequestEntity.method(
 				HttpMethod.GET,
 				uriBuilder.build().toUriString(),
