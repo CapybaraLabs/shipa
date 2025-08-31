@@ -39,7 +39,12 @@ allprojects {
 	}
 	tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
 		kotlinOptions.jvmTarget = theJavaVersion
-		compilerOptions.freeCompilerArgs.addAll("-java-parameters", "-Werror")
+		compilerOptions.freeCompilerArgs.addAll(
+				"-java-parameters",
+				"-Werror",
+				"-Xannotation-default-target=param-property", // future default. see https://youtrack.jetbrains.com/issue/KT-73255
+				"-Xconsistent-data-class-copy-visibility", // future default. see https://youtrack.jetbrains.com/issue/KT-11914
+		)
 	}
 
 	repositories {
@@ -49,6 +54,7 @@ allprojects {
 
 dependencies {
 	api platform(libs.kotlin.bom)
+	api platform(libs.kotlin.coroutines.bom)
 	api platform(libs.spring.boot.bom)
 	kapt platform(libs.spring.boot.bom)
 	api platform(libs.sentry.bom)

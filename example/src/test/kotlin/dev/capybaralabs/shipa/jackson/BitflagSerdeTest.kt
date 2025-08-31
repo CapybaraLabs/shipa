@@ -66,7 +66,8 @@ internal class BitflagSerdeTest {
 
 		val result = deserializer.deserialize(mock(JsonParser::class.java), ctxt)
 
-		assertThat(result).containsExactlyInAnyOrderElementsOf(expected)
+		@Suppress("UNCHECKED_CAST")
+		assertThat(result as IntBitfield<MessageFlag>).containsExactlyInAnyOrderElementsOf(expected)
 	}
 
 
@@ -108,6 +109,7 @@ internal class BitflagSerdeTest {
 
 		val result = deserializer.deserialize(mock(JsonParser::class.java), ctxt)
 
-		assertThat(result).containsExactlyInAnyOrderElementsOf(expected)
+		@Suppress("UNCHECKED_CAST")
+		assertThat(result as StringBitfield<Permission>).containsExactlyInAnyOrderElementsOf(expected)
 	}
 }
