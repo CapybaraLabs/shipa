@@ -62,6 +62,7 @@ data class EmbedAuthor(
 
 const val ZERO_WIDTH_SPACE = "\u200E"
 
+@ExposedCopyVisibility
 data class EmbedField private constructor(
 	val name: String = ZERO_WIDTH_SPACE,
 	val value: String = ZERO_WIDTH_SPACE,
