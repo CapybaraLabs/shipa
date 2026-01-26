@@ -165,7 +165,7 @@ class RequestAndResponseLoggingFilter(
 		return if (request is ContentCachingRequestWrapper) {
 			request
 		} else {
-			ContentCachingRequestWrapper(request)
+			ContentCachingRequestWrapper(request, 0)
 		}
 	}
 

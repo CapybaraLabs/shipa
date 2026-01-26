@@ -64,9 +64,10 @@ dependencies {
 	api "org.jetbrains.kotlinx:kotlinx-coroutines-core"
 	implementation "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8"
 	api "org.springframework.boot:spring-boot-starter"
-	api "org.springframework.boot:spring-boot-starter-web"
+	api "org.springframework.boot:spring-boot-starter-webmvc"
+	api "org.springframework.boot:spring-boot-starter-restclient"
 	api "io.micrometer:micrometer-registry-prometheus"
-	api "com.fasterxml.jackson.module:jackson-module-kotlin"
+	api "tools.jackson.module:jackson-module-kotlin"
 	implementation "io.sentry:sentry-kotlin-extensions"
 	implementation libs.saltycoffee
 	implementation "com.github.ben-manes.caffeine:caffeine"

@@ -1,10 +1,5 @@
 package dev.capybaralabs.shipa.jackson
 
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.SerializerProvider
-import com.fasterxml.jackson.databind.type.SimpleType
 import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.IntBitflag
 import dev.capybaralabs.shipa.discord.model.MessageFlag
@@ -25,6 +20,11 @@ import org.mockito.Mockito.`when`
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isA
 import org.mockito.kotlin.verify
+import tools.jackson.core.JsonGenerator
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.type.SimpleType
 
 internal class BitflagSerdeTest {
 
@@ -51,7 +51,7 @@ internal class BitflagSerdeTest {
 		val captor = ArgumentCaptor.forClass(Int::class.java)
 
 
-		serializer.serialize(bitField, gen, mock(SerializerProvider::class.java))
+		serializer.serialize(bitField, gen, mock(SerializationContext::class.java))
 
 		verify(gen).writeNumber(captor.capture())
 
@@ -94,7 +94,7 @@ internal class BitflagSerdeTest {
 		val captor = ArgumentCaptor.forClass(String::class.java)
 
 
-		serializer.serialize(bitfield, gen, mock(SerializerProvider::class.java))
+		serializer.serialize(bitfield, gen, mock(SerializationContext::class.java))
 
 		verify(gen).writeString(captor.capture())
 

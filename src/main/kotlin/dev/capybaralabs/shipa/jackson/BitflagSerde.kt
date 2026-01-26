@@ -1,33 +1,32 @@
 package dev.capybaralabs.shipa.jackson
 
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.BeanProperty
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.JavaType
-import com.fasterxml.jackson.databind.JsonDeserializer
-import com.fasterxml.jackson.databind.JsonSerializer
-import com.fasterxml.jackson.databind.SerializerProvider
-import com.fasterxml.jackson.databind.deser.ContextualDeserializer
 import dev.capybaralabs.shipa.discord.model.IntBitfield
 import dev.capybaralabs.shipa.discord.model.IntBitflag
 import dev.capybaralabs.shipa.discord.model.StringBitfield
 import dev.capybaralabs.shipa.discord.model.StringBitflag
 import java.math.BigInteger
+import tools.jackson.core.JsonGenerator
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.BeanProperty
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.JavaType
+import tools.jackson.databind.SerializationContext
+import tools.jackson.databind.ValueDeserializer
+import tools.jackson.databind.ValueSerializer
 
-class IntBitfieldSerializer : JsonSerializer<IntBitfield<*>>() {
+class IntBitfieldSerializer : ValueSerializer<IntBitfield<*>>() {
 
 	override fun handledType(): Class<IntBitfield<*>> {
 		return IntBitfield::class.java
 	}
 
-	override fun serialize(value: IntBitfield<*>, gen: JsonGenerator, serializers: SerializerProvider) {
+	override fun serialize(value: IntBitfield<*>, gen: JsonGenerator, serializers: SerializationContext) {
 		val reduced: Int = value.map { it.value }.reduceOrNull { acc, i -> acc or i } ?: 0
 		gen.writeNumber(reduced)
 	}
 }
 
-class IntBitfieldDeserializer(private val type: JavaType) : JsonDeserializer<IntBitfield<*>>(), ContextualDeserializer {
+class IntBitfieldDeserializer(private val type: JavaType) : ValueDeserializer<IntBitfield<*>>() {
 
 	override fun handledType(): Class<IntBitfield<*>> {
 		return IntBitfield::class.java
@@ -44,7 +43,7 @@ class IntBitfieldDeserializer(private val type: JavaType) : JsonDeserializer<Int
 			.let { IntBitfield(it) }
 	}
 
-	override fun createContextual(ctxt: DeserializationContext, property: BeanProperty): JsonDeserializer<*> {
+	override fun createContextual(ctxt: DeserializationContext, property: BeanProperty): ValueDeserializer<*> {
 		var containedType = property.type.containedType(0)
 		if (containedType.rawClass.isAssignableFrom(IntBitfield::class.java)) { // Optional<IntBitfield<*>> can trigger this
 			containedType = containedType.containedType(0)
@@ -56,19 +55,19 @@ class IntBitfieldDeserializer(private val type: JavaType) : JsonDeserializer<Int
 }
 
 
-class StringBitfieldSerializer : JsonSerializer<StringBitfield<*>>() {
+class StringBitfieldSerializer : ValueSerializer<StringBitfield<*>>() {
 
 	override fun handledType(): Class<StringBitfield<*>> {
 		return StringBitfield::class.java
 	}
 
-	override fun serialize(value: StringBitfield<*>, gen: JsonGenerator, serializers: SerializerProvider) {
+	override fun serialize(value: StringBitfield<*>, gen: JsonGenerator, serializers: SerializationContext) {
 		val reduced: BigInteger = value.map { it.value.toBigInteger() }.reduceOrNull { acc, i -> acc.or(i) } ?: BigInteger.ZERO
 		gen.writeString(reduced.toString())
 	}
 }
 
-class StringBitfieldDeserializer(private val type: JavaType) : JsonDeserializer<StringBitfield<*>>(), ContextualDeserializer {
+class StringBitfieldDeserializer(private val type: JavaType) : ValueDeserializer<StringBitfield<*>>() {
 
 	override fun handledType(): Class<StringBitfield<*>> {
 		return StringBitfield::class.java
@@ -88,7 +87,7 @@ class StringBitfieldDeserializer(private val type: JavaType) : JsonDeserializer<
 			.let { StringBitfield(it) }
 	}
 
-	override fun createContextual(ctxt: DeserializationContext, property: BeanProperty): JsonDeserializer<*> {
+	override fun createContextual(ctxt: DeserializationContext, property: BeanProperty): ValueDeserializer<*> {
 		var containedType = property.type.containedType(0)
 		if (containedType.rawClass.isAssignableFrom(StringBitfield::class.java)) { // Optional<StringBitfield<*>> can trigger this
 			containedType = containedType.containedType(0)

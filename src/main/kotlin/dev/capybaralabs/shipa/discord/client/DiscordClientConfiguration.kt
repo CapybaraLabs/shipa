@@ -9,7 +9,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import java.util.stream.Collectors
-import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.boot.restclient.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
@@ -20,7 +20,7 @@ import org.springframework.http.client.ClientHttpRequestInterceptor
 import org.springframework.http.client.ClientHttpResponse
 import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.http.converter.FormHttpMessageConverter
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 
 @Configuration
 class DiscordClientConfiguration(
@@ -46,7 +46,7 @@ class DiscordClientConfiguration(
 	}
 
 	private fun restTemplateBuilder(): RestTemplateBuilder {
-		val converter = MappingJackson2HttpMessageConverter(shipaJsonMapper.mapper)
+		val converter = JacksonJsonHttpMessageConverter(shipaJsonMapper.mapper)
 		val formConverter = FormHttpMessageConverter()
 		formConverter.addPartConverter(converter)
 		var builder = restTemplateBuilder
@@ -60,6 +60,12 @@ class DiscordClientConfiguration(
 			)
 
 		val requestFactory = builder.buildRequestFactory()
+		if (requestFactory == null) {
+			val msg = "Please include an Http Client implementation, e.g. Apache HttpComponents or OkHttp3"
+			val e = RuntimeException(msg)
+			logger().error(msg, e)
+			throw e
+		}
 		if (requestFactory is SimpleClientHttpRequestFactory) {
 			logger().warn("Please include either Apache HttpComponents4 or OkHttp3 http client lib in your class path. The simple client based on Java's URL does not work properly with PATCH requests, and doesn't handle 429s Ratelimits gracefully.")
 		}

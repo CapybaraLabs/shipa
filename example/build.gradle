@@ -6,12 +6,6 @@ plugins {
 	id "jacoco"
 }
 
-configurations {
-	//undertow master race
-	implementation.exclude module: "spring-boot-starter-reactor-netty"
-	implementation.exclude module: "spring-boot-starter-tomcat"
-}
-
 dependencies {
 	implementation platform(libs.kotlin.bom)
 	implementation platform(libs.spring.boot.bom)
@@ -20,7 +14,6 @@ dependencies {
 	testRuntimeOnly platform(libs.spring.boot.bom)
 
 	implementation rootProject
-	implementation "org.springframework.boot:spring-boot-starter-undertow"
 	implementation "org.springframework.boot:spring-boot-starter-actuator"
 	developmentOnly "org.springframework.boot:spring-boot-devtools"
 	implementation "org.apache.httpcomponents.client5:httpclient5"
@@ -28,6 +21,7 @@ dependencies {
 	testImplementation "org.junit.jupiter:junit-jupiter-api"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 	testImplementation "org.springframework.boot:spring-boot-starter-test"
+	testImplementation "org.springframework.boot:spring-boot-resttestclient"
 	testImplementation libs.mockitokotlin
 	testImplementation "com.jayway.jsonpath:json-path-assert"
 }

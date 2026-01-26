@@ -1,19 +1,16 @@
 package dev.capybaralabs.shipa.jackson
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include
-import com.fasterxml.jackson.core.StreamReadFeature
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.type.SimpleType
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jsonMapper
-import com.fasterxml.jackson.module.kotlin.kotlinModule
-import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
 import org.springframework.stereotype.Component
+import tools.jackson.core.StreamReadFeature
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.PropertyNamingStrategies
+import tools.jackson.databind.cfg.DateTimeFeature
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.databind.module.SimpleModule
+import tools.jackson.databind.type.SimpleType
+import tools.jackson.module.kotlin.jsonMapper
+import tools.jackson.module.kotlin.kotlinModule
 
 /**
  * Holds the [JsonMapper] Jackson configuration used by Shipa
@@ -22,11 +19,15 @@ import org.springframework.stereotype.Component
 class ShipaJsonMapper {
 
 	val mapper: JsonMapper = jsonMapper {
-		serializationInclusion(Include.NON_NULL)
+		changeDefaultPropertyInclusion {
+			it
+				.withValueInclusion(Include.NON_NULL)
+				.withContentInclusion(Include.NON_NULL)
+		}
 		propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
 		disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
 		enable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
-		disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS) // write dates as ISO strings
+		disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS) // write dates as ISO strings
 		enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION) // improve exception messages
 
 		val intBitfieldDeserializer = IntBitfieldDeserializer(SimpleType.constructUnsafe(Void::class.java))
@@ -39,10 +40,6 @@ class ShipaJsonMapper {
 			.addDeserializer(stringBitfieldDeserializer.handledType(), stringBitfieldDeserializer)
 
 		addModule(shipaModule)
-		addModule(Jdk8Module())
-		addModule(JavaTimeModule())
 		addModule(kotlinModule())
-		// not sure if necessary, but it was originally active, probably. findAndRegisterModules() finds it
-		addModule(ParameterNamesModule())
 	}
 }

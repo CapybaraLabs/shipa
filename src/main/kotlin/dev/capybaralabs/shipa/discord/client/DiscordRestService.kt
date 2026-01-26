@@ -1,7 +1,5 @@
 package dev.capybaralabs.shipa.discord.client
 
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.module.kotlin.jsonMapper
 import dev.capybaralabs.shipa.ShipaMetrics
 import dev.capybaralabs.shipa.ShipaMetrics.Companion.NANOSECONDS_PER_MILLISECOND
 import dev.capybaralabs.shipa.discord.client.ratelimit.Bucket
@@ -21,7 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.boot.restclient.RestTemplateBuilder
 import org.springframework.core.ParameterizedTypeReference
 import org.springframework.http.HttpHeaders
 import org.springframework.http.RequestEntity
@@ -30,6 +28,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.client.HttpClientErrorException.NotFound
 import org.springframework.web.client.HttpClientErrorException.TooManyRequests
 import org.springframework.web.client.RestClientResponseException
+import tools.jackson.core.JacksonException
+import tools.jackson.module.kotlin.jsonMapper
 
 const val HEADER_LIMIT = "X-RateLimit-Limit"
 const val HEADER_REMAINING = "X-RateLimit-Remaining"
@@ -96,7 +96,7 @@ class DiscordRestService(
 	 * Other errors are wrapped in [DiscordClientRequestFailedException].
 	 */
 	@Throws(DiscordClientException::class)
-	suspend inline fun <reified R> exchange(
+	suspend inline fun <reified R : Any> exchange(
 		bucketKey: BucketKey,
 		request: RequestEntity<*>,
 		uriTemplateOverride: String? = null,
@@ -114,7 +114,7 @@ class DiscordRestService(
 	}
 
 	@Throws(DiscordClientException::class)
-	suspend fun <R> exchange(
+	suspend fun <R : Any> exchange(
 		bucketKey: BucketKey,
 		request: RequestEntity<*>,
 		type: ParameterizedTypeReference<R>,
@@ -235,11 +235,11 @@ class DiscordRestService(
 		data class LogicalError<R>(override val exception: DiscordClientLogicalException) : DiscordRequestResultError<R>
 
 		// success. we got a response, and Discord is happy as well.
-		data class ResponseSuccess<R>(val response: ResponseEntity<R>) : DiscordRequestResult<R>
+		data class ResponseSuccess<R : Any>(val response: ResponseEntity<R>) : DiscordRequestResult<R>
 	}
 
 
-	private fun <R> instrumentRequest(request: RequestEntity<*>, uriTemplate: String, block: () -> ResponseEntity<R>): DiscordRequestResult<R> {
+	private fun <R : Any> instrumentRequest(request: RequestEntity<*>, uriTemplate: String, block: () -> ResponseEntity<R>): DiscordRequestResult<R> {
 		val method = request.method?.name() ?: "WTF"
 
 		val timer = Timer.start()
@@ -264,7 +264,7 @@ class DiscordRestService(
 			// https://discord.com/developers/docs/reference#error-messages
 			val tree = try {
 				mapper.readTree(responseBody)
-			} catch (j: JsonProcessingException) {
+			} catch (j: JacksonException) {
 				logger().warn("Failed to parse discords error response: {}", responseBody, j)
 				timer.stop(metrics.discordRestRequests(method, uriTemplate, "${e.statusCode.value()}", ""))
 				logger().warn("Failed request to: {} {} with response {}", method, uriTemplate, responseBody, e)
@@ -274,8 +274,8 @@ class DiscordRestService(
 
 			val responseTimeNanos = timer.stop(metrics.discordRestRequests(method, uriTemplate, "${e.statusCode.value()}", "$errorCode"))
 
-			val message = tree.get("message")?.asText()
-			val errors = tree.get("errors")?.asText()
+			val message = tree.get("message")?.asString()
+			val errors = tree.get("errors")?.asString()
 			val responseTimeMillis = (responseTimeNanos / NANOSECONDS_PER_MILLISECOND).toInt()
 			logger().debug("Encountered error response: {} {} {}ms {} {} {} {}", method, uriTemplate, responseTimeMillis, e.statusCode.value(), errorCode, message, errors)
 

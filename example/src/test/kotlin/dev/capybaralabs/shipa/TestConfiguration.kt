@@ -1,10 +1,10 @@
 package dev.capybaralabs.shipa
 
 import dev.capybaralabs.shipa.jackson.ShipaJsonMapper
-import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.boot.restclient.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 
 
 @Configuration
@@ -14,7 +14,7 @@ class TestConfiguration(
 
 	@Bean
 	fun builder(): RestTemplateBuilder {
-		val converter = MappingJackson2HttpMessageConverter(shipaJsonMapper.mapper)
+		val converter = JacksonJsonHttpMessageConverter(shipaJsonMapper.mapper)
 		return RestTemplateBuilder().additionalMessageConverters(converter)
 	}
 

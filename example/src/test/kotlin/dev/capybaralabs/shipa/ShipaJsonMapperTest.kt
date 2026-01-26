@@ -1,6 +1,5 @@
 package dev.capybaralabs.shipa
 
-import com.fasterxml.jackson.databind.json.JsonMapper
 import com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath
 import com.jayway.jsonpath.matchers.JsonPathMatchers.hasNoJsonPath
 import dev.capybaralabs.shipa.discord.model.IntBitfield
@@ -21,6 +20,7 @@ import org.hamcrest.Matchers.equalTo
 import org.hamcrest.Matchers.nullValue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import tools.jackson.databind.json.JsonMapper
 import org.assertj.core.api.Assertions.assertThat as assertJThat
 
 /**
