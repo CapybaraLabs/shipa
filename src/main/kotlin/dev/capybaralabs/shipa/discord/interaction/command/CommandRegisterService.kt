@@ -1,6 +1,6 @@
 package dev.capybaralabs.shipa.discord.interaction.command
 
-import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.ShipaDiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.client.ratelimit.ApplicationsCommands
 import dev.capybaralabs.shipa.discord.client.ratelimit.ApplicationsCommandsId
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class CommandRegisterService(
-	properties: DiscordProperties,
+	properties: ShipaDiscordProperties,
 	private val discordRestService: DiscordRestService,
 	private val environment: Environment,
 ) {

@@ -1,6 +1,6 @@
 package dev.capybaralabs.shipa.discord.client.entity
 
-import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.ShipaDiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import java.text.Normalizer
 
@@ -11,7 +11,7 @@ internal fun String.toAscii(): String {
 }
 
 abstract class BaseDiscordEntityRestService(
-	properties: DiscordProperties,
+	properties: ShipaDiscordProperties,
 	protected val discordRestService: DiscordRestService,
 ) {
 	protected val applicationId = properties.applicationId

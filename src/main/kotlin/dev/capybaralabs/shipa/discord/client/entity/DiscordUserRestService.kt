@@ -1,6 +1,6 @@
 package dev.capybaralabs.shipa.discord.client.entity
 
-import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.ShipaDiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.client.ratelimit.UsersId
 import dev.capybaralabs.shipa.discord.client.ratelimit.UsersIdChannels
@@ -20,7 +20,7 @@ import org.springframework.http.RequestEntity
  * Rest Client for the [Discord Users Resource](https://discord.com/developers/docs/resources/user)
  */
 class DiscordUserRestService(
-	properties: DiscordProperties,
+	properties: ShipaDiscordProperties,
 	discordRestService: DiscordRestService,
 ) : BaseDiscordEntityRestService(properties, discordRestService) {
 

@@ -1,7 +1,7 @@
 package dev.capybaralabs.shipa.discord.client
 
 import dev.capybaralabs.shipa.ShipaMetrics
-import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.ShipaDiscordProperties
 import dev.capybaralabs.shipa.discord.client.ratelimit.BucketService
 import dev.capybaralabs.shipa.jackson.ShipaJsonMapper
 import dev.capybaralabs.shipa.logger
@@ -24,7 +24,7 @@ import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter
 
 @Configuration
 class DiscordClientConfiguration(
-	private val properties: DiscordProperties,
+	private val properties: ShipaDiscordProperties,
 	private val shipaJsonMapper: ShipaJsonMapper,
 	private val bucketService: BucketService,
 	private val metrics: ShipaMetrics,

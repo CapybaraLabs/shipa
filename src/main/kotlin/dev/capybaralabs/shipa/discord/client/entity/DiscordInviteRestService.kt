@@ -1,6 +1,6 @@
 package dev.capybaralabs.shipa.discord.client.entity
 
-import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.ShipaDiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.client.ratelimit.InvitesCode
 import dev.capybaralabs.shipa.discord.model.Invite
@@ -11,7 +11,7 @@ import org.springframework.http.RequestEntity
  * Rest Client for the [Discord Invite Resource](https://discord.com/developers/docs/resources/invite)
  */
 class DiscordInviteRestService(
-	properties: DiscordProperties,
+	properties: ShipaDiscordProperties,
 	discordRestService: DiscordRestService,
 ) : BaseDiscordEntityRestService(properties, discordRestService) {
 

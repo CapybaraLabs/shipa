@@ -1,6 +1,6 @@
 package dev.capybaralabs.shipa.discord.client.entity
 
-import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.ShipaDiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdBansId
 import dev.capybaralabs.shipa.discord.client.ratelimit.GuildsIdInvites
@@ -29,7 +29,7 @@ import org.springframework.web.util.UriComponentsBuilder
  * Rest Client for the [Discord Guild Resource](https://discord.com/developers/docs/resources/guild)
  */
 class DiscordGuildRestService(
-	properties: DiscordProperties,
+	properties: ShipaDiscordProperties,
 	discordRestService: DiscordRestService,
 ) : BaseDiscordEntityRestService(properties, discordRestService) {
 

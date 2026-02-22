@@ -1,6 +1,6 @@
 package dev.capybaralabs.shipa.discord.interaction
 
-import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.ShipaDiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.client.MultipartBody
 import dev.capybaralabs.shipa.discord.client.ratelimit.WebhooksIdToken
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class InteractionRestService(
-	properties: DiscordProperties,
+	properties: ShipaDiscordProperties,
 	private val discordRestService: DiscordRestService,
 ) {
 

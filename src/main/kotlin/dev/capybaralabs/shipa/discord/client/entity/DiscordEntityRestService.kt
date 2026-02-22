@@ -1,13 +1,13 @@
 package dev.capybaralabs.shipa.discord.client.entity
 
-import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.ShipaDiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordAuthToken
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import org.springframework.stereotype.Service
 
 @Service
 class DiscordEntityRestService(
-	private val properties: DiscordProperties,
+	private val properties: ShipaDiscordProperties,
 	private val discordRestService: DiscordRestService,
 ) {
 

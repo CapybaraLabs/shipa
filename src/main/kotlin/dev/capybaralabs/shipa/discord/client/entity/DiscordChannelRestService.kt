@@ -1,6 +1,6 @@
 package dev.capybaralabs.shipa.discord.client.entity
 
-import dev.capybaralabs.shipa.discord.DiscordProperties
+import dev.capybaralabs.shipa.discord.ShipaDiscordProperties
 import dev.capybaralabs.shipa.discord.client.DiscordRestService
 import dev.capybaralabs.shipa.discord.client.FileUpload
 import dev.capybaralabs.shipa.discord.client.MultipartBody
@@ -31,7 +31,7 @@ import org.springframework.web.util.UriComponentsBuilder
  * Rest Client for the [Discord Channels Resource](https://discord.com/developers/docs/resources/channel)
  */
 class DiscordChannelRestService(
-	properties: DiscordProperties,
+	properties: ShipaDiscordProperties,
 	discordRestService: DiscordRestService,
 ) : BaseDiscordEntityRestService(properties, discordRestService) {
 
