@@ -14,7 +14,6 @@ import dev.capybaralabs.shipa.discord.time
 import dev.capybaralabs.shipa.jackson.ShipaJsonMapper
 import dev.capybaralabs.shipa.logger
 import io.micrometer.core.instrument.Timer
-import io.sentry.DateUtils
 import io.sentry.kotlin.SentryContext
 import jakarta.servlet.http.HttpServletRequest
 import java.time.Duration
@@ -22,7 +21,6 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionStage
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.CompletableDeferred
@@ -44,7 +42,7 @@ const val HEADER_SIGNATURE = "X-Signature-Ed25519"
 const val HEADER_TIMESTAMP = "X-Signature-Timestamp"
 
 @RestController
-@RequestMapping("\${shipa.interaction-controller-path:/api/interaction}")
+@RequestMapping($$"${shipa.interaction-controller-path:/api/interaction}")
 internal class InteractionController(
 	private val interactionValidator: InteractionValidator,
 	private val shipaJsonMapper: ShipaJsonMapper,
