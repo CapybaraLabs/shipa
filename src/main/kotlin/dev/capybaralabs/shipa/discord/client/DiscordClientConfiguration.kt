@@ -50,7 +50,7 @@ class DiscordClientConfiguration(
 		val formConverter = FormHttpMessageConverter()
 		formConverter.addPartConverter(converter)
 		var builder = restTemplateBuilder
-			.rootUri(properties.discordApiRootUrl)
+			.baseUri(properties.discordApiRootUrl)
 			.messageConverters(converter, formConverter)
 			.additionalInterceptors(
 				{ req, body, exec ->

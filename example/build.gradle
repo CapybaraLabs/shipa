@@ -13,7 +13,7 @@ dependencies {
 	testImplementation platform(libs.spring.boot.bom)
 	testRuntimeOnly platform(libs.spring.boot.bom)
 
-	implementation rootProject
+	implementation project(":")
 	implementation "org.springframework.boot:spring-boot-starter-actuator"
 	developmentOnly "org.springframework.boot:spring-boot-devtools"
 	implementation "org.apache.httpcomponents.client5:httpclient5"

@@ -18,18 +18,18 @@ plugins {
 group = "dev.capybaralabs.shipa"
 version = "$shipaVersion"
 
-allprojects {
-	java {
-		toolchain {
-			languageVersion = JavaLanguageVersion.of(theJavaVersion)
-			vendor = JvmVendorSpec.ADOPTIUM
-		}
-		withSourcesJar()
-		consistentResolution {
-			useCompileClasspathVersions()
-		}
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(theJavaVersion)
+		vendor = JvmVendorSpec.ADOPTIUM
 	}
+	withSourcesJar()
+	consistentResolution {
+		useCompileClasspathVersions()
+	}
+}
 
+allprojects {
 	tasks.withType(JavaCompile).configureEach {
 		dependsOn(processResources)
 		options.encoding = "UTF-8"
@@ -42,7 +42,6 @@ allprojects {
 		compilerOptions.freeCompilerArgs.addAll(
 				"-java-parameters",
 				"-Werror",
-				"-Xannotation-default-target=param-property", // future default. see https://youtrack.jetbrains.com/issue/KT-73255
 				"-Xconsistent-data-class-copy-visibility", // future default. see https://youtrack.jetbrains.com/issue/KT-11914
 		)
 	}
@@ -91,7 +90,7 @@ tasks.register("resolveAndLockAll") {
 			}
 		}
 		configurations
-				.findAll { it.canBeResolved }
+				.matching { it.canBeResolved }
 				.each { it.resolve() }
 	}
 }
