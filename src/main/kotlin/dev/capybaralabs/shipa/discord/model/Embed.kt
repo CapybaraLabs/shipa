@@ -62,7 +62,6 @@ data class EmbedAuthor(
 
 const val ZERO_WIDTH_SPACE = "\u200E"
 
-@ExposedCopyVisibility
 data class EmbedField private constructor(
 	val name: String = ZERO_WIDTH_SPACE,
 	val value: String = ZERO_WIDTH_SPACE,
@@ -89,5 +88,9 @@ data class EmbedField private constructor(
 			return EmbedField(name, value, false)
 		}
 
+	}
+
+	fun copyIt(name: String? = this.name, value: String? = this.value, inline: Boolean? = this.inline): EmbedField {
+		return EmbedField(name, value, inline)
 	}
 }
