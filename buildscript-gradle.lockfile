@@ -37,7 +37,4 @@ org.jetbrains.kotlin:kotlin-util-klib-metadata:2.4.20=classpath
 org.jetbrains.kotlin:kotlin-util-klib:2.4.20=classpath
 org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0=classpath
 org.jetbrains:annotations:13.0=classpath
-org.sonarqube:org.sonarqube.gradle.plugin:7.5.0.8588=classpath
-org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:7.5.0.8588=classpath
-org.sonarsource.scanner.lib:sonar-scanner-java-library-shaded:4.2.1.1698=classpath
 empty=

@@ -11,7 +11,6 @@ plugins {
 	id "org.jetbrains.kotlin.kapt"
 	id "org.jetbrains.kotlin.plugin.spring" // opens certain classes
 	id "jacoco"
-	id "org.sonarqube"
 	id "maven-publish"
 }
 
@@ -141,18 +140,6 @@ tasks.register("codeCoverageReport", JacocoReport) {
 		csv.required.set(false)
 	}
 }
-
-tasks.withType(org.sonarqube.gradle.SonarTask).configureEach {
-	dependsOn codeCoverageReport
-}
-sonarqube {
-	properties {
-		property "sonar.projectKey", "dev.capybaralabs.shipa"
-		property "sonar.coverage.jacoco.xmlReportPaths", "${rootDir}/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml"
-		property "sonar.coverage.exclusions", "example/**/*"
-	}
-}
-
 
 publishing {
 	publications {
