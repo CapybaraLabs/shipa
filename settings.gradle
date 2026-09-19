@@ -8,7 +8,7 @@ pluginManagement {
 	plugins {
 		id "org.jetbrains.kotlin.jvm" version "$kotlinVersion"
 		id "org.jetbrains.kotlin.kapt" version "$kotlinVersion"
-		id "com.github.ben-manes.versions" version "$versionsVersion"
+		id "io.github.ben-manes.versions" version "$versionsVersion"
 		id "org.springframework.boot" version "$springBootVersion"
 		id "org.jetbrains.kotlin.plugin.spring" version "$kotlinVersion"
 		id "com.adarshr.test-logger" version "$testloggerVersion"

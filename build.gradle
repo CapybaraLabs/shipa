@@ -7,7 +7,7 @@ buildscript {
 plugins {
 	id "java-library"
 	id "org.jetbrains.kotlin.jvm"
-	id "com.github.ben-manes.versions"
+	id "io.github.ben-manes.versions"
 	id "org.jetbrains.kotlin.kapt"
 	id "org.jetbrains.kotlin.plugin.spring" // opens certain classes
 	id "jacoco"
